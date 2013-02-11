@@ -75,47 +75,6 @@ void RL_MICS(byte device, long resistor) {
   else if (device== MICS_2710) writeMCP(MCP1, 0x01, data);
 }
 
-void testMICS()
-{
-  float current = 0;
-  // float i=0;
-  float Rs = 0;
-  float VL = 0;
-  float RL = 0;
-  float Vc = 0;
-  int   Rc = 10; //Ohm
-  int   Vcc = 5000; //mV
-  float Rh = 0;
-  float Vh = 0;
-  /*Correccion de la tension del Heather*/
-  VH_MICS(MICS_5525, 2400); //VH_MICS5525 Inicial
-  digitalWrite(IO0, HIGH); //VH_MICS5525
-  delay(200);
-  Vc = (float)average(S2)*Vcc/1023; //mV 
-  current = Vc/Rc; //mA 
-  Rh = (readVH(MICS_5525)- Vc)/current;
-  Vh = (Rh + Rc)*32;
-  VH_MICS(MICS_5525, Vh); //VH_MICS5525 Corregido
-  for(int i=0; i<100; i++)
-  {
-    delay(1000);
-    /*Lectura de datos*/
-    RL_MICS(MICS_5525, 100000);
-    Vc = (float)average(S2)*Vcc/1023; //mV 
-    current = Vc/Rc; //mA 
-    RL = kr*readMCP(MCP1, 0x00)/1000; //Kohm
-    VL = ((float)average(S0)*Vcc)/1023; //mV
-    Rs = ((Vcc-VL)/VL)*RL; //Kohm
-    Serial.print("Ih =");
-    Serial.print(current);
-    Serial.print(" mA Rs = ");
-    Serial.print(Rs);
-    Serial.println(" KOhm.");
-
-  }
-  digitalWrite(IO0, LOW); //VH_MICS5525
-}
-
 float getMICS(byte device,unsigned long time){
   float current = 0;
   // float i=0;

@@ -23,9 +23,9 @@ public:
 
 class WiFlyHTML {
 public:
-    WiFlyHTML(Stream* newUart);
     void begin(char* ssid, char* pass, char* auth, char* antenna);
     boolean join();
+    boolean ready();
     const char * ip();
     byte scan(network_results *networks);
     boolean reboot();
@@ -38,7 +38,6 @@ public:
     boolean baudrate(long baudrate); 
     boolean isConnected();
   private:
-    Stream* uart;
     boolean connected;
     boolean findInResponse(const char *toMatch, unsigned int timeOut);
     void skipRemainderOfResponse();
@@ -48,7 +47,6 @@ public:
     boolean sendCommand(const __FlashStringHelper *command,
                         boolean isMultipartCommand, // Has default value
                         const char *expectedResponse); // Has default value
-    void setConfiguration(char* ssid, char* pass, char* auth, char* antenna);  
     
 };
 #endif

@@ -9,7 +9,7 @@ boolean WiFlyHTML::findInResponse(const char *toMatch,
 
   for (unsigned int offset = 0; offset < strlen(toMatch); offset++) {
     timeOutTarget = millis() + timeOut; // Doesn't handle timer wrapping
-    while (!uart->available()) {
+    while (!Serial1.available()) {
       // Wait, with optional time out.
       if (timeOut > 0) {
         if (millis() > timeOutTarget) {
@@ -18,7 +18,7 @@ boolean WiFlyHTML::findInResponse(const char *toMatch,
       }
       delay(1); // This seems to improve reliability slightly
     }
-    byteRead = uart->read();
+    byteRead = Serial1.read();
     //Serial.print((char)byteRead);
     delay(1); // Removing logging may affect timing slightly
 
@@ -36,19 +36,24 @@ boolean WiFlyHTML::findInResponse(const char *toMatch,
 }
 
 void WiFlyHTML::skipRemainderOfResponse() {
-    while (!(uart->available() && (uart->read() == '\n'))) {
-      // Skip remainder of response
-    }
+  while (Serial1.available())
+  {
+    Serial1.read();
+    delay(1);
+  }
+//    while (!(Serial1.available() && (Serial1.read() == '\n'))) {
+//      // Skip remainder of response
+//    }
 }
 
 boolean WiFlyHTML::sendCommand(const __FlashStringHelper *command,
                                  boolean isMultipartCommand = false,
                                  const char *expectedResponse = "AOK") {
-  uart->print(command);
+  Serial1.print(command);
   delay(20);
   if (!isMultipartCommand) {
-    uart->flush();
-    uart->println();
+    Serial1.flush();
+    Serial1.println();
 
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
@@ -64,11 +69,11 @@ boolean WiFlyHTML::sendCommand(const __FlashStringHelper *command,
 boolean WiFlyHTML::sendCommand(const char *command,
                                  boolean isMultipartCommand = false,
                                  const char *expectedResponse = "AOK") {
-  uart->print(command);
+  Serial1.print(command);
   delay(20);
   if (!isMultipartCommand) {
-    uart->flush();
-    uart->println();
+    Serial1.flush();
+    Serial1.println();
 
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
@@ -89,11 +94,11 @@ boolean WiFlyHTML::enterCommandMode() {
     for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
      {
       delay(COMMAND_MODE_GUARD_TIME);
-      uart->print(F("$$$"));
+      Serial1.print("$$$");
       delay(COMMAND_MODE_GUARD_TIME);
-      uart->println();
-      uart->println();
-      uart->println(F("ver"));
+      Serial1.println();
+      Serial1.println();
+      Serial1.println("ver");
       if (findInResponse("\r\nWiFly Ver", 1000)) 
       {
       return true;
@@ -102,31 +107,20 @@ boolean WiFlyHTML::enterCommandMode() {
     return false;
 }
 
-boolean WiFlyHTML::exitCommandMode() {
-    for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
-     {
-      if (sendCommand(F("exit"), false, "EXIT")) 
-      {
-      return true;
-      }
-    }
-    return false;
-}
-
-
 #define SOFTWARE_REBOOT_RETRY_ATTEMPTS 2
 
 boolean WiFlyHTML::reboot() {
   for (int retryCount = 0; retryCount < SOFTWARE_REBOOT_RETRY_ATTEMPTS; retryCount++) 
     {   
       enterCommandMode();
-      uart->println(F("reboot"));
+      Serial.println("reboot");
       if (findInResponse("*READY*", 2000)) {
         return true;
       }
     }
   return false;
 }
+
 
 #define SOFTWARE_RESET_RETRY_ATTEMPTS 2
 
@@ -141,50 +135,39 @@ boolean WiFlyHTML::reset() {
   return false;
 }
 
+
+
 boolean WiFlyHTML::sleep() {
       enterCommandMode();
       sendCommand(F("sleep"));
 }
 
-void WiFlyHTML::setConfiguration(char* ssid, char* pass, char* auth, char* antenna) {
-  if (enterCommandMode())
+
+
+boolean WiFlyHTML::exitCommandMode() {
+    for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
+     {
+      if (sendCommand(F("exit"), false, "EXIT")) 
+      {
+      return true;
+      }
+    }
+    return false;
+}
+
+boolean WiFlyHTML::ready()
+{
+  if (findInResponse("*READY*", 8000)) 
   {
-    #if debug
-    /*
-      if(sendCommand(F("set comm time 1"))) Serial.println("OK1");
-      
-      if(sendCommand(F("set comm size 1024"))) Serial.println("OK2");
-      
-      sendCommand(F("set wlan ssid "), true);
-      if(sendCommand(ssid)) Serial.println("OK3");
-      sendCommand(F("set wlan phrase "), true);
-      if(sendCommand(pass)) Serial.println("OK4");
-        
-      if(sendCommand(F("set ip proto 10"))) Serial.println("OK5");
-        
-      if(sendCommand(F("set comm remote 0"))) Serial.println("OK6");
-      if(sendCommand(F("set t z 1"))) Serial.println("OK7");
-      if(sendCommand(F("set time address 129.6.15.28"))) Serial.println("OK8");
-      if(sendCommand(F("set time port 123"))) Serial.println("OK9");
-      if(sendCommand(F("set t e 15"))) Serial.println("OK10");
-      ///// ///// ///// ///// ///// /////
-      sendCommand(F("set wlan auth "), true);
-      if(sendCommand(auth)) Serial.println("OK11");
-      //sendCommand(F("set wlan auth 4")); // red sin password!!!
-      ///// ///// ///// ///// ///// /////
-      
-      if(sendCommand(F("set wlan ext_antenna 0"))) Serial.println("OK12");
-      if(sendCommand(antenna)) Serial.println("OK13");
-      
-      if(sendCommand(F("set ip dhcp 1"))) Serial.println("OK14");
-      if(sendCommand(F("save"), false, "Storing in config")) Serial.println("OK15");
-      */
-    #else
-      // TODO: Handle configuration better
-      // Turn off auto-connect
-      sendCommand(F("set comm time 1"));
-      
-      sendCommand(F("set comm size 1024"));
+    Serial.println("READY!!!");
+    return(true);
+  }
+  else return(false);
+}
+
+void WiFlyHTML::begin(char* ssid, char* pass, char* auth, char* antenna) {
+  if (enterCommandMode())
+  {    
       
       sendCommand(F("set wlan ssid "), true);
       sendCommand(ssid);
@@ -200,49 +183,47 @@ void WiFlyHTML::setConfiguration(char* ssid, char* pass, char* auth, char* anten
       sendCommand(pass);
         
       sendCommand(F("set ip proto 10")); //Modo TCP
-        
+      
       sendCommand(F("set comm remote 0"));
-      sendCommand(F("set t z 1"));  //Zona horaria
-      sendCommand(F("set time address 129.6.15.28")); //Servidor de reloj
-      sendCommand(F("set time port 123")); //Puerto del servidor
-      sendCommand(F("set t e 15")); //Toma hora cada 15 min
-      ///// ///// ///// ///// ///// /////
-
+      
       sendCommand(F("set wlan ext_antenna "), true); // ANTENA: 0-> interna, 1-> externa
       sendCommand(antenna);
       
       sendCommand(F("set ip dhcp 1"));
+      
       sendCommand(F("save"), false, "Storing in config");
-    #endif
+      
+      sendCommand(F("reboot"), false, "*READY*");
   }
-  exitCommandMode();
+  //exitCommandMode();
 }
 
-boolean WiFlyHTML::baudrate(long baudrate_temp)
-{
-  if (enterCommandMode())
-  {
-    sendCommand(F("set uart baudrate "), true);
-    uart->print(baudrate_temp);
-    sendCommand("");
-    //delay(100);
-    uart->println(F("save"));
-    delay(100);
-    reboot();
-    //uart->println("exit");
-    return true;
-  }
- return false;
-} 
-
-WiFlyHTML::WiFlyHTML(Stream* newUart) {
-  uart = newUart;
-}
-
-void WiFlyHTML::begin(char* ssid, char* pass, char* auth, char* ant) {
-	//reboot();
-        setConfiguration(ssid, pass, auth, ant);
-}
+//boolean WiFlyHTML::baudrate(long baudrate_temp)
+//{
+//  if (enterCommandMode())
+//  {
+//    sendCommand(F("set uart baudrate "), true);
+//    uart->print(baudrate_temp);
+//    sendCommand("");
+//    //delay(100);
+//    uart->println(F("save"));
+//    delay(100);
+//    reboot();
+//    //uart->println("exit");
+//    return true;
+//  }
+// return false;
+//} 
+//
+//WiFlyHTML::WiFlyHTML(Stream* newUart) {
+//  uart = newUart;
+//}
+//
+//void WiFlyHTML::begin(char* ssid, char* pass, char* auth, char* ant) {
+//	//reboot();
+//        setConfiguration(ssid, pass, auth, ant);
+//}
+//
 
 boolean WiFlyHTML::open(const char *addr, int port) {
   
@@ -253,8 +234,8 @@ boolean WiFlyHTML::open(const char *addr, int port) {
   {
     sendCommand(F("open "), true);
     sendCommand(addr, true);
-    uart->print(" ");
-    uart->print(port);
+    Serial1.print(" ");
+    Serial1.print(port);
     if (sendCommand("", false, "*OPEN*")) 
     {
       connected = true;
@@ -265,10 +246,12 @@ boolean WiFlyHTML::open(const char *addr, int port) {
   else return false;
 }
 
+
 boolean WiFlyHTML::isConnected()
 {
     return connected;
 }
+
 
 boolean WiFlyHTML::close() {
   if (!connected) {
@@ -295,9 +278,9 @@ boolean WiFlyHTML::join() {
   }
   return false;
 }
-
-
-
+//
+//
+//
 #define IP_ADDRESS_BUFFER_SIZE 16 // "255.255.255.255\0"
 
 const char * WiFlyHTML::ip() {
@@ -323,15 +306,18 @@ const char * WiFlyHTML::ip() {
     
           // Copy the IP address from the response into our buffer
           while (offset < IP_ADDRESS_BUFFER_SIZE) {
-             newChar = uart->read();
-             //Serial.println(newChar);
-            if (newChar == ':') {
-              ip[offset] = '\x00';
-              break;
-            } 
-            else if (newChar != -1) {
-              ip[offset] = newChar;
-              offset++;
+            if (Serial1.available())
+            {
+               newChar = Serial1.read();
+               //Serial.println(newChar);
+              if (newChar == ':') {
+                ip[offset] = '\x00';
+                break;
+              } 
+              else if (newChar != -1) {
+                ip[offset] = newChar;
+                offset++;
+              }
             }
           }
           ip[IP_ADDRESS_BUFFER_SIZE-1] = '\x00';
@@ -343,55 +329,55 @@ const char * WiFlyHTML::ip() {
           // Skip the prompt
           }*/
           
-          findInResponse("> ");
+          //findInResponse("> ");
           exitCommandMode();
       }        
   }
   
   return ip;
 }
-
-byte WiFlyHTML::scan(network_results *network) {
-  char num = '0';
-  char i = 0;
-  static char net[5] = { 0x0D, 0x0A, 0x20, 0x31, '\x00'};
-  if (enterCommandMode())
-    {
-      if (sendCommand(F("scan"), false, "Found "))
-      {
-        num = uart->read();
-        if ((num > '0')&&(num <= '9'))
-        {
-          while ((i+'0') < num) 
-            {
-              net[3]=i+1+'0';
-              if (findInResponse(net)) 
-              {
-                char newChar;
-                byte offset = 0;
-                newChar = uart->read();
-                while (((newChar == -1)||(newChar == ' '))) newChar = uart->read();
-                while (offset < SCAN_SSID_BUFFER_SIZE) {
-                    if (newChar == ' ') {
-                      network -> ssid[i][offset] = '\x00';
-                      break;
-                    } 
-                    else if ((newChar != -1)) {
-                          network -> ssid[i][offset] = newChar;
-                          offset++;
-                    }
-                    newChar = uart->read();
-                 }
-                network -> ssid[i][SCAN_SSID_BUFFER_SIZE-1] = '\x00';
-              }
-              i++;
-           }
-         }
-       }
-       exitCommandMode();
-    }   
-  if ((num > '0')&&(num <= '9')) num = num-'0';
-  else num = 0;
-  
-  return (num);
-}
+//
+//byte WiFlyHTML::scan(network_results *network) {
+//  char num = '0';
+//  char i = 0;
+//  static char net[5] = { 0x0D, 0x0A, 0x20, 0x31, '\x00'};
+//  if (enterCommandMode())
+//    {
+//      if (sendCommand(F("scan"), false, "Found "))
+//      {
+//        num = uart->read();
+//        if ((num > '0')&&(num <= '9'))
+//        {
+//          while ((i+'0') < num) 
+//            {
+//              net[3]=i+1+'0';
+//              if (findInResponse(net)) 
+//              {
+//                char newChar;
+//                byte offset = 0;
+//                newChar = uart->read();
+//                while (((newChar == -1)||(newChar == ' '))) newChar = uart->read();
+//                while (offset < SCAN_SSID_BUFFER_SIZE) {
+//                    if (newChar == ' ') {
+//                      network -> ssid[i][offset] = '\x00';
+//                      break;
+//                    } 
+//                    else if ((newChar != -1)) {
+//                          network -> ssid[i][offset] = newChar;
+//                          offset++;
+//                    }
+//                    newChar = uart->read();
+//                 }
+//                network -> ssid[i][SCAN_SSID_BUFFER_SIZE-1] = '\x00';
+//              }
+//              i++;
+//           }
+//         }
+//       }
+//       exitCommandMode();
+//    }   
+//  if ((num > '0')&&(num <= '9')) num = num-'0';
+//  else num = 0;
+//  
+//  return (num);
+//}

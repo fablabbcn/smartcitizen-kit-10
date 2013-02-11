@@ -31,19 +31,27 @@ RTC_DS1307 RTC;
 
 #define wiflyEnabled    true
 #define SDEnabled       false
-#define debuggEnabled   false
-
 
 #if wiflyEnabled
 #include "WiFlyHTML.h"
-WiFlyHTML wifly(&Serial1);
+WiFlyHTML wifly;
 
-char mySSID[] = "FORESTALPALOME";  
-char myPassword[] = "6c61757261";  //"laura" in HEX
-char wifiEncript[] = WEP64;
-char antenna[] = EXT_ANT; // ANTENNA EXTERNA
-#define PACHUBE_FEED "86270" // Bordils
+//
+//char mySSID[] = "IAAC";  
+//char myPassword[] = "enteriaac2013";  //
+//char wifiEncript[] = WPA2;
+//char antenna[] = INT_ANT; // ANTENNA EXTERNA
+//#define PACHUBE_FEED "86270" // Bordils
+//#define APIKEY "nKn8ldoeUYHFdcLymuWAAm6KfblczFJFCIc8GT2_G30"
+
+/*
+char mySSID[] = "COSM";  
+char myPassword[] = "1c2c3c4c5c6c7";  //
+char wifiEncript[] = WPA2;
+char antenna[] = INT_ANT; // ANTENNA EXTERNA
+#define PACHUBE_FEED "59775" // FabLab
 #define APIKEY "nKn8ldoeUYHFdcLymuWAAm6KfblczFJFCIc8GT2_G30"
+*/
 
 /*
 char mySSID[] = "mid";  
@@ -54,21 +62,25 @@ char antenna[] = EXT_ANT; // ANTENNA EXTERNA
 #define APIKEY "nKn8ldoeUYHFdcLymuWAAm6KfblczFJFCIc8GT2_G30"
 */
 
-//char mySSID[] = "hangar_nau3";  
-//char myPassword[] = "m1cr0fug4s";
-//char wifiEncript[] = WPA2;
-//char antenna[] = INT_ANT; // ANTENNA INTEGRADA
-//#define PACHUBE_FEED "42124" //Hangar
-//#define APIKEY "nKn8ldoeUYHFdcLymuWAAm6KfblczFJFCIc8GT2_G30"
+
+char mySSID[] = "hangar_nau3";  
+char myPassword[] = "m1cr0fug4s";
+char wifiEncript[] = WPA2;
+char antenna[] = INT_ANT; // ANTENNA INTEGRADA
+//#define PACHUBE_FEED "86270" // Bordils
+#define PACHUBE_FEED "42124" // Hangar
+#define APIKEY "nKn8ldoeUYHFdcLymuWAAm6KfblczFJFCIc8GT2_G30"
+
 
 /*
 char mySSID[] = "Mi$Red";  
 char myPassword[] = "FINALFANTASY";
 char wifiEncript[] = WPA2;
 char antenna[] = INT_ANT; // ANTENNA INTEGRADA
-#define PACHUBE_FEED "100285"
-#define APIKEY "ssaoVAZPglmNtZFoFfw0IQQUz5OSAKxmZDFhVVNENzZjUT0g"
 */
+//#define PACHUBE_FEED "100285"
+//#define APIKEY "ssaoVAZPglmNtZFoFfw0IQQUz5OSAKxmZDFhVVNENzZjUT0g"
+
 
 
 #endif
@@ -98,10 +110,6 @@ void setup() {
 
   Serial.begin(115200);
   Serial1.begin(9600);
-
-#if debuggEnabled
-  while(!Serial);
-#endif
 
   Wire.begin();
   RTC.begin();
@@ -145,9 +153,8 @@ void setup() {
   /*init WiFly*/
 
 #if wiflyEnabled
-
-  delay(5000); // tiempo de espera para la conexion! Puede ser mucho menor!
-
+  digitalWrite(AWAKE, HIGH); 
+  wifly.ready();  // tiempo de espera para la conexion!
   while (!wifly.join()) {  // Cuidado!! Es bloqueante!!
     Serial.println("wifly disconnected!");
     Serial.println("connecting...");
@@ -178,16 +185,6 @@ void setup() {
 
 
 void loop() { 
-
-#if debuggEnabled
-  updateSensors();
-  serialPrint();
-  fecha();
-  writeEEPROM(eeprom, 100, 23);
-  Serial.println(readEEPROM(eeprom, 100));
-#endif
-
-
 
 #if wiflyEnabled
   delay(transmitPachube*1000); //CAMBIAR POR TEMPORIZADOR DE MILISEGUNDOS

@@ -7,6 +7,8 @@ void txWiFly() {
   char buff[128];  // message lenght 
   if (sleep){Serial.println("Despierta");  digitalWrite(AWAKE, HIGH); }
   
+  wifly.ready();  // tiempo de espera para la conexion!
+
   Serial.print("IP:"); 
   Serial.println(wifly.ip()); 
   
