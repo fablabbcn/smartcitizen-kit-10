@@ -1,3 +1,8 @@
+/////////////////////////////////
+// for uplade firmware WIFLY 
+// "ftp upload" + CR 
+/////////////////////////////////
+
 void setup() { 
  //Initialize serial and wait for port to open:
   #define AWAKE  4 //Wake up WIFI
