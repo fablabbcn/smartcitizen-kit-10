@@ -1,6 +1,6 @@
 /////////////////////////////////
 // for uplade firmware WIFLY 
-// "ftp upload" + CR 
+// "ftp update" + CR 
 /////////////////////////////////
 
 void setup() { 
