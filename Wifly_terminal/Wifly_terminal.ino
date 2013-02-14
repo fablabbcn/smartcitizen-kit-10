@@ -1,7 +1,16 @@
-/////////////////////////////////
-// for uplade firmware WIFLY 
-// "ftp update" + CR 
-/////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//download and upload this firmware to the sck
+//https://github.com/fablabbcn/Smart-Citizen-Kit/tree/master/Wifly_terminal
+//
+//write the next commands:
+//
+//- ftp upload
+//(this download and install the last wifi firmware)
+//- factory RESET
+//(restart to original factory preset)
+//- reboot
+//(reboot the wifi)
+//////////////////////////////////////////////////////////////////
 
 void setup() { 
  //Initialize serial and wait for port to open:
