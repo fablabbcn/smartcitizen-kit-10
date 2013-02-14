@@ -2,7 +2,7 @@
 //download and upload this firmware to the sck
 //https://github.com/fablabbcn/Smart-Citizen-Kit/tree/master/Wifly_terminal
 //
-//write the next commands:
+//OPEN ARDUINO SERIAL MONITOR and write the next commands:
 //
 //- ftp upload
 //(this download and install the last wifi firmware)
