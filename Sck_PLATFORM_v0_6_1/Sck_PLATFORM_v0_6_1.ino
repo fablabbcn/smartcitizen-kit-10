@@ -12,8 +12,6 @@ unsigned long timetransmit;
 #define SDEnabled       false
 #define sensorEnabled   true
 #define debuggEnabled   true
-#define GasEnabled      true  // false if the board hasn't gas sensors!
-
 
 SmartCitizen sck;
 
@@ -38,6 +36,7 @@ byte check_pass_write        = 0;
 byte check_pass_read         = 0;
 byte check_auth_write        = 0;
 byte check_auth_read         = 0;
+byte check_clear             = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -48,73 +47,9 @@ byte check_telnet_close       = 0;
 void timerIsr()
 {
   sei();
-  if (eeprom_read_ok) 
-  {
-    if (nets>0) 
-    {
-      byte inByte = sck.readEEPROM(address_eeprom);
-      if (inByte!=0x00) {
-        Serial.write(inByte); 
-        address_eeprom = address_eeprom + 1;
-      }
-      else { 
-        Serial.print(' '); 
-        nets=nets-1; 
-        address_eeprom = address_eeprom + 1;
-      }
-    }
-    else { 
-      Serial.println(); 
-      eeprom_read_ok = false;
-    }
-  }
-
   if (Serial.available())
   {
-    byte inByte = Serial.read(); 
-    if (eeprom_write_ok) 
-    {
-      if (inByte!='\r') {
-        sck.writeEEPROM(address_eeprom, inByte); 
-        address_eeprom = address_eeprom + 1;
-      }
-      else 
-      {
-        sck.writeEEPROM(address_eeprom, 0x00);
-        if (address_eeprom < EE_ADDR_PASS) sck.writeintEEPROM(EE_ADDR_NUMBER_NETS, sck.readintEEPROM(EE_ADDR_NUMBER_NETS) + 1);
-        eeprom_write_ok = false;
-      }
-    }  
-    if (sck.check_text(inByte, "#rs\r", &check_ssid_read)){
-      eeprom_read_ok = true; 
-      address_eeprom = EE_ADDR_SSID; 
-      nets = sck.readintEEPROM(EE_ADDR_NUMBER_NETS);
-    }
-    if (sck.check_text(inByte, "#rp\r", &check_pass_read)){
-      eeprom_read_ok = true; 
-      address_eeprom = EE_ADDR_PASS; 
-      nets = sck.readintEEPROM(EE_ADDR_NUMBER_NETS);
-    }
-    if (sck.check_text(inByte, "#ra\r", &check_auth_read)){
-      eeprom_read_ok = true; 
-      address_eeprom = EE_ADDR_AUTH; 
-      nets = sck.readintEEPROM(EE_ADDR_NUMBER_NETS);
-    }
-    if (sck.check_text(inByte, "set wlan ssid ", &check_ssid_write)){
-      eeprom_write_ok = true; 
-      address_eeprom = sck.readintEEPROM(EE_ADDR_FREE_SSID);
-    }
-    if (sck.check_text(inByte, "set wlan phrase ", &check_pass_write)){
-      eeprom_write_ok = true; 
-      address_eeprom = sck.readintEEPROM(EE_ADDR_FREE_PASS);
-    }   
-    if (sck.check_text(inByte, "set wlan auth ", &check_auth_write)){
-      eeprom_write_ok = true; 
-      address_eeprom = sck.readintEEPROM(EE_ADDR_FREE_AUTH);
-    }  
-    if (sck.check_text(inByte, "#clear ", &check_auth_write)){
-      sck.writeintEEPROM(EE_ADDR_NUMBER_NETS, 0x0000);
-    } 
+    byte inByte = Serial.read();  
     if (sck.check_text(inByte, "exit\r", &check_terminal_exit)) wait = false;
     if (sck.check_text(inByte, "$$$", &check_terminal_mode))
     {
@@ -123,7 +58,7 @@ void timerIsr()
       digitalWrite(AWAKE, LOW);
       wait = true;
     }
-    Serial1.write(inByte); 
+    Serial1.write(inByte);
   }
 
   if (Serial1.available()) 
@@ -262,9 +197,6 @@ void loop() {
     if ((millis()-timetransmit) >= (unsigned long)transmit*1000)
     { 
       timetransmit = millis();
-      if(!GasEnabled)
-        server_mode = 3;
-        
       sck.updateSensors(server_mode);
       if (!wait) // command mode false
       {

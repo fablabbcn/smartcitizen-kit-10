@@ -659,18 +659,9 @@ void SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
     writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0"); // %
   }
 
-  if (mode == 3) 
-  {
-    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0"); //ppm
-    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0"); //ppm
-  }
-  else
-  {
-    getMICS(4000, 30000);
-    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getCO())); //ppm
-    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getNO2())); //ppm
-  }
-  
+  getMICS(4000, 30000);
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getCO())); //ppm
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getNO2())); //ppm
   writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getLight())); //mV
   writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getNoise())); //mV
   writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getBattery())); //%
@@ -813,45 +804,7 @@ boolean SmartCitizen::exitCommandMode() {
 
 boolean SmartCitizen::connect()
   {
-    if (!ready()&&(readintEEPROM(EE_ADDR_NUMBER_NETS)>0))
-    {
-      if (enterCommandMode())
-      {    
-          sendCommand(F("set wlan join 1")); // Enable AP mode
-          sendCommand(F("set ip dhcp 1")); // Enable DHCP server
-          sendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
-      }
-      char* auth;
-      char* ssid;
-      char* pass;
-      uint16_t pointer = EE_ADDR_AUTH;
-      uint16_t pointer0 = EE_ADDR_SSID;
-      uint16_t pointer1 = EE_ADDR_PASS;
-      for (uint16_t nets = readintEEPROM(EE_ADDR_NUMBER_NETS) ; nets > 0; nets--) {
-          auth = readCommand(pointer, &pointer);
-          sendCommand(F("set wlan auth "), true);
-          sendCommand(auth);
-          boolean mode = true;
-          if ((auth==WEP)||(auth==WEP64)) mode=false;
-          Serial.print(auth);
-          ssid = readCommand(pointer0, &pointer0);
-          sendCommand(F("set wlan ssid "), true);
-          sendCommand(ssid);
-          Serial.print(" ");
-          Serial.print(ssid);
-          pass = readCommand(pointer1, &pointer1);
-          if (mode) sendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
-          else sendCommand(F("set wlan key "), true);
-          sendCommand(pass);
-          Serial.print(" ");
-          Serial.println(pass);
-          sendCommand(F("save"), false, "Storing in config"); // Store settings
-          sendCommand(F("reboot"), false, "*READY*");
-          if (ready()) return true;
-          enterCommandMode();
-      }
-      return false;     
-    } 
+    if (!ready()) return false;     
     else return true;  
   }  
 
