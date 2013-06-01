@@ -77,7 +77,7 @@ boolean SmartCitizen::check_text(byte inByte, char* text, byte *check)
 void SmartCitizen::check_data()
   {  
     uint16_t check_measures = readintEEPROM(EE_ADDR_NUMBER_MEASURES);
-    uint16_t post = readintEEPROM(EE_ADDR_POST_MEASURES);
+//    uint16_t post = readintEEPROM(EE_ADDR_POST_MEASURES);
     if (check_measures > 0) {check_measures = check_measures%10;}
     uint16_t address = readintEEPROM(EE_ADDR_FREE_ADDR_MEASURES);
     byte count=0;
@@ -565,9 +565,11 @@ void SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
   }
   
   uint16_t SmartCitizen::getPanel(){
-    int value = map(average(PANEL), 409, 819, 0, 1000); 
-    if (value>0) return value;
-    else return 0;
+    uint16_t value = 3*average(PANEL)*Vcc/1023;
+    return value;
+//    uint16_t value = map(average(PANEL), 409, 819, 0, 1000); 
+//    if (value>0) return value;
+//    else return 0;
   }
   
   uint16_t SmartCitizen::getBattery() {

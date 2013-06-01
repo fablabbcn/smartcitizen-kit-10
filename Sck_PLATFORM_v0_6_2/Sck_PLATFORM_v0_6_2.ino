@@ -181,7 +181,7 @@ void setup() {
   timetransmit = millis();
 }
 
-void loop() {    
+void loop() {  
 #if sensorEnabled  
   if (!ap_mode)
   {

@@ -75,7 +75,7 @@
 #define S4 A0 //MICRO
 #define S5 A1 //LDR
 
-#define AWAKE  4 //Despertar WIFI
+#define AWAKE  4 // Despertar WIFI
 #define PANEL A8 //Entrada panel
 #define BAT   A7 //Entrada bateria
 

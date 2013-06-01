@@ -20,6 +20,9 @@ void txWiFly() {
         #endif
       } 
       else {
+        sck.writeintEEPROM(EE_ADDR_POST_MEASURES, 0x0000);
+        sck.writeintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
+        sck.writeintEEPROM(EE_ADDR_FREE_ADDR_MEASURES, FREE_ADDR_MEASURES);
         #if debuggEnabled
           Serial.println(F("Error posting on Server..!"));
         #endif
@@ -33,14 +36,14 @@ void txWiFly() {
     }
    else 
     {
-     sck.writeCommand(EE_ADDR_FREE_ADDR_MEASURES, sck.scan());  //Wifi Nets
-     sck.writeCommand(EE_ADDR_FREE_ADDR_MEASURES, sck.RTCtime());
+      sck.writeintEEPROM(EE_ADDR_POST_MEASURES, 0x0000);
+      sck.writeintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
+      sck.writeintEEPROM(EE_ADDR_FREE_ADDR_MEASURES, FREE_ADDR_MEASURES);
      #if debuggEnabled
        Serial.println(F("Fallo conexion!!"));
      #endif
     }
-  
-  
+   
   if (sleep)
   {
     sck.sleep();
@@ -87,7 +90,7 @@ void txDebug() {
     Serial.print(F("Luz: ")); Serial.print(atoi(sck.readCommand(pointer, &pointer))/10.); Serial.println(F(" %"));
     Serial.print(F("Ruido: ")); Serial.print(atoi(sck.readCommand(pointer, &pointer))/100.); Serial.println(F(" dB"));
     Serial.print(F("Bateria: ")); Serial.print(atoi(sck.readCommand(pointer, &pointer))/10.); Serial.println(F(" %"));
-    Serial.print(F("Panel solar: ")); Serial.print(atoi(sck.readCommand(pointer, &pointer))/10.); Serial.println(F(" %"));
+    Serial.print(F("Panel solar: ")); Serial.print(atoi(sck.readCommand(pointer, &pointer))); Serial.println(F(" mV"));
     Serial.print(F("Redes: ")); Serial.print(sck.readCommand(pointer, &pointer)); Serial.println();
     Serial.print(F("UTC: ")); Serial.print(sck.readCommand(pointer, &pointer)); Serial.println();
     Serial.println(F("*******************"));
