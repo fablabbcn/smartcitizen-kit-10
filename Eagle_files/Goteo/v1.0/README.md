@@ -2,7 +2,7 @@ Smart-Citizen-Kit
 =================
 
 Eagles files of Goteo.org campaign
-http://www.goteo.org/project/smart-citizen-sensores-ciudadanos
+http://www.goteo.org/project/smart-citizen-sensores-ciudadanos?lang=en
 
 Smart Citizen Kit BETA version
 - Base Board v1.0
