@@ -1,9 +1,9 @@
-#define redes 3
+#define redes 2
 #if (redes > 0)
-  char* mySSID[redes]      = { "Red1"        , "Red2"        , "Red3"             };
-  char* myPassword[redes]  = { "Pass1"      , "Pass2"       , "Pass3"            };
-  char* wifiEncript[redes] = { WPA2         , WPA2          , WPA2               };
-  char* antennaExt[redes]  = { INT_ANT      , INT_ANT       , INT_ANT            }; //EXT_ANT
+  char* mySSID[redes]      = { "Red1"        , "Red2"    };
+  char* myPassword[redes]  = { "Pass1"      , "Pass2"    };
+  char* wifiEncript[redes] = { WPA2         , WPA2       };
+  char* antennaExt[redes]  = { INT_ANT      , INT_ANT    }; //EXT_ANT
 #endif
 
 
