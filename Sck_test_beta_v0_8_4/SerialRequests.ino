@@ -84,7 +84,7 @@ ISR(TIMER1_OVF_vect)
         address_eeprom = address_eeprom + 1;
       }
       else if (address_eeprom > DEFAULT_ADDR_SSID){ 
-        Serial.print(' '); 
+        Serial.print(F(" ")); 
         nets=nets-1;
         if (address_eeprom < DEFAULT_ADDR_PASS) address_eeprom = DEFAULT_ADDR_SSID + (buffer_length * (nets - 1));
         else if (address_eeprom < DEFAULT_ADDR_AUTH) address_eeprom = DEFAULT_ADDR_PASS + (buffer_length * (nets - 1));
@@ -93,12 +93,12 @@ ISR(TIMER1_OVF_vect)
       }
       else
          {
-           Serial.print("\r\n"); 
+           Serial.print(F("\r\n")); 
            eeprom_read_ok = false;
          }   
     }
     else { 
-      Serial.print("\r\n"); 
+      Serial.print(F("\r\n")); 
       eeprom_read_ok = false;
     }
   }

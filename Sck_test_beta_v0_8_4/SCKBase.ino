@@ -1,9 +1,9 @@
-#define redes 2
+#define redes 3
 #if (redes > 0)
-  char* mySSID[redes]      = { "Red1"        , "Red2"    };
-  char* myPassword[redes]  = { "Pass1"      , "Pass2"    };
-  char* wifiEncript[redes] = { WPA2         , WPA2       };
-  char* antennaExt[redes]  = { INT_ANT      , INT_ANT    }; //EXT_ANT
+  char* mySSID[redes]      = { "Red1"        , "Red2"        , "Red3"             };
+  char* myPassword[redes]  = { "Pass1"      , "Pass2"       , "Pass3"            };
+  char* wifiEncript[redes] = { WPA2         , WPA2          , WPA2               };
+  char* antennaExt[redes]  = { INT_ANT      , INT_ANT       , INT_ANT            }; //EXT_ANT
 #endif
 
 
@@ -43,7 +43,7 @@ void sckConfig(){
   {
     sckReset();
     #if debuggEnabled
-      Serial.println("Reseteando...");
+      Serial.println(F("Reseteando..."));
     #endif
     for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  //Borrado de la memoria
     
@@ -435,7 +435,7 @@ boolean sckEnterCommandMode() {
     for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
      {
       delay(COMMAND_MODE_GUARD_TIME);
-      Serial1.print("$$$");
+      Serial1.print(F("$$$"));
       delay(COMMAND_MODE_GUARD_TIME);
       Serial1.println();
       Serial1.println();
@@ -495,18 +495,18 @@ boolean sckConnect()
                 ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
                 sckSendCommand(F("set wlan ssid "), true);
                 sckSendCommand(ssid);
-                Serial.print(" ");
+                Serial.print(F(" "));
                 Serial.print(ssid);
                 pass = sckReadData(DEFAULT_ADDR_PASS, nets, 0);
                 if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
                 else sckSendCommand(F("set wlan key "), true);
                 sckSendCommand(pass);
-                Serial.print(" ");
+                Serial.print(F(" "));
                 Serial.print(pass);
                 antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
                 sckSendCommand(F("set wlan ext_antenna "), true);
                 sckSendCommand(antenna);
-                Serial.print(" ");
+                Serial.print(F(" "));
                 Serial.println(antenna);
                 sckSendCommand(F("save"), false, "Storing in config"); // Store settings
                 sckSendCommand(F("reboot"), false, "*READY*");
@@ -546,7 +546,7 @@ boolean sckReady()
     }
   if (sckEnterCommandMode())
     {
-      Serial1.println("join");
+      Serial1.println(F("join"));
       if (sckFindInResponse("Associated!", 8000)) 
       {
         sckSkipRemainderOfResponse(3000);
@@ -566,7 +566,7 @@ boolean sckOpen(const char *addr, int port) {
     {
       sckSendCommand(F("open "), true);
       sckSendCommand(addr, true);
-      Serial1.print(" ");
+      Serial1.print(F(" "));
       Serial1.print(port);
       if (sckSendCommand("", false, "*OPEN*")) 
         {
