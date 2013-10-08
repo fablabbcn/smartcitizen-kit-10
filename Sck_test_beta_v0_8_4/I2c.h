@@ -1,3 +1,5 @@
+//I2C.h   - I2C library
+//  Copyright (c) 2011-2012 Wayne Truchsess.  All right reserved.
 
 #include <Arduino.h>
 #include <avr/pgmspace.h>                 
