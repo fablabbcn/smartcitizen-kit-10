@@ -1,4 +1,12 @@
 #define debuggSCK  false
+#define decouplerComp true
+
+
+#if ((decouplerComp)&&(F_CPU > 8000000 ))
+  #include "TemperatureDecoupler.h"
+  TemperatureDecoupler decoupler; //use this object to compensate for charger generated heat affecting temp values
+#endif
+  
 
 char* SERVER[11]={
                   "{\"temp\":\"",
@@ -318,25 +326,9 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
       sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
       sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
       
-//      #if F_CPU == 16000000 
-//        /*Lectura de datos*/
-//        digitalWrite(IO0, LOW);  //VH_MICS5525 OFF para lectura
-//        
-//        #if debuggSCK
-//          Serial.println("MICS5525 VH OFF ");
-//        #endif
-//      #endif
-      
       Rs0 = sckReadMICS(MICS_5525, time0);
       Rs1 = sckReadMICS(MICS_2710, time1 - time0);
-      
-//      #if F_CPU == 16000000
-//        digitalWrite(IO1, LOW); //VH MICS2710 OFF
-//        #if debuggSCK
-//          Serial.println("MICS2710 VH OFF ");
-//          Serial.println("*******************");
-//        #endif
-//      #endif    
+       
 }
 
  #if F_CPU == 8000000
@@ -438,18 +430,6 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
       else Lx=0;
       
        #if debuggSCK
-//        Serial.print(DATA0);
-//        Serial.print(' ');
-//        Serial.print(DATA1);
-//        Serial.print(' ');
-//        Serial.print(comp);
-//        Serial.print(' ');
-//        Serial.print(Gain);
-//        Serial.print(' ');
-//        Serial.print(ITIME);
-//        Serial.print(' ');
-//        Serial.print(cons);
-//        Serial.print(' ');
         Serial.print("BH1730: ");
         Serial.print(Lx);
         Serial.println(" Lx");
@@ -574,14 +554,27 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
     {
       ok_read = sckDHT22(IO3);
       retry++; 
-      if (!ok_read){ /*Serial.println("FAIL!");*/ delay(3000);}
-      //else Serial.println("OK!");
+      if (!ok_read)delay(3000);
     }
     timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
   #endif
     if (ok_read )  
     {
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa(sckGetTemperatureC())); // C
+      #if ((decouplerComp)&&(F_CPU > 8000000 ))
+        uint16_t battery = sckGetBattery();
+        decoupler.update(battery);
+        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa( (int)sckGetTemperatureC() - (int) decoupler.getCompensation())); // C
+        
+//        Serial.print("Temperatura: ");
+//        Serial.println(sckGetTemperatureC());
+//        Serial.print("Compensacion: ");
+//        Serial.println(decoupler.getCompensation());
+//        Serial.print("Temperatura compensada: ");
+//        Serial.println((int)sckGetTemperatureC() - (int) decoupler.getCompensation());
+        
+      #else
+        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa(sckGetTemperatureC())); // C
+      #endif
       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, itoa(sckGetHumidity())); // %   
     }
     else 

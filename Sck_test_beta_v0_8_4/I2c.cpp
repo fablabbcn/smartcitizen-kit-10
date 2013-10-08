@@ -1,7 +1,7 @@
 #ifndef SMARTCITIZENAMBIENT_cpp
 #define SMARTCITIZENAMBIENT_cpp
 
-#include "SmartCitizenAmbient.h"
+#include "I2c.h"
 
 uint8_t I2C::bytesAvailable = 0;
 uint8_t I2C::bufferIndex = 0;

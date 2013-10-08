@@ -30,7 +30,9 @@ void sckBegin() {
   digitalWrite(IO2, LOW); //RADJ_MICS2710
   digitalWrite(AWAKE, LOW); 
   digitalWrite(FACTORY, LOW); 
-  
+  #if ((decouplerComp)&&(F_CPU > 8000000 ))
+    decoupler.setup();
+  #endif
   #if F_CPU == 8000000 
     sckWriteCharge(350);
     pinMode(IO4, OUTPUT); //Si7005
