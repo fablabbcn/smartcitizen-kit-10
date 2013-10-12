@@ -25,9 +25,9 @@ void sckBegin() {
   pinMode(SCK, OUTPUT);
   pinMode(FACTORY, OUTPUT);
   pinMode(CONTROL, INPUT);
-  digitalWrite(IO0, LOW); //VH_MICS5525
-  digitalWrite(IO1, LOW); //VH_MICS2710
-  digitalWrite(IO2, LOW); //RADJ_MICS2710
+//  digitalWrite(IO0, LOW); //VH_MICS5525
+//  digitalWrite(IO1, LOW); //VH_MICS2710
+//  digitalWrite(IO2, LOW); //RADJ_MICS2710
   digitalWrite(AWAKE, LOW); 
   digitalWrite(FACTORY, LOW); 
   #if ((decouplerComp)&&(F_CPU > 8000000 ))
@@ -37,7 +37,27 @@ void sckBegin() {
     sckWriteCharge(350);
     pinMode(IO4, OUTPUT); //Si7005
     digitalWrite(IO4, HIGH); //Si7005
+    
+    sckWriteVH(MICS_5525, 2700); //VH_MICS5525 Inicial
+    digitalWrite(IO0, HIGH); //VH_MICS5525
+        
+    sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
+    digitalWrite(IO1, HIGH); //VH_MICS2710
+    digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+    
+    pinMode(IO3, OUTPUT);
+    digitalWrite(IO3, HIGH); //Alimentacion de los MICS
+  #else
+    sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
+    digitalWrite(IO0, HIGH); //VH_MICS5525
+    
+    sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
+    digitalWrite(IO1, HIGH); //VH_MICS2710
+    digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
   #endif
+  
+//  sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
+//  sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
 }
 
 void sckConfig(){

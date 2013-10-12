@@ -339,7 +339,7 @@ char* SENSOR[10]={
         SENSORvalue[1] = sckGetHumidity(); // %
       }
     #endif
-    sckGetMICS(4000, 30000);
+    sckGetMICS();
     SENSORvalue[2] = sckGetLight(); // %
     SENSORvalue[3] = sckGetBattery(); //%
     SENSORvalue[4] = sckGetPanel();  // %

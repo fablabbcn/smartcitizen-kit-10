@@ -128,14 +128,16 @@ void loop() {
         sckUpdateSensors(server_mode); 
         if (!wait) // command mode false
         {
-          timer1Stop();
           #if wiflyEnabled
+            timer1Stop();
             if (server_mode) txWiFly();
           #endif
           #if USBEnabled
             txDebug();
           #endif
-          timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+          #if wiflyEnabled
+            timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+          #endif
         }
       #else
         #if SDEnabled
@@ -152,6 +154,9 @@ void loop() {
       #endif
     }
 #endif
+//Serial.println("******************************************");
+//sckGetMICS();
+//delay(60000);
 }
 
 

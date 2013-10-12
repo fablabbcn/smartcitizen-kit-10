@@ -252,24 +252,28 @@ void sckHeat(byte device, int current)
     
   }
 
-  float sckReadMICS(byte device, unsigned long time)
+   float sckReadRs(byte device)
+   {
+     byte Sensor = S0;
+     float VMICS = VMIC0;
+     if (device == MICS_2710) {Sensor = S1; VMICS = VMIC1;}
+     float RL = sckReadRL(device); //Ohm
+     float VL = ((float)average(Sensor)*Vcc)/1023; //mV
+     float Rs = ((VMICS-VL)/VL)*RL; //Ohm
+     return Rs;
+   }
+   
+  float sckReadMICS(byte device)
   {
-      byte Sensor = S0;
-      float VMICS = VMIC0;
-      if (device == MICS_2710) {Sensor = S1; VMICS = VMIC1;}
-      delay(time); //Tiempo de enfriamiento para lectura
+      float Rs = sckReadRs(device);
       float RL = sckReadRL(device); //Ohm
-      float VL = ((float)average(Sensor)*Vcc)/1023; //mV
-      float Rs = ((VMICS-VL)/VL)*RL; //Ohm
+      
       /*Correccion de impedancia de carga*/
-      if (Rs < 100000)
+      if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
       {
         sckWriteRL(device, Rs);
         delay(100);
-        RL = sckReadRL(device); //Ohm
-        VL = ((float)average(Sensor)*Vcc)/1023; //mV
-        
-        Rs = ((VMICS-VL)/VL)*RL; //Ohm
+        Rs = sckReadRs(device);
       }
       
       #if debuggSCK
@@ -283,51 +287,14 @@ void sckHeat(byte device, int current)
        return Rs;
   }
   
-void sckGetMICS(unsigned long time0, unsigned long time1){          
+void sckGetMICS(){          
      
       /*Correccion de la tension del Heather*/
-      
-      #if F_CPU == 8000000 
-        sckWriteVH(MICS_5525, 2700); //VH_MICS5525 Inicial
-        digitalWrite(IO0, HIGH); //VH_MICS5525
-        
-        sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-        digitalWrite(IO1, HIGH); //VH_MICS2710
-        digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
-        
-        digitalWrite(IO3, HIGH); //Alimentacion de los MICS
-        #if debuggSCK
-          Serial.println("*******************");
-          Serial.println("MICS5525 VH a 2700 mV");
-          Serial.println("MICS2714 VH a 1700 mV");
-        #endif
-      #else
-        sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
-        digitalWrite(IO0, HIGH); //VH_MICS5525
-        
-        sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-        digitalWrite(IO1, HIGH); //VH_MICS2710
-        digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
-        #if debuggSCK
-          Serial.println("*******************");
-          Serial.println("MICS5525 VH a 2400 mV");
-          Serial.println("MICS2710 VH a 1700 mV");
-        #endif
-      #endif
-      
-      
-
-      
-      delay(200);  // Tiempo estabilizacion de la alimentacion
       sckHeat(MICS_5525, 32); //Corriente en mA
       sckHeat(MICS_2710, 26); //Corriente en mA
-      delay(5000); // Tiempo de heater!
       
-      sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
-      sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
-      
-      Rs0 = sckReadMICS(MICS_5525, time0);
-      Rs1 = sckReadMICS(MICS_2710, time1 - time0);
+      Rs0 = sckReadMICS(MICS_5525);
+      Rs1 = sckReadMICS(MICS_2710);
        
 }
 
@@ -450,13 +417,11 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
     #if F_CPU == 8000000 
      sckWriteGAIN(10000);
      delay(100);
-    #else
-     digitalWrite(IO1, HIGH); //VH_MICS2710
-     delay(500); // LE DAMOS TIEMPO A LA FUENTE Y QUE DESAPAREZCA EL TRANSITORIO
     #endif
     
     float mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
     float dB = 0;
+    float GAIN = 100;
     
     #if F_CPU == 8000000 
     
@@ -474,7 +439,7 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
       }
       if (mVRaw >= 1)
       {
-        float GAIN = sckReadGAIN();
+        GAIN = sckReadGAIN();
         if (GAIN > 1000)
          {
            dB = 6.0686*log(mVRaw) + 30.43;
@@ -503,13 +468,7 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
       Serial.print(" dB, GAIN = ");
       Serial.println(GAIN);
     #endif
-
-    #if F_CPU > 8000000 
-      digitalWrite(IO1, LOW); //VH_MICS2710
-    #endif
     
-    
-    //return max_mVRaw;
     return dB*100;
     
   }
@@ -549,14 +508,18 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
     #endif
     ok_read = true;
   #else
-    timer1Stop();
+    #if wiflyEnabled
+      timer1Stop();
+    #endif
     while ((!ok_read)&&(retry<5))
     {
       ok_read = sckDHT22(IO3);
       retry++; 
       if (!ok_read)delay(3000);
     }
-    timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+     #if wiflyEnabled
+       timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+     #endif
   #endif
     if (ok_read )  
     {
@@ -593,7 +556,7 @@ void sckGetMICS(unsigned long time0, unsigned long time1){
     }
   else
     {
-      sckGetMICS(4000, 30000);
+      sckGetMICS();
       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 5, itoa(sckGetCO())); //ppm
       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 6, itoa(sckGetNO2())); //ppm
     }
