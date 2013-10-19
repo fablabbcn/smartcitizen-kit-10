@@ -699,21 +699,25 @@ char* sckScan() {
   return buffer;
 } 
   
-char* itoa(uint32_t number)
+char* itoa(int32_t number)
   {
    byte count = 0;
-   uint32_t temp = number;
+   uint32_t temp;
+   if (number < 0) {temp = number*(-1); count++;} 
    while ((temp/10)!=0) 
    {
      temp = temp/10;
      count++;
    }
    int i;
+   if (number < 0) {temp = number*(-1);} 
+   else temp = number;
    for (i = count; i>=0; i--) 
    { 
-     buffer[i] = number%10 + '0'; 
-     number = number/10; 
+     buffer[i] = temp%10 + '0'; 
+     temp = temp/10; 
    }
+   if (number < 0) {buffer[0] = '-';} 
    buffer[count + 1] = 0x00;
    return buffer;   
   }
