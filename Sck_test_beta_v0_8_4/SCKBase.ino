@@ -1,4 +1,4 @@
-#define redes 3
+#define redes 0
 #if (redes > 0)
   char* mySSID[redes]      = { "Red1"        , "Red2"        , "Red3"             };
   char* myPassword[redes]  = { "Pass1"      , "Pass2"       , "Pass3"            };
@@ -56,8 +56,8 @@ void sckBegin() {
     digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
   #endif
   
-//  sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
-//  sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
+  sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
+  sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
 }
 
 void sckConfig(){

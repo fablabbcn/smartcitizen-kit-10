@@ -330,13 +330,13 @@ char* SENSOR[10]={
       #if SensorModel == 2
         sckGetSi7005();
       #endif
-      SENSORvalue[0] = sckGetTemperatureC(); // C
-      SENSORvalue[1] = sckGetHumidity(); // %
+      SENSORvalue[0] = lastTemperature; // C
+      SENSORvalue[1] = lastHumidity; // %
     #else
       if (sckDHT22(IO3))
       {
-        SENSORvalue[0] = sckGetTemperatureC(); // C
-        SENSORvalue[1] = sckGetHumidity(); // %
+        SENSORvalue[0] = lastTemperature; // C
+        SENSORvalue[1] = lastHumidity; // %
       }
     #endif
     sckGetMICS();

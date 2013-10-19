@@ -38,8 +38,8 @@ float Rs1 = 0;
 float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
 float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
 
-int _lastHumidity;
-int _lastTemperature;
+int lastHumidity;
+int lastTemperature;
 uint8_t bits[5];  // buffer to receive data
 
 #define TIMEOUT 10000
@@ -50,28 +50,28 @@ boolean sckDHT22(uint8_t pin)
         int rv = sckDhtRead(pin);
         if (rv != true)
         {
-              _lastHumidity    = DHTLIB_INVALID_VALUE;  // invalid value, or is NaN prefered?
-              _lastTemperature = DHTLIB_INVALID_VALUE;  // invalid value
+              lastHumidity    = DHTLIB_INVALID_VALUE;  // invalid value, or is NaN prefered?
+              lastTemperature = DHTLIB_INVALID_VALUE;  // invalid value
               return rv;
         }
 
         // CONVERT AND STORE
-        _lastHumidity    = word(bits[0], bits[1]);
+        lastHumidity    = word(bits[0], bits[1]);
 
         if (bits[2] & 0x80) // negative temperature
         {
-            _lastTemperature = word(bits[2]&0x7F, bits[3]);
-            _lastTemperature *= -1.0;
+            lastTemperature = word(bits[2]&0x7F, bits[3]);
+            lastTemperature *= -1.0;
         }
         else
         {
-            _lastTemperature = word(bits[2], bits[3]);
+            lastTemperature = word(bits[2], bits[3]);
         }
 
         // TEST CHECKSUM
         uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
         if (bits[4] != sum) return false;
-        if ((_lastTemperature == 0)&&(_lastHumidity == 0))return false;
+        if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
         return true;
 }
 
@@ -124,14 +124,6 @@ boolean sckDhtRead(uint8_t pin)
         }
 
         return true;
-}
-
-int sckGetTemperatureC(){
-    return _lastTemperature;
-}
-
-int sckGetHumidity(){
-    return _lastHumidity;
 }
 
 void sckWriteVH(byte device, long voltage ) {
@@ -260,6 +252,14 @@ void sckHeat(byte device, int current)
      float RL = sckReadRL(device); //Ohm
      float VL = ((float)average(Sensor)*Vcc)/1023; //mV
      float Rs = ((VMICS-VL)/VL)*RL; //Ohm
+     #if debuggSCK
+        if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
+        else Serial.print("MICS2710 Rs: ");
+        Serial.print(VL);
+        Serial.print(" mV, ");
+        Serial.print(Rs);
+        Serial.println(" Ohm");
+      #endif;  
      return Rs;
    }
    
@@ -276,14 +276,14 @@ void sckHeat(byte device, int current)
         Rs = sckReadRs(device);
       }
       
-      #if debuggSCK
-        if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
-        else Serial.print("MICS2710 Rs: ");
-        Serial.print(VL);
-        Serial.print(" mV, ");
-        Serial.print(Rs);
-        Serial.println(" Ohm");
-      #endif;  
+//      #if debuggSCK
+//        if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
+//        else Serial.print("MICS2710 Rs: ");
+//        Serial.print(VL);
+//        Serial.print(" mV, ");
+//        Serial.print(Rs);
+//        Serial.println(" Ohm");
+//      #endif;  
        return Rs;
   }
   
@@ -320,15 +320,15 @@ void sckGetMICS(){
       digitalWrite(IO4, LOW); //Si7005
       delay(15);
             
-      _lastTemperature = (((float)sckReadSi7005(0x11)/32)-50)*10;
-      _lastHumidity    = (((float)sckReadSi7005(0x01)/16)-24)*10;  
+      lastTemperature = (((float)sckReadSi7005(0x11)/32)-50)*10;
+      lastHumidity    = (((float)sckReadSi7005(0x01)/16)-24)*10;  
 
       #if debuggSCK
         Serial.print("Si7005: ");
         Serial.print("Temperatura: ");
-        Serial.print(_lastTemperature/10.);
+        Serial.print(lastTemperature/10.);
         Serial.print(" C, Humedad: ");
-        Serial.print(_lastHumidity/10.);
+        Serial.print(lastHumidity/10.);
         Serial.println(" %");   
       #endif
       
@@ -348,14 +348,14 @@ void sckGetMICS(){
   
    void sckGetSHT21(){
       digitalWrite(IO4, HIGH); //Si7005
-      _lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;
-      _lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;
+      lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;
+      lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;
       #if debuggSCK
         Serial.print("SHT21:  ");
         Serial.print("Temperatura: ");
-        Serial.print(_lastTemperature/10.);
+        Serial.print(lastTemperature/10.);
         Serial.print(" C, Humedad: ");
-        Serial.print(_lastHumidity/10.);
+        Serial.print(lastHumidity/10.);
         Serial.println(" %");    
       #endif
   }
@@ -526,19 +526,11 @@ void sckGetMICS(){
       #if ((decouplerComp)&&(F_CPU > 8000000 ))
         uint16_t battery = sckGetBattery();
         decoupler.update(battery);
-        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa( (int)sckGetTemperatureC() - (int) decoupler.getCompensation())); // C
-        
-//        Serial.print("Temperatura: ");
-//        Serial.println(sckGetTemperatureC());
-//        Serial.print("Compensacion: ");
-//        Serial.println(decoupler.getCompensation());
-//        Serial.print("Temperatura compensada: ");
-//        Serial.println((int)sckGetTemperatureC() - (int) decoupler.getCompensation());
-        
+        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa( (int)lastTemperature - (int) decoupler.getCompensation())); // C
       #else
-        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa(sckGetTemperatureC())); // C
+        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa(lastTemperature)); // C
       #endif
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, itoa(sckGetHumidity())); // %   
+      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, itoa(lastHumidity)); // %   
     }
     else 
     {

@@ -154,9 +154,6 @@ void loop() {
       #endif
     }
 #endif
-//Serial.println("******************************************");
-//sckGetMICS();
-//delay(60000);
 }
 
 
