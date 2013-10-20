@@ -65,7 +65,7 @@ void sckConfig(){
   {
     sckReset();
     #if debuggEnabled
-      Serial.println(F("Reseteando..."));
+      Serial.println(F("Resetting..."));
     #endif
     for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  //Borrado de la memoria
     

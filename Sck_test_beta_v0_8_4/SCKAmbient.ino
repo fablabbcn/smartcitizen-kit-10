@@ -1,6 +1,10 @@
-#define debuggSCK  false
+#define debuggSCK     false
 #define decouplerComp true
+#define ppmEnabled    false
 
+//Valores por defecto de la resistencia en vacio de los MICS
+float RoCO  = 750000;
+float RoNO2 = 2200;
 
 #if ((decouplerComp)&&(F_CPU > 8000000 ))
   #include "TemperatureDecoupler.h"
@@ -22,8 +26,8 @@ char* SERVER[11]={
                   "\"}"
                   };
                   
-float Rs0 = 0;
-float Rs1 = 0;
+float RsCO = 0;
+float RsNO2 = 0;
 
 #define RES 256   //Resolucion de los potenciometros digitales
 
@@ -275,15 +279,6 @@ void sckHeat(byte device, int current)
         delay(100);
         Rs = sckReadRs(device);
       }
-      
-//      #if debuggSCK
-//        if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
-//        else Serial.print("MICS2710 Rs: ");
-//        Serial.print(VL);
-//        Serial.print(" mV, ");
-//        Serial.print(Rs);
-//        Serial.println(" Ohm");
-//      #endif;  
        return Rs;
   }
   
@@ -293,8 +288,8 @@ void sckGetMICS(){
       sckHeat(MICS_5525, 32); //Corriente en mA
       sckHeat(MICS_2710, 26); //Corriente en mA
       
-      Rs0 = sckReadMICS(MICS_5525);
-      Rs1 = sckReadMICS(MICS_2710);
+      RsCO = sckReadMICS(MICS_5525);
+      RsNO2 = sckReadMICS(MICS_2710);
        
 }
 
@@ -475,12 +470,20 @@ void sckGetMICS(){
  
   unsigned long sckGetCO()
   {
-    return Rs0;
+    #if ppmEnabled
+      return (1002.7*exp(-8.476*(RsCO/RoCO)))*1000;
+    #else 
+      return RsCO;
+    #endif
   }  
   
   unsigned long sckGetNO2()
   {
-    return Rs1;
+    #if ppmEnabled
+     return (0.0343*pow(RsNO2/RoNO2,0.5442))*1000;
+    #else
+     return RsNO2;
+    #endif
   } 
  
   void sckUpdateSensors(byte mode) 

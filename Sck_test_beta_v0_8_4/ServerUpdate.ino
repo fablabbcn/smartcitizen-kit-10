@@ -274,34 +274,28 @@ char* SENSOR[10]={
                   "Wifi Spots: ",
                   "UTC: " 
              };
-
-#if F_CPU == 8000000 
-  char* UNITS[10]={
-                    " C",
-                    " %",
+   
+char* UNITS[10]={
+                  " C",
+                  " %",
+                  #if F_CPU == 8000000 
                     " lx",
+                  #else
                     " %",
-                    " V",
+                  #endif
+                  " %",
+                  " V",
+                  #if ppmEnabled
+                    " ppm",
+                    " ppm",
+                  #else
                     " kOhm",
                     " kOhm",
-                    " dB",
-                    "",
-                    "" 
-               };         
-#else    
-  char* UNITS[10]={
-                    " C",
-                    " %",
-                    " %",
-                    " %",
-                    " V",
-                    " kOhm",
-                    " kOhm",
-                    " dB",
-                    "",
-                    "" 
-               };  
-#endif             
+                  #endif
+                  " dB",
+                  "",
+                  "" 
+             };            
 
 #if USBEnabled             
   void txDebug() {
