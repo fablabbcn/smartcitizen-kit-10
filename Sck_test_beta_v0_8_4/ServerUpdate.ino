@@ -237,19 +237,27 @@ void txWiFly() {
 #endif
 
 #if SDEnabled
+
 void txSD() {
-  myFile = SD.open("post.txt", FILE_WRITE);
+  myFile = SD.open("post.csv", FILE_WRITE);
   // if the file opened okay, write to it:
   if (myFile) {
     #if debuggEnabled
       Serial.println(F("Writing...")); 
     #endif 
+    
+    float dec = 0;
     for (int i=0; i<8; i++)
       {
+        if (i<4) dec = 10;
+        else if (i<7) dec = 1000;
+        else if (i<8) dec = 100;
+        else dec = 1;
+        
         myFile.print(i);
         myFile.print(", ");
-        myFile.print(SENSORvalue[i]);
-        myFile.print(' ');
+        myFile.print(SENSORvalue[i]/dec);
+        myFile.print(", ");
       }
     myFile.print(sckRTCtime());
     myFile.println();
@@ -260,6 +268,7 @@ void txSD() {
     #endif 
   }
 }
+
 #endif
 
 char* SENSOR[10]={
@@ -268,7 +277,7 @@ char* SENSOR[10]={
                   "Light: ",
                   "Battery: ",
                   "Solar Panel: ",
-                  "Carbon Oxide: ",
+                  "Carbon Monxide: ",
                   "Nitrogen Dioxide: ",
                   "Noise: ",
                   "Wifi Spots: ",
@@ -292,7 +301,11 @@ char* UNITS[10]={
                     " kOhm",
                     " kOhm",
                   #endif
-                  " dB",
+                  #if F_CPU == 8000000 
+                    " mV",
+                  #else
+                    " dB",
+                  #endif
                   "",
                   "" 
              };            
