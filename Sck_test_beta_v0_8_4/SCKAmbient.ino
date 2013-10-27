@@ -255,6 +255,7 @@ void sckHeat(byte device, int current)
      if (device == MICS_2710) {Sensor = S1; VMICS = VMIC1;}
      float RL = sckReadRL(device); //Ohm
      float VL = ((float)average(Sensor)*Vcc)/1023; //mV
+     if (VL > VMICS) VL = VMICS;
      float Rs = ((VMICS-VL)/VL)*RL; //Ohm
      #if debuggSCK
         if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
@@ -275,7 +276,8 @@ void sckHeat(byte device, int current)
       /*Correccion de impedancia de carga*/
       if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
       {
-        sckWriteRL(device, Rs);
+        if (Rs < 2000) sckWriteRL(device, 2000);
+        else sckWriteRL(device, Rs);
         delay(100);
         Rs = sckReadRs(device);
       }
