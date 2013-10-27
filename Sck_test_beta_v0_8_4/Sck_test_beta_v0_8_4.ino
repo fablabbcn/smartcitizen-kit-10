@@ -45,7 +45,7 @@ void setup() {
   #if debuggEnabled
     Serial.println(F("initialization done."));   
   #endif 
-  if (!SD.exists("post.txt")) {
+  if (!SD.exists("post.csv")) {
     #if debuggEnabled
         Serial.println(F("Creating post.csv..."));
     #endif 
