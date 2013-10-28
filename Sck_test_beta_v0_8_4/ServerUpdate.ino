@@ -79,6 +79,15 @@ boolean sckServer_connect()
     uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
     sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, sckScan());  //Wifi Nets
     sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, sckWIFItime());
+    //Provisionalmente ajuste de reloj
+    byte retry = 0;
+    if (sckCheckRTC())
+     {
+      while (!sckRTCadjust(sckWIFItime())&&(retry<5))
+       {
+         retry = retry + 1;
+       }
+     }
     sckCheckData(); //Volvemos a verificar si datos correctos
     return sckServer_reconnect(); 
   }
