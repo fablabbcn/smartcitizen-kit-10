@@ -51,8 +51,7 @@ void setup() {
     #endif 
     myFile = SD.open("post.txt", FILE_WRITE);
     myFile.close();
-  }
-  
+  } 
   //sckRTCadjust("2013-10-24 08:00:00");  // Ajuste RTC manualmente!
     
 #endif   

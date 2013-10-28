@@ -42,8 +42,14 @@ float RsNO2 = 0;
 float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
 float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
 
-int lastHumidity;
-int lastTemperature;
+#if F_CPU == 8000000 
+  uint16_t lastHumidity;
+  uint16_t lastTemperature;
+#else
+  int lastHumidity;
+  int lastTemperature;
+#endif
+
 uint8_t bits[5];  // buffer to receive data
 
 #define TIMEOUT 10000
@@ -346,13 +352,12 @@ void sckGetMICS(){
    void sckGetSHT21()
    {
       digitalWrite(IO4, HIGH); //Si7005
-      lastTemperature = (-53 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;   // formula con factor de correccion
-      lastHumidity    = (7 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;      // formula con factor de correccion
-      //lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
-      //lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal
-      
-      //lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
-      //lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
+//      lastTemperature = (-53 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;   // formula con factor de correccion
+//      lastHumidity    = (7 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;      // formula con factor de correccion
+//      lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
+//      lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
+      lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
+      lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
       
       #if debuggSCK
         Serial.print("SHT21:  ");

@@ -285,8 +285,13 @@ char* SENSOR[10]={
              };
    
 char* UNITS[10]={
-                  " C",
-                  " %",
+                  #if F_CPU == 8000000 
+                    " C RAW",
+                    " % RAW",
+                  #else
+                    " C",
+                    " %",
+                  #endif
                   #if F_CPU == 8000000 
                     " lx",
                   #else
@@ -317,7 +322,12 @@ char* UNITS[10]={
     if (pos>0)pos = (pos - 1)*10;
       for(int i=0; i<10; i++) 
        {
-         if (i<4) dec = 1;
+         #if F_CPU == 8000000 
+           if (i<2) dec = 0;
+           else if (i<4) dec = 1;
+         #else
+           if (i<4) dec = 1;
+         #endif
          else if (i<7) dec = 3;
          else if (i<8) dec = 2;
          else dec = 0;
