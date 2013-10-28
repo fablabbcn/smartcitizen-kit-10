@@ -376,7 +376,7 @@ void sckGetMICS(){
       uint16_t DATA1 = 0;
       
       I2c.write(bh1730,0x80|0x00, DATA, 8);   // COMMAND
-          
+      delay(100);    
       I2c.read(bh1730, (uint16_t)0x94, 4, false); //read 4 bytes
       DATA0 = I2c.receive();
       DATA0=DATA0|(I2c.receive()<<8);
