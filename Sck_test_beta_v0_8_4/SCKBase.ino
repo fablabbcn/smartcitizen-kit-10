@@ -25,9 +25,6 @@ void sckBegin() {
   pinMode(SCK, OUTPUT);
   pinMode(FACTORY, OUTPUT);
   pinMode(CONTROL, INPUT);
-//  digitalWrite(IO0, LOW); //VH_MICS5525
-//  digitalWrite(IO1, LOW); //VH_MICS2710
-//  digitalWrite(IO2, LOW); //RADJ_MICS2710
   digitalWrite(AWAKE, LOW); 
   digitalWrite(FACTORY, LOW); 
   #if ((decouplerComp)&&(F_CPU > 8000000 ))
@@ -277,15 +274,17 @@ boolean sckRTCadjust(char *time) {
     }  
     if (data_count == 5)
     {
-      #if F_CPU == 8000000
-          uint8_t DATA [8] = { rtc[5] | 0x80, rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
+      #if F_CPU == 8000000 
+        uint8_t DATA [7] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0]} ;
+        I2c.write(RTC_ADDRESS, 0x00, DATA, 7); 
+        I2c.write(RTC_ADDRESS, (uint16_t)0x0E, 0x00, false);   // COMMAND 
       #else
-          uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
+        uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
+        I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
       #endif
-      I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
       return true;
     }
-    return false;   
+    return false;  
 }
 
 char* sckRTCtime() {

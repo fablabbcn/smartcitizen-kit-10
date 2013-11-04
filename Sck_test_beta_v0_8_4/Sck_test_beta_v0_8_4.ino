@@ -49,10 +49,9 @@ void setup() {
     #if debuggEnabled
         Serial.println(F("Creating post.csv..."));
     #endif 
-    myFile = SD.open("post.txt", FILE_WRITE);
+    myFile = SD.open("post.csv", FILE_WRITE);
     myFile.close();
   } 
-  //sckRTCadjust("2013-10-24 08:00:00");  // Ajuste RTC manualmente!
     
 #endif   
 
@@ -85,6 +84,9 @@ void setup() {
        {
          retry = retry + 1;
        }
+        #if debuggEnabled
+          Serial.println(F("Updating RTC..."));
+        #endif
      }
   }  
     
@@ -96,7 +98,7 @@ void setup() {
       #endif
       digitalWrite(AWAKE, LOW); 
     }
-  timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+  timer1Initialize();
   timer1AttachInterrupt();
   #if !MICSEnabled
     server_mode = 3; 

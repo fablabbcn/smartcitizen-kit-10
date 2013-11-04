@@ -23,19 +23,14 @@
 
 #define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
 #define POST_MAX             20       //Maximo numero de posteos a la vez
-#define MIN_UPDATES          5       //Minimo numero de actualizaciones antes de postear
+#define MIN_UPDATES          1       //Minimo numero de actualizaciones antes de postear
 #define fast true //Frecuencia del bus i2c, false 100KHz, true 400 kHz
 #define SensorModel 1 //0 DHT22, 1 SHT21, 2 SI7005
 
 #define buffer_length        32
 
 //Direcciones I2C
-#if F_CPU == 8000000 
-  #define RTC_ADDRESS        0x6F    // Direcion de la RTC
-#else
-  #define RTC_ADDRESS        0x68    // Direcion de la RTC
-#endif
-
+#define RTC_ADDRESS          0x68    // Direcion de la RTC
 #define E2PROM               0x50    // Direcion de la EEPROM
 
 #if F_CPU == 8000000 
