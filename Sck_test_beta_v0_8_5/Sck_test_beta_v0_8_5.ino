@@ -1,4 +1,4 @@
-#include "I2c.h"
+#include <Wire.h>
 #include "Constants.h"
 
 #define USBEnabled      true 
@@ -158,6 +158,9 @@ void loop() {
       #endif
     }
 #endif
+
+//Serial.println(sckReadSHT21(0xE3));
+//delay(1000);
 }
 
 

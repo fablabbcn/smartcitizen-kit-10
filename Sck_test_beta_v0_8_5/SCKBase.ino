@@ -11,10 +11,11 @@ boolean connected;
 
 static char buffer[buffer_length];
 
+#define TWI_FREQ 400000L //Frecuencia bus I2C
+
 void sckBegin() {
-  I2c.begin();
-  I2c.setSpeed(fast);
-  I2c.timeOut(100);
+  Wire.begin();
+  TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
   Serial.begin(115200);
   Serial1.begin(9600);
   pinMode(IO0, OUTPUT); //VH_MICS5525
@@ -136,18 +137,29 @@ void sckCheckData()
   
 void sckWriteMCP(byte deviceaddress, byte address, int data ) {
   if (data>RES) data=RES;
-  address = (address<<4)|bitRead(data, 8) ;
-  I2c.write(deviceaddress,address,lowByte(data),false); //configura el dispositivo para medir temperatura
+  Wire.beginTransmission(deviceaddress);
+  address=(address<<4)|bitRead(data, 8) ;
+  Wire.write(address);
+  Wire.write(lowByte(data));
+  Wire.endTransmission();
+  delay(4);
 }
   
 int sckReadMCP(int deviceaddress, uint16_t address ) {
   byte rdata = 0xFF;
   int  data = 0x0000;
-  
+  Wire.beginTransmission(deviceaddress);
   address=(address<<4)|B00001100;
-  I2c.read(deviceaddress, address, 2, false); //read 2 bytes
-  data = I2c.receive()<<8; 
-  data = data | I2c.receive();
+  Wire.write(address);
+  Wire.endTransmission();
+  Wire.requestFrom(deviceaddress,2);
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return 0x00;
+  rdata = Wire.read(); 
+  data=rdata<<8;
+  while (!Wire.available()); 
+  rdata = Wire.read(); 
+  data=data|rdata;
   return data;
 }
 
@@ -190,17 +202,32 @@ void sckWriteEEPROM(uint16_t eeaddress, uint8_t data ) {
   uint8_t retry = 0;
   while ((sckReadEEPROM(eeaddress)!=data)&&(retry<10))
   {  
-    I2c.write(E2PROM, eeaddress, data, true);
-    delay(4);
-    retry++;
+      Wire.beginTransmission(E2PROM);
+      Wire.write((byte)(eeaddress >> 8));   // MSB
+      Wire.write((byte)(eeaddress & 0xFF)); // LSB
+      Wire.write(data);
+      Wire.endTransmission();
+      delay(4);
+//    I2c.write(E2PROM, eeaddress, data, true);
+//    delay(4);
+//    retry++;
   }
 }
 
 byte sckReadEEPROM(uint16_t eeaddress ) {
-  byte data = 0xFF;
-  I2c.read(E2PROM,  eeaddress, 1, true); //read 1 byte
-  data = I2c.receive();
-  return data;
+    byte rdata = 0xFF;
+    Wire.beginTransmission(E2PROM);
+    Wire.write((byte)(eeaddress >> 8));   // MSB
+    Wire.write((byte)(eeaddress & 0xFF)); // LSB
+    Wire.endTransmission();
+    Wire.requestFrom(E2PROM,1);
+    while (!Wire.available()); rdata = Wire.read();
+    //if (Wire.available()); rdata = Wire.read();
+    return rdata;
+//  byte data = 0xFF;
+//  I2c.read(E2PROM,  eeaddress, 1, true); //read 1 byte
+//  data = I2c.receive();
+//  return data;
 }
 
 void sckWriteintEEPROM(uint16_t eeaddress, uint16_t data )
@@ -250,8 +277,22 @@ void sckWriteData(uint16_t eeaddress, uint16_t pos, char* text )
 }
 
 boolean sckCheckRTC() {
-  if (I2c.write(RTC_ADDRESS, 0x00) == 0) return true; 
-  return false;
+  byte rdata = 0;
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write(0x12); //Address
+  Wire.write(0x23); //Value
+  Wire.endTransmission();
+  delay(4);
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write(0x12);   //Address
+  Wire.endTransmission();
+  Wire.requestFrom(RTC_ADDRESS,1);
+  rdata = Wire.read();
+  if (rdata==0x23) return true;
+  else return false;
+  
+//  if (I2c.write(RTC_ADDRESS, 0x00) == 0) return true; 
+//  return false;
 }
   
 boolean sckRTCadjust(char *time) {    
@@ -273,27 +314,68 @@ boolean sckRTCadjust(char *time) {
     if (data_count == 5)
     {
       #if F_CPU == 8000000 
-        uint8_t DATA [7] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0]} ;
-        I2c.write(RTC_ADDRESS, 0x00, DATA, 7); 
-        I2c.write(RTC_ADDRESS, (uint16_t)0x0E, 0x00, false);   // COMMAND 
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write((int)0);
+        Wire.write(rtc[5]);
+        Wire.write(rtc[4]);
+        Wire.write(rtc[3]);
+        Wire.write(0x00);
+        Wire.write(rtc[2]);
+        Wire.write(rtc[1]);
+        Wire.write(rtc[0]);
+        Wire.endTransmission();
+        delay(4);
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write(0x0E); //Address
+        Wire.write(0x00); //Value
+        Wire.endTransmission();
       #else
-        uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
-        I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write((int)0);
+        Wire.write(rtc[5]);
+        Wire.write(rtc[4]);
+        Wire.write(rtc[3]);
+        Wire.write(0x00);
+        Wire.write(rtc[2]);
+        Wire.write(rtc[1]);
+        Wire.write(rtc[0]);
+        Wire.write((int)0);
+        Wire.endTransmission();
+        return true;
       #endif
+//      #if F_CPU == 8000000 
+//        uint8_t DATA [7] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0]} ;
+//        I2c.write(RTC_ADDRESS, 0x00, DATA, 7); 
+//        I2c.write(RTC_ADDRESS, (uint16_t)0x0E, 0x00, false);   // COMMAND 
+//      #else
+//        uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
+//        I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
+//      #endif
       return true;
     }
     return false;  
 }
 
 char* sckRTCtime() {
-      I2c.read(RTC_ADDRESS, (uint16_t)0x00, 7, false); //read 7 bytes
-      uint8_t seconds = (I2c.receive() & 0x7F);
-      uint8_t minutes = I2c.receive();
-      uint8_t hours = I2c.receive();
-      I2c.receive();
-      uint8_t day = I2c.receive();
-      uint8_t month = I2c.receive();
-      uint8_t year = I2c.receive(); 
+    Wire.beginTransmission(RTC_ADDRESS);
+    Wire.write((int)0);	
+    Wire.endTransmission();
+    Wire.requestFrom(RTC_ADDRESS, 7);
+    uint8_t seconds = (Wire.read() & 0x7F);
+    uint8_t minutes = Wire.read();
+    uint8_t hours = Wire.read();
+    Wire.read();
+    uint8_t day = Wire.read();
+    uint8_t month = Wire.read();
+    uint8_t year = Wire.read();
+//      I2c.read(RTC_ADDRESS, (uint16_t)0x00, 7, false); //read 7 bytes
+//      uint8_t seconds = (I2c.receive() & 0x7F);
+//      uint8_t minutes = I2c.receive();
+//      uint8_t hours = I2c.receive();
+//      I2c.receive();
+//      uint8_t day = I2c.receive();
+//      uint8_t month = I2c.receive();
+//      uint8_t year = I2c.receive(); 
       buffer[0] = '2';
       buffer[1] = '0';
       buffer[2] = (year>>4) + '0';
