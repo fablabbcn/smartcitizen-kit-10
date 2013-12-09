@@ -446,7 +446,11 @@ void sckGetMICS(){
     #endif
  
     #if F_CPU == 8000000 
-       return mVRaw*100;    
+       #if DataRaw
+         return mVRaw*100;  
+       #else
+         return dB*100;
+       #endif
     #else
        return dB*100;
     #endif
