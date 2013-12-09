@@ -32,8 +32,6 @@ void sckBegin() {
   #endif
   #if F_CPU == 8000000 
     sckWriteCharge(350);
-    pinMode(IO4, OUTPUT); //Si7005
-    digitalWrite(IO4, HIGH); //Si7005
     
     sckWriteVH(MICS_5525, 2700); //VH_MICS5525 Inicial
     digitalWrite(IO0, HIGH); //VH_MICS5525

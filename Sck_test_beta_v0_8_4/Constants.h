@@ -14,18 +14,12 @@
 #define S2 A2 //SENS_5525
 #define S3 A3 //SENS_2710
 #define S4 A0 //MICRO
-
-#if F_CPU == 8000000 
-  #define IO4 A1 //LDR
-#else
-  #define S5 A1 //LDR
-#endif
+#define S5 A1 //LDR
 
 #define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
 #define POST_MAX             20       //Maximo numero de posteos a la vez
 #define MIN_UPDATES          1       //Minimo numero de actualizaciones antes de postear
 #define fast true //Frecuencia del bus i2c, false 100KHz, true 400 kHz
-#define SensorModel 1 //0 DHT22, 1 SHT21, 2 SI7005
 
 #define buffer_length        32
 
@@ -38,7 +32,7 @@
   #define MCP2               0x2F    // Direcion del mcp2 Potenciometros que controlan la ganancia del microfono
   #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
   #define bh1730             0x29    // Direcion del sensor de luz
-  #define Temperature        0x40    // Direcion del si7005    
+  #define Temperature        0x40    // Direcion del sht21    
 #else
   #define MCP1               0x2F    // Direcion del mcp1 MICS
   #define MCP2               0x2E    // Direcion del mcp2 REGULADORES

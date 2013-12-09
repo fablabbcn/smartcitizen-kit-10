@@ -295,8 +295,13 @@ char* SENSOR[10]={
    
 char* UNITS[10]={
                   #if F_CPU == 8000000 
-                    " C RAW",
-                    " % RAW",
+                    #if DataRaw
+                      " C RAW",
+                      " % RAW",
+                    #else
+                      " C",
+                      " %",
+                    #endif
                   #else
                     " C",
                     " %",
@@ -308,15 +313,14 @@ char* UNITS[10]={
                   #endif
                   " %",
                   " V",
-                  #if ppmEnabled
-                    " ppm",
-                    " ppm",
-                  #else
-                    " kOhm",
-                    " kOhm",
-                  #endif
+                  " kOhm",
+                  " kOhm",
                   #if F_CPU == 8000000 
-                    " mV",
+                    #if DataRaw
+                      " mV",
+                    #else
+                      " dB",
+                    #endif
                   #else
                     " dB",
                   #endif
@@ -332,8 +336,12 @@ char* UNITS[10]={
       for(int i=0; i<10; i++) 
        {
          #if F_CPU == 8000000 
-           if (i<2) dec = 0;
-           else if (i<4) dec = 1;
+           #if DataRaw
+             if (i<2) dec = 0;
+             else if (i<4) dec = 1;
+           #else 
+             if (i<4) dec = 1;
+           #endif
          #else
            if (i<4) dec = 1;
          #endif
@@ -350,12 +358,7 @@ char* UNITS[10]={
 #if SDEnabled
   void updateSensorsSD() {
      #if F_CPU == 8000000 
-      #if SensorModel == 1
-        sckGetSHT21();
-      #endif
-      #if SensorModel == 2
-        sckGetSi7005();
-      #endif
+      sckGetSHT21();
       SENSORvalue[0] = lastTemperature; // C
       SENSORvalue[1] = lastHumidity; // %
     #else

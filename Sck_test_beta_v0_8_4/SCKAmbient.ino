@@ -1,6 +1,6 @@
 #define debuggSCK     false
 #define decouplerComp true
-#define ppmEnabled    false
+#define DataRaw       false
 
 //Valores por defecto de la resistencia en vacio de los MICS
 float RoCO  = 750000;
@@ -302,43 +302,7 @@ void sckGetMICS(){
 }
 
  #if F_CPU == 8000000
- 
-   uint16_t sckReadSi7005(uint8_t type){
-      uint16_t DATA = 1;
-      I2c.write(Temperature,(uint16_t)0x03,type, false); //configura el dispositivo para medir
-      delay(15);
-      while (DATA&0x0001 == 0x0001)
-            {
-              I2c.read(Temperature,(uint16_t)0x00,1, false); //read 1 byte
-              DATA = I2c.receive();      
-            }
-      I2c.read(Temperature,(uint16_t)0x01,2, false); //read 2 bytes
-      DATA = I2c.receive()<<8;
-      if (type == 0x11) DATA = (DATA|I2c.receive())>>2;
-      else if (type == 0x01) DATA = (DATA|I2c.receive())>>4;
-      return DATA;
-  }
-  
-   void sckGetSi7005(){
-      digitalWrite(IO4, LOW); //Si7005
-      delay(15);
-            
-      lastTemperature = (((float)sckReadSi7005(0x11)/32)-50)*10;
-      lastHumidity    = (((float)sckReadSi7005(0x01)/16)-24)*10;  
-
-      #if debuggSCK
-        Serial.print("Si7005: ");
-        Serial.print("Temperatura: ");
-        Serial.print(lastTemperature/10.);
-        Serial.print(" C, Humedad: ");
-        Serial.print(lastHumidity/10.);
-        Serial.println(" %");   
-      #endif
-      
-      digitalWrite(IO4, HIGH); //Si7005
-  }
-  
-  uint16_t sckReadSHT21(uint8_t type){
+   uint16_t sckReadSHT21(uint8_t type){
       uint16_t DATA = 0;
       I2c.write((uint8_t)Temperature, type); //configura el dispositivo para medir
       delay(200);
@@ -351,13 +315,13 @@ void sckGetMICS(){
   
    void sckGetSHT21()
    {
-      digitalWrite(IO4, HIGH); //Si7005
-//      lastTemperature = (-53 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;   // formula con factor de correccion
-//      lastHumidity    = (7 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;      // formula con factor de correccion
-//      lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
-//      lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
-      lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
-      lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
+      #if DataRaw
+        lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
+        lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
+      #else
+        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
+        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
+      #endif
       
       #if debuggSCK
         Serial.print("SHT21:  ");
@@ -436,36 +400,34 @@ void sckGetMICS(){
     float GAIN = 100;
     
     #if F_CPU == 8000000 
- /*   
- 
- 
-      if (mVRaw > 1000) 
+      #if DataRaw==false
+        if (mVRaw > 1000) 
+          {
+            sckWriteGAIN(1000);
+            delay(100);
+            mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
+          }
+        if (mVRaw > 100) 
         {
-          sckWriteGAIN(1000);
+          sckWriteGAIN(100);
           delay(100);
           mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
         }
-      if (mVRaw > 100) 
-      {
-        sckWriteGAIN(100);
-        delay(100);
-        mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
-      }
-      if (mVRaw >= 1)
-      {
-        GAIN = sckReadGAIN();
-        if (GAIN > 1000)
-         {
-           dB = 6.0686*log(mVRaw) + 30.43;
-         }
-        else if (GAIN > 100)
-         {
-           dB = 18.703*log(mVRaw) - 40.534;
-         }
-        else if (GAIN <= 100) dB = 9.8903*log(mVRaw) + 29.793; 
-      }
-      else dB = 30;
- */     
+        if (mVRaw >= 1)
+        {
+          GAIN = sckReadGAIN();
+          if (GAIN > 1000)
+           {
+             dB = 6.0686*log(mVRaw) + 30.43;
+           }
+          else if (GAIN > 100)
+           {
+             dB = 18.703*log(mVRaw) - 40.534;
+           }
+          else if (GAIN <= 100) dB = 9.8903*log(mVRaw) + 29.793; 
+        }
+        else dB = 30;
+       #endif
     #else
        dB = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
        if (dB<50) dB = 50; // minimo con la resolucion actual!
@@ -492,20 +454,12 @@ void sckGetMICS(){
   
   unsigned long sckGetCO()
   {
-    #if ppmEnabled
-      return (1002.7*exp(-8.476*(RsCO/RoCO)))*1000;
-    #else 
-      return RsCO;
-    #endif
+    return RsCO;
   }  
   
   unsigned long sckGetNO2()
   {
-    #if ppmEnabled
-     return (0.0343*pow(RsNO2/RoNO2,0.5442))*1000;
-    #else
-     return RsNO2;
-    #endif
+    return RsNO2;
   } 
  
   void sckUpdateSensors(byte mode) 
@@ -524,13 +478,7 @@ void sckGetMICS(){
   if (pos > 0) pos = pos + 1;
   
   #if F_CPU == 8000000 
-    #if SensorModel == 1
-      sckGetSHT21();
-    #else 
-      #if SensorModel == 2
-        sckGetSi7005();
-      #endif
-    #endif
+    sckGetSHT21();
     ok_read = true;
   #else
     #if wiflyEnabled
