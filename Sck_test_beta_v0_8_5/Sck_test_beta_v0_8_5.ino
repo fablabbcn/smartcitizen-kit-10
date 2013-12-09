@@ -158,9 +158,6 @@ void loop() {
       #endif
     }
 #endif
-
-//Serial.println(sckReadSHT21(0xE3));
-//delay(1000);
 }
 
 

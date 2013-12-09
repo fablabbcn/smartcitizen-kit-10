@@ -208,9 +208,6 @@ void sckWriteEEPROM(uint16_t eeaddress, uint8_t data ) {
       Wire.write(data);
       Wire.endTransmission();
       delay(4);
-//    I2c.write(E2PROM, eeaddress, data, true);
-//    delay(4);
-//    retry++;
   }
 }
 
@@ -222,12 +219,7 @@ byte sckReadEEPROM(uint16_t eeaddress ) {
     Wire.endTransmission();
     Wire.requestFrom(E2PROM,1);
     while (!Wire.available()); rdata = Wire.read();
-    //if (Wire.available()); rdata = Wire.read();
     return rdata;
-//  byte data = 0xFF;
-//  I2c.read(E2PROM,  eeaddress, 1, true); //read 1 byte
-//  data = I2c.receive();
-//  return data;
 }
 
 void sckWriteintEEPROM(uint16_t eeaddress, uint16_t data )
@@ -277,22 +269,15 @@ void sckWriteData(uint16_t eeaddress, uint16_t pos, char* text )
 }
 
 boolean sckCheckRTC() {
-  byte rdata = 0;
   Wire.beginTransmission(RTC_ADDRESS);
-  Wire.write(0x12); //Address
-  Wire.write(0x23); //Value
+  Wire.write(0x00); //Address
   Wire.endTransmission();
   delay(4);
-  Wire.beginTransmission(RTC_ADDRESS);
-  Wire.write(0x12);   //Address
-  Wire.endTransmission();
   Wire.requestFrom(RTC_ADDRESS,1);
-  rdata = Wire.read();
-  if (rdata==0x23) return true;
-  else return false;
-  
-//  if (I2c.write(RTC_ADDRESS, 0x00) == 0) return true; 
-//  return false;
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return false;
+  Wire.read();
+  return true;
 }
   
 boolean sckRTCadjust(char *time) {    
@@ -343,39 +328,23 @@ boolean sckRTCadjust(char *time) {
         Wire.endTransmission();
         return true;
       #endif
-//      #if F_CPU == 8000000 
-//        uint8_t DATA [7] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0]} ;
-//        I2c.write(RTC_ADDRESS, 0x00, DATA, 7); 
-//        I2c.write(RTC_ADDRESS, (uint16_t)0x0E, 0x00, false);   // COMMAND 
-//      #else
-//        uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
-//        I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
-//      #endif
       return true;
     }
     return false;  
 }
 
 char* sckRTCtime() {
-    Wire.beginTransmission(RTC_ADDRESS);
-    Wire.write((int)0);	
-    Wire.endTransmission();
-    Wire.requestFrom(RTC_ADDRESS, 7);
-    uint8_t seconds = (Wire.read() & 0x7F);
-    uint8_t minutes = Wire.read();
-    uint8_t hours = Wire.read();
-    Wire.read();
-    uint8_t day = Wire.read();
-    uint8_t month = Wire.read();
-    uint8_t year = Wire.read();
-//      I2c.read(RTC_ADDRESS, (uint16_t)0x00, 7, false); //read 7 bytes
-//      uint8_t seconds = (I2c.receive() & 0x7F);
-//      uint8_t minutes = I2c.receive();
-//      uint8_t hours = I2c.receive();
-//      I2c.receive();
-//      uint8_t day = I2c.receive();
-//      uint8_t month = I2c.receive();
-//      uint8_t year = I2c.receive(); 
+      Wire.beginTransmission(RTC_ADDRESS);
+      Wire.write((int)0);	
+      Wire.endTransmission();
+      Wire.requestFrom(RTC_ADDRESS, 7);
+      uint8_t seconds = (Wire.read() & 0x7F);
+      uint8_t minutes = Wire.read();
+      uint8_t hours = Wire.read();
+      Wire.read();
+      uint8_t day = Wire.read();
+      uint8_t month = Wire.read();
+      uint8_t year = Wire.read();
       buffer[0] = '2';
       buffer[1] = '0';
       buffer[2] = (year>>4) + '0';
