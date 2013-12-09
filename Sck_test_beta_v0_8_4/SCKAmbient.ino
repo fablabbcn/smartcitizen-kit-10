@@ -304,16 +304,12 @@ void sckGetMICS(){
  #if F_CPU == 8000000
    uint16_t sckReadSHT21(uint8_t type){
       uint16_t DATA = 0;
-      Wire.beginTransmission(Temperature);
-      Wire.write(type);
-      Wire.endTransmission();
-      Wire.requestFrom(Temperature,2);
-      unsigned long time = millis();
-      while (!Wire.available()) if ((millis() - time)>500) return 0x00;
-      DATA = Wire.read()<<8; 
-      while (!Wire.available()); 
-      DATA = (DATA|Wire.read()); 
-      DATA &= ~0x0003; 
+      I2c.write((uint8_t)Temperature, type); //configura el dispositivo para medir
+      delay(200);
+      I2c.read(Temperature, 3); //read 2 bytes      
+      DATA = I2c.receive()<<8;
+      DATA = (DATA|I2c.receive());
+      DATA &= ~0x0003;   
       return DATA;
   }
   
@@ -348,20 +344,14 @@ void sckGetMICS(){
       uint16_t DATA0 = 0;
       uint16_t DATA1 = 0;
       
-      Wire.beginTransmission(bh1730);
-      Wire.write(0x80|0x00);
-      for(int i= 0; i<8; i++) Wire.write(DATA[i]);
-      Wire.endTransmission();
-      delay(100); 
-      Wire.beginTransmission(bh1730);
-      Wire.write(0x94);	
-      Wire.endTransmission();
-      Wire.requestFrom(bh1730, 4);
-      DATA0 = Wire.read();
-      DATA0=DATA0|(Wire.read()<<8);
-      DATA1 = Wire.read();
-      DATA1=DATA1|(Wire.read()<<8);
-        
+      I2c.write(bh1730,0x80|0x00, DATA, 8);   // COMMAND
+      delay(100);    
+      I2c.read(bh1730, (uint16_t)0x94, 4, false); //read 4 bytes
+      DATA0 = I2c.receive();
+      DATA0=DATA0|(I2c.receive()<<8);
+      DATA1 = I2c.receive();
+      DATA1=DATA1|(I2c.receive()<<8);   
+      
       uint8_t Gain = 0x00; 
       if (GAIN0 == 0x00) Gain = 1;
       else if (GAIN0 == 0x01) Gain = 2;
@@ -457,10 +447,10 @@ void sckGetMICS(){
  
     #if F_CPU == 8000000 
        #if DataRaw
-         return mVRaw*100; 
+         return mVRaw*100;  
        #else
          return dB*100;
-       #endif   
+       #endif
     #else
        return dB*100;
     #endif
