@@ -1,6 +1,6 @@
 #define debuggSCK     false
 #define decouplerComp true
-#define DataRaw       false
+#define DataRaw       true
 
 //Valores por defecto de la resistencia en vacio de los MICS
 float RoCO  = 750000;
