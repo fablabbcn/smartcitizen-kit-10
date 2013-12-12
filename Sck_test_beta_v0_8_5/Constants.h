@@ -75,8 +75,14 @@
   #define  VMIC1 2500.
 #endif
 
-#define  VAL_MAX_BATTERY                             4200
-#define  VAL_MIN_BATTERY                             3000
+#if F_CPU == 8000000 
+  #define  VAL_MAX_BATTERY                             4200
+  #define  VAL_MIN_BATTERY                             3000
+#else
+  #define  VAL_MAX_BATTERY                             3700
+  #define  VAL_MIN_BATTERY                             3000
+#endif
+
 
 #define DHTLIB_INVALID_VALUE    -999
 
