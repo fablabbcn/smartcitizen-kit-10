@@ -79,7 +79,7 @@
   #define  VAL_MAX_BATTERY                             4200
   #define  VAL_MIN_BATTERY                             3000
 #else
-  #define  VAL_MAX_BATTERY                             3700
+  #define  VAL_MAX_BATTERY                             4050
   #define  VAL_MIN_BATTERY                             3000
 #endif
 
