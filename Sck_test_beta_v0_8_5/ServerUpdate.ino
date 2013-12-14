@@ -159,14 +159,14 @@ void txWiFly() {
   uint16_t updates = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10; 
   boolean ok_sleep = false;
   
-  if ((sleep)&&(updates>=MIN_UPDATES)){
+  if ((sleep)&&(updates>=NumUpdates)){
     #if debuggEnabled
       Serial.println(F("SCK Waking up..."));
     #endif
     ok_sleep = true;
     digitalWrite(AWAKE, HIGH);
   }
-  if ((sckConnect())&&(updates>=MIN_UPDATES))
+  if ((sckConnect())&&(updates>=NumUpdates))
    { 
       #if debuggEnabled
         Serial.println(F("SCK Connected!!")); 
@@ -226,7 +226,7 @@ void txWiFly() {
      #if debuggEnabled
        Serial.print(F("updates = "));
        Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-       if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=MIN_UPDATES) Serial.println(F("Error in connectionn!!"));
+       if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=NumUpdates) Serial.println(F("Error in connectionn!!"));
        else Serial.println(F("Saved in memory!!"));
      #endif
     }

@@ -19,6 +19,8 @@ byte check_time_read         = 0;
 byte check_time_write        = 0;
 byte check_api_read          = 0;
 byte check_api_write         = 0;
+byte check_number_read       = 0;
+byte check_number_write      = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -29,7 +31,6 @@ byte check_telnet_close       = 0;
 
 
 /*TIMER*/
-     
 void timer1SetPeriod()		// AR modified for atomic access
 { 
   char oldSREG = SREG;				
@@ -144,6 +145,10 @@ ISR(TIMER1_OVF_vect)
       eeprom_read_ok = true; 
       address_eeprom = EE_ADDR_TIME_UPDATE; 
     }
+    if (sckCheckText(inByte, "get number updates\r", &check_number_read)){
+      eeprom_read_ok = true; 
+      address_eeprom = EE_ADDR_NUMBER_UPDATES; 
+    }
     if (sckCheckText(inByte, "get apikey\r", &check_api_read)){
       eeprom_read_ok = true; 
       address_eeprom = EE_ADDR_APIKEY; 
@@ -192,6 +197,10 @@ ISR(TIMER1_OVF_vect)
     if (sckCheckText(inByte, "set time update ", &check_time_write)){
       eeprom_write_ok = true; 
       address_eeprom = EE_ADDR_TIME_UPDATE;
+    } 
+    if (sckCheckText(inByte, "set number updates ", &check_number_write)){
+      eeprom_write_ok = true; 
+      address_eeprom = EE_ADDR_NUMBER_UPDATES;
     } 
     if (sckCheckText(inByte, "set apikey ", &check_api_write)){
       eeprom_write_ok = true; 

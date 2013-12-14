@@ -14,8 +14,9 @@ boolean sleep       = true;
 boolean iphone_mode = false;
 byte server_mode    = 0;
 
-uint32_t timetransmit = 0;
-uint32_t TimeUpdate   = 10;
+uint32_t timetransmit = 0;  
+uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
+uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
 
 #if SDEnabled
   #include <SD.h>
@@ -60,7 +61,8 @@ void setup() {
   digitalWrite(AWAKE, HIGH); 
   server_mode = 1;  //Modo normal
   sckConfig(); 
-  TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos, minimo 60 segundos
+  TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
+  NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
   if (TimeUpdate < 60) sleep = false;
   else sleep = true; 
   if (!sckConnect())
@@ -128,7 +130,9 @@ void loop() {
     if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*1000)
     {  
       timetransmit = millis();
+      TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
       #if wiflyEnabled
+        NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
         sckUpdateSensors(server_mode); 
         if (!wait) // command mode false
         {

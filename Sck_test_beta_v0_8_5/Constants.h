@@ -17,8 +17,9 @@
 #define S5 A1 //LDR
 
 #define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
+#define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
+
 #define POST_MAX             20       //Maximo numero de posteos a la vez
-#define MIN_UPDATES          1       //Minimo numero de actualizaciones antes de postear
 #define fast true //Frecuencia del bus i2c, false 100KHz, true 400 kHz
 
 #define buffer_length        32
@@ -40,10 +41,11 @@
 
 //Espacio reservado para los parametros de configuracion del SCK  
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
-#define EE_ADDR_TIME_UPDATE                         32  //32BYTES
-#define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE
-#define EE_ADDR_NUMBER_NETS                         66  //2BYTE
-#define EE_ADDR_APIKEY                              68  //32BYTES
+#define EE_ADDR_TIME_UPDATE                         32  //16BYTES Tiempo entre actualizacion y actualizacion de los sensores en segundos
+#define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Numero de actualizaciones antes de postear
+#define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE Numero de medidas en memoria
+#define EE_ADDR_NUMBER_NETS                         66  //2BYTE Numero de redes en memoria
+#define EE_ADDR_APIKEY                              68  //32BYTES Apikey del dispositivo
 
 //Espacio reservado para los SSID y PASS
 #define DEFAULT_ADDR_SSID                                200

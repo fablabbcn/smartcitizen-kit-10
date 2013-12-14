@@ -67,6 +67,7 @@ void sckConfig(){
     
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
+    sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
     
     #if (redes > 0)
       for(byte i=0; i<redes; i++)
