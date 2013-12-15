@@ -92,7 +92,7 @@ void setup() {
      }
   }  
     
-  if(sleep)
+  if((sleep)&&(wiflySleep))
     {
       sckSleep();
       #if debuggEnabled

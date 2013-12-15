@@ -1,6 +1,3 @@
-#define debuggSCK     false
-#define decouplerComp true
-#define DataRaw       true
 
 //Valores por defecto de la resistencia en vacio de los MICS
 float RoCO  = 750000;
@@ -401,7 +398,7 @@ void sckGetMICS(){
     int n = 100;
     
     #if F_CPU == 8000000 
-     sckWriteGAIN(10000);
+     sckWriteGAIN(100);
      delay(100);
     #endif
     
@@ -411,33 +408,8 @@ void sckGetMICS(){
     
     #if F_CPU == 8000000 
       #if DataRaw==false
-        if (mVRaw > 1000) 
-          {
-            sckWriteGAIN(1000);
-            delay(100);
-            mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
-          }
-        if (mVRaw > 100) 
-        {
-          sckWriteGAIN(100);
-          delay(100);
-          mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
-        }
-        if (mVRaw >= 1)
-        {
-          GAIN = sckReadGAIN();
-          if (GAIN > 1000)
-           {
-             dB = 6.0686*log(mVRaw) + 30.43;
-           }
-          else if (GAIN > 100)
-           {
-             dB = 18.703*log(mVRaw) - 40.534;
-           }
-          else if (GAIN <= 100) dB = 9.8903*log(mVRaw) + 29.793; 
-        }
-        else dB = 30;
-       #endif
+        dB = 0.0222*mVRaw + 58.006; 
+      #endif
     #else
        dB = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
        if (dB<50) dB = 50; // minimo con la resolucion actual!
@@ -457,7 +429,7 @@ void sckGetMICS(){
  
     #if F_CPU == 8000000 
        #if DataRaw
-         return mVRaw*100; 
+         return mVRaw; 
        #else
          return dB*100;
        #endif   

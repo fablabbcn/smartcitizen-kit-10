@@ -1,3 +1,15 @@
+#define FirmWare  "0.8.5"     //Tiempo entre actualizacion y actualizacion
+
+#define debuggSCK     false
+#define decouplerComp true
+#define DataRaw       true
+
+#if DataRaw 
+  #define ModePost               "RAW"
+#else
+  #define ModePost               "NORMAL"
+#endif
+
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
 #define BAT   A7 //Entrada bateria
@@ -20,8 +32,6 @@
 #define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
 
 #define POST_MAX             20       //Maximo numero de posteos a la vez
-#define fast true //Frecuencia del bus i2c, false 100KHz, true 400 kHz
-
 #define buffer_length        32
 
 //Direcciones I2C
@@ -96,4 +106,22 @@
 
 #define EXT_ANT "1" // antena externa
 #define INT_ANT "0" // antena interna
+
+char* WEB[9]={
+                  "data.smartcitizen.me",
+                  "PUT /add HTTP/1.1 \n", 
+                  "Host: data.smartcitizen.me \n", 
+                  "User-Agent: SmartCitizen \n", 
+                  "X-SmartCitizenMacADDR: ", 
+                  "X-SmartCitizenApiKey: ", 
+                  "X-SmartCitizenFirm: ", 
+                  "X-SmartCitizenMode: ", 
+                  "X-SmartCitizenData: "};
+                  
+char* WEBTIME[3]={                  
+                  /*Servidor de tiempo*/
+                  "GET /datetime HTTP/1.1 \n",
+                  "Host: data.smartcitizen.me \n",
+                  "User-Agent: SmartCitizen \n\n"  
+                  };
 

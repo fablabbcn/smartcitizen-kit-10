@@ -1,19 +1,5 @@
 #if wiflyEnabled
 
-char* WEB[10]={
-                  "data.smartcitizen.me",
-                  "PUT /add HTTP/1.1 \n", 
-                  "Host: data.smartcitizen.me \n", 
-                  "User-Agent: SmartCitizen \n", 
-                  "X-SmartCitizenMacADDR: ", 
-                  " \n", 
-                  "X-SmartCitizenData: ",
-                  /*Servidor de tiempo*/
-                  "GET /datetime HTTP/1.1 \n",
-                  "Host: data.smartcitizen.me \n",
-                  "User-Agent: SmartCitizen \n\n"  
-                  };
-
 #define TIME_BUFFER_SIZE 20 
 
 char* sckWIFItime() {
@@ -28,7 +14,7 @@ char* sckWIFItime() {
       }
     if(retry<5)
     {
-      for(byte i = 7; i<10; i++) Serial1.print(WEB[i]); //Peticiones al servidor de tiempo
+      for(byte i = 0; i<3; i++) Serial1.print(WEBTIME[i]); //Peticiones al servidor de tiempo
       if (sckFindInResponse("UTC:", 2000)) 
       {
         char newChar;
@@ -61,7 +47,7 @@ char* sckWIFItime() {
     if (connected) {
         sckClose();
       }
-    sckExitCommandMode();
+    //sckExitCommandMode();
   } 
   if (!ok)
     {
@@ -69,6 +55,7 @@ char* sckWIFItime() {
       buffer[1] = 0x00;
       //Serial.println("Fail!!");
     }
+  sckExitCommandMode();
   return buffer;
 } 
 
@@ -95,6 +82,7 @@ boolean sckServer_connect()
 boolean sckServer_reconnect()
   {
     char* mac_Address = sckMAC();
+    //char* ApiKey = sckReadData(EE_ADDR_APIKEY, 0, 0);
     int retry = 0;
     boolean ok = false;   
     while ((!ok)&&(retry<numbers_retry)){
@@ -105,9 +93,20 @@ boolean sckServer_reconnect()
             if (retry >= numbers_retry) return ok;
           }
       }    
+//    for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
+//    Serial1.print(mac_Address);
+//    for (byte i = 11; i<13; i++) Serial1.print(WEB[i]);
+
+
     for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
-    Serial1.print(mac_Address);
-    for (byte i = 5; i<7; i++) Serial1.print(WEB[i]);
+    Serial1.println(mac_Address);
+//    Serial1.print(WEB[6]);
+//    Serial1.println(sckReadData(EE_ADDR_APIKEY, 0, 0)); //Apikey
+//    Serial1.print(WEB[7]);
+//    Serial1.println(FirmWare);
+//    Serial1.print(WEB[8]);
+//    Serial1.println(ModePost);
+    Serial1.print(WEB[9]);
     return ok; 
   }
 
