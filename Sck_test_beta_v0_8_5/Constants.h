@@ -1,13 +1,11 @@
-#define FirmWare  "0.8.5"     //Tiempo entre actualizacion y actualizacion
-
 #define debuggSCK     false
 #define decouplerComp true
 #define DataRaw       true
 
 #if DataRaw 
-  #define ModePost               "RAW"
+  #define FirmWare  "0.8.5-A"
 #else
-  #define ModePost               "NORMAL"
+  #define FirmWare  "0.8.5-B"
 #endif
 
 #define AWAKE  4 //Despertar WIFI
@@ -107,15 +105,14 @@
 #define EXT_ANT "1" // antena externa
 #define INT_ANT "0" // antena interna
 
-char* WEB[9]={
+char* WEB[8]={
                   "data.smartcitizen.me",
                   "PUT /add HTTP/1.1 \n", 
                   "Host: data.smartcitizen.me \n", 
                   "User-Agent: SmartCitizen \n", 
                   "X-SmartCitizenMacADDR: ", 
                   "X-SmartCitizenApiKey: ", 
-                  "X-SmartCitizenFirm: ", 
-                  "X-SmartCitizenMode: ", 
+                  "X-SmartCitizenFirm: ",  
                   "X-SmartCitizenData: "};
                   
 char* WEBTIME[3]={                  

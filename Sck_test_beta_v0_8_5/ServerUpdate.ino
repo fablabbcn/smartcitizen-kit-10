@@ -100,13 +100,11 @@ boolean sckServer_reconnect()
 
     for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
     Serial1.println(mac_Address);
-//    Serial1.print(WEB[6]);
-//    Serial1.println(sckReadData(EE_ADDR_APIKEY, 0, 0)); //Apikey
-//    Serial1.print(WEB[7]);
-//    Serial1.println(FirmWare);
-//    Serial1.print(WEB[8]);
-//    Serial1.println(ModePost);
-    Serial1.print(WEB[9]);
+    Serial1.print(WEB[5]);
+    Serial1.println(sckReadData(EE_ADDR_APIKEY, 0, 0)); //Apikey
+    Serial1.print(WEB[6]);
+    Serial1.println(FirmWare);
+    Serial1.print(WEB[7]);
     return ok; 
   }
 
