@@ -339,11 +339,17 @@ char* UNITS[10]={
            #else 
              if (i<4) dec = 1;
            #endif
+           else if (i<7) dec = 3;
+           #if DataRaw
+             else if (i<8) dec = 0;
+           #else 
+             else if (i<8) dec = 2;
+           #endif
          #else
            if (i<4) dec = 1;
+           else if (i<7) dec = 3;
+           else if (i<8) dec = 2;
          #endif
-         else if (i<7) dec = 3;
-         else if (i<8) dec = 2;
          else dec = 0;
          Serial.print(SENSOR[i]); Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, pos + i, dec)); Serial.println(UNITS[i]);
        }

@@ -393,18 +393,15 @@ void sckGetMICS(){
   }
  
   
-  unsigned int sckGetNoise() {
-    unsigned long temp = 0;
-    int n = 100;
-    
+  unsigned int sckGetNoise() {  
     #if F_CPU == 8000000 
-     sckWriteGAIN(100);
+     #define GAIN 10000
+     sckWriteGAIN(GAIN);
      delay(100);
     #endif
     
     float mVRaw = (float)((average(S4))/1023.)*Vcc;
     float dB = 0;
-    float GAIN = 100;
     
     #if F_CPU == 8000000 
       #if DataRaw==false
@@ -414,9 +411,7 @@ void sckGetMICS(){
        dB = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
        if (dB<50) dB = 50; // minimo con la resolucion actual!
     #endif
-    
-
-    
+   
     mVRaw = (float)((float)(average(S4))/1023)*Vcc;
     #if debuggSCK
       Serial.print("nOISE = ");
