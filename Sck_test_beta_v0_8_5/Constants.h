@@ -2,11 +2,24 @@
 #define decouplerComp true
 #define DataRaw       true
 
-#if DataRaw 
-  #define FirmWare  "0.8.5-A"
+
+
+#if F_CPU == 8000000 
+  #if DataRaw 
+    #define FirmWare  "1.1-0.8.5-A"
+  #else
+    #define FirmWare  "1.1-0.8.5-B"
+  #endif
 #else
-  #define FirmWare  "0.8.5-B"
+//  #if DataRaw 
+//    #define FirmWare  "1.0-0.8.5-A"
+//  #else
+    #define FirmWare  "1.0-0.8.5-B"
+//  #endif
 #endif
+
+  
+
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
@@ -112,7 +125,7 @@ char* WEB[8]={
                   "User-Agent: SmartCitizen \n", 
                   "X-SmartCitizenMacADDR: ", 
                   "X-SmartCitizenApiKey: ", 
-                  "X-SmartCitizenFirm: ",  
+                  "X-SmartCitizenVersion: ",  
                   "X-SmartCitizenData: "};
                   
 char* WEBTIME[3]={                  
