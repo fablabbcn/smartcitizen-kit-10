@@ -133,95 +133,95 @@ boolean sckDhtRead(uint8_t pin)
         return true;
 }
 
-void sckWriteVH(byte device, long voltage ) {
-  int data=0;
+  void sckWriteVH(byte device, long voltage ) {
+    int data=0;
+    
+    #if F_CPU == 8000000 
+      int temp = (int)(((voltage/0.41)-1000)*k);
+    #else
+      int temp = (int)(((voltage/1.2)-1000)*k);
+    #endif
   
-  #if F_CPU == 8000000 
-    int temp = (int)(((voltage/0.41)-1000)*k);
-  #else
-    int temp = (int)(((voltage/1.2)-1000)*k);
-  #endif
+    if (temp>RES) data = RES;
+    else if (temp<0) data=0;
+    else data = temp;
+    #if F_CPU == 8000000 
+      sckWriteMCP(MCP1, device, data);
+    #else
+      sckWriteMCP(MCP2, device, data);
+    #endif
+  }
 
-  if (temp>RES) data = RES;
-  else if (temp<0) data=0;
-  else data = temp;
-  #if F_CPU == 8000000 
-    sckWriteMCP(MCP1, device, data);
-  #else
+  
+  float sckReadVH(byte device) {
+    int data;
+    #if F_CPU == 8000000 
+      data=sckReadMCP(MCP1, device);
+      float voltage = (data/k + 1000)*0.41;
+    #else
+      data=sckReadMCP(MCP2, device);
+      float voltage = (data/k + 1000)*1.2;
+    #endif
+    
+    return(voltage);
+  }
+
+  void sckWriteRL(byte device, long resistor) {
+    int data=0x00;
+    data = (int)(resistor/kr);
+    #if F_CPU == 8000000 
+      sckWriteMCP(MCP1, device + 6, data);
+    #else
+      sckWriteMCP(MCP1, device, data);
+    #endif
+  }
+
+  float sckReadRL(byte device)
+  {
+    #if F_CPU == 8000000 
+      return (kr*sckReadMCP(MCP1, device + 6)); //Devuelve en Ohms
+    #else
+      return (kr*sckReadMCP(MCP1, device));  //Devuelve en Ohms
+    #endif 
+  }
+
+  void sckWriteRGAIN(byte device, long resistor) {
+    int data=0x00;
+    data = (int)(resistor/kr);
     sckWriteMCP(MCP2, device, data);
-  #endif
-}
-
-  
-float sckReadVH(byte device) {
-  int data;
-  #if F_CPU == 8000000 
-    data=sckReadMCP(MCP1, device);
-    float voltage = (data/k + 1000)*0.41;
-  #else
-    data=sckReadMCP(MCP2, device);
-    float voltage = (data/k + 1000)*1.2;
-  #endif
-  
-  return(voltage);
-}
-
-void sckWriteRL(byte device, long resistor) {
-  int data=0x00;
-  data = (int)(resistor/kr);
-  #if F_CPU == 8000000 
-    sckWriteMCP(MCP1, device + 6, data);
-  #else
-    sckWriteMCP(MCP1, device, data);
-  #endif
-}
-
-float sckReadRL(byte device)
-{
-  #if F_CPU == 8000000 
-    return (kr*sckReadMCP(MCP1, device + 6)); //Devuelve en Ohms
-  #else
-    return (kr*sckReadMCP(MCP1, device));  //Devuelve en Ohms
-  #endif 
-}
-
-void sckWriteRGAIN(byte device, long resistor) {
-  int data=0x00;
-  data = (int)(resistor/kr);
-  sckWriteMCP(MCP2, device, data);
-}
-
-float sckReadRGAIN(byte device)
-{
-    return (kr*sckReadMCP(MCP2, device));  //Devuelve en Ohms
-}
-
-void sckWriteGAIN(long value)
-{
-  if (value == 100)
-  {
-    sckWriteRGAIN(0x00, 10000);
-    sckWriteRGAIN(0x01, 10000);
   }
-  else if (value == 1000)
+  
+  float sckReadRGAIN(byte device)
   {
-    sckWriteRGAIN(0x00, 10000);
-    sckWriteRGAIN(0x01, 100000);
+      return (kr*sckReadMCP(MCP2, device));  //Devuelve en Ohms
   }
-  else if (value == 10000)
-        {
-           sckWriteRGAIN(0x00, 100000);
-           sckWriteRGAIN(0x01, 100000);
-        }
-  delay(100);
-}
 
-float sckReadGAIN()
-{
-  return (sckReadRGAIN(0x00)/1000)*(sckReadRGAIN(0x01)/1000);
-}    
+  void sckWriteGAIN(long value)
+  {
+    if (value == 100)
+    {
+      sckWriteRGAIN(0x00, 10000);
+      sckWriteRGAIN(0x01, 10000);
+    }
+    else if (value == 1000)
+    {
+      sckWriteRGAIN(0x00, 10000);
+      sckWriteRGAIN(0x01, 100000);
+    }
+    else if (value == 10000)
+          {
+             sckWriteRGAIN(0x00, 100000);
+             sckWriteRGAIN(0x01, 100000);
+          }
+    delay(100);
+  }
 
-void sckHeat(byte device, int current)
+  float sckReadGAIN()
+  {
+    return (sckReadRGAIN(0x00)/1000)*(sckReadRGAIN(0x01)/1000);
+  }    
+
+  void sckHeat(byte device, int current)
   {
     float Rc=Rc0;
     byte Sensor = S2;
@@ -287,16 +287,16 @@ void sckHeat(byte device, int current)
        return Rs;
   }
   
-void sckGetMICS(){          
-     
-      /*Correccion de la tension del Heather*/
-      sckHeat(MICS_5525, 32); //Corriente en mA
-      sckHeat(MICS_2710, 26); //Corriente en mA
-      
-      RsCO = sckReadMICS(MICS_5525);
-      RsNO2 = sckReadMICS(MICS_2710);
+  void sckGetMICS(){          
        
-}
+        /*Correccion de la tension del Heather*/
+        sckHeat(MICS_5525, 32); //Corriente en mA
+        sckHeat(MICS_2710, 26); //Corriente en mA
+        
+        RsCO = sckReadMICS(MICS_5525);
+        RsNO2 = sckReadMICS(MICS_2710);
+         
+  }
 
  #if F_CPU == 8000000
    uint16_t sckReadSHT21(uint8_t type){
@@ -394,6 +394,7 @@ void sckGetMICS(){
  
   
   unsigned int sckGetNoise() {  
+    
     #if F_CPU == 8000000 
      #define GAIN 10000
      sckWriteGAIN(GAIN);
@@ -408,29 +409,30 @@ void sckGetMICS(){
         dB = 0.0222*mVRaw + 58.006; 
       #endif
     #else
+      #if DataRaw==false
        dB = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
        if (dB<50) dB = 50; // minimo con la resolucion actual!
+      #endif
     #endif
-   
-    mVRaw = (float)((float)(average(S4))/1023)*Vcc;
+    
     #if debuggSCK
       Serial.print("nOISE = ");
       Serial.print(mVRaw);
-      Serial.print(" mV nOISE = ");
-      Serial.print(dB);
-      Serial.print(" dB, GAIN = ");
+      #if DataRaw==false
+        Serial.print(" mV nOISE = ");
+        Serial.print(dB);
+        Serial.print(" dB, GAIN = ");
+      #else 
+        Serial.print(" mV GAIN = ");
+      #endif
       Serial.println(GAIN);
     #endif
  
-    #if F_CPU == 8000000 
-       #if DataRaw
-         return mVRaw; 
-       #else
-         return dB*100;
-       #endif   
+    #if DataRaw
+      return mVRaw; 
     #else
-       return dB*100;
-    #endif
+      return dB*100;
+    #endif   
   }
   
   unsigned long sckGetCO()

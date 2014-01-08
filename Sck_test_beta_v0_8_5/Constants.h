@@ -11,11 +11,11 @@
     #define FirmWare  "1.1-0.8.5-B"
   #endif
 #else
-//  #if DataRaw 
-//    #define FirmWare  "1.0-0.8.5-A"
-//  #else
+  #if DataRaw 
+    #define FirmWare  "1.0-0.8.5-A"
+  #else
     #define FirmWare  "1.0-0.8.5-B"
-//  #endif
+  #endif
 #endif
 
   
