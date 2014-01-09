@@ -3,7 +3,6 @@
 boolean eeprom_write_ok      = false;
 boolean eeprom_read_ok       = false;
 unsigned int address_eeprom  = 0;
-uint16_t  nets               = 0;
 
 byte check_ssid_read         = 0;
 byte check_ssid_write        = 0;

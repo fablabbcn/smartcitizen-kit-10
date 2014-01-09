@@ -13,6 +13,7 @@ boolean wait        = false;
 boolean sleep       = true; 
 boolean iphone_mode = false;
 byte server_mode    = 0;
+uint16_t  nets      = 0;
 
 uint32_t timetransmit = 0;  
 uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
@@ -63,9 +64,13 @@ void setup() {
   sckConfig(); 
   TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
   NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
+  nets = sckReadintEEPROM(EE_ADDR_NUMBER_NETS);
+  
   if (TimeUpdate < 60) sleep = false;
   else sleep = true; 
-  if (!sckConnect())
+  
+  
+  if (nets==0)
   {
     sleep = false;  
     server_mode = 0; //Modo AP
@@ -76,20 +81,23 @@ void setup() {
   }
   else
   {
-    #if debuggEnabled
-        Serial.println(F("SCK Connected!!"));
-    #endif
-    byte retry = 0;
-    if (sckCheckRTC())
-     {
-      while (!sckRTCadjust(sckWIFItime())&&(retry<5))
+    if (sckConnect())
+    {
+      #if debuggEnabled
+          Serial.println(F("SCK Connected!!"));
+      #endif
+      byte retry = 0;
+      if (sckCheckRTC())
        {
-         retry = retry + 1;
+        while (!sckRTCadjust(sckWIFItime())&&(retry<5))
+         {
+           retry = retry + 1;
+         }
+          #if debuggEnabled
+            Serial.println(F("Updating RTC..."));
+          #endif
        }
-        #if debuggEnabled
-          Serial.println(F("Updating RTC..."));
-        #endif
-     }
+    }
   }  
     
   if((sleep)&&(wiflySleep))
