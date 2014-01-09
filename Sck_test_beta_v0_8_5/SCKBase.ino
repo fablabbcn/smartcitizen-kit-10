@@ -597,6 +597,10 @@ void sckAPmode(char* ssid)
           //sckSendCommand(F("set wlan channel <value> // Specify the channel to create network
           sckSendCommand(F("set wlan ssid "), true); // Set up network broadcast SSID
           sckSendCommand(ssid);
+          
+          sckSendCommand(F("set opt device_id "), true); // Set up network broadcast SSID
+          sckSendCommand(ssid);
+          
           sckSendCommand(F("set ip dhcp 4")); // Enable DHCP server
           sckSendCommand(F("set ip address 192.168.0.1")); // Specify the IP address
           sckSendCommand(F("set ip net 255.255.255.0")); // Specify the subnet mask
