@@ -67,12 +67,13 @@ ISR(TIMER1_OVF_vect)
   sei();
   timer1Stop();
   #if F_CPU == 8000000 
-//    if (!digitalRead(CONTROL))
-//      {
-//        for (int i=0; i<7; i++) { digitalWrite(FACTORY, HIGH); delay(1000); digitalWrite(FACTORY, LOW); delay(1000); }
-//        Serial.println(F("RESET RN131"));
-//      }
-      digitalWrite(FACTORY, !digitalRead(CONTROL));
+    if (!digitalRead(CONTROL))
+      {
+        digitalWrite(AWAKE, HIGH);
+        digitalWrite(FACTORY, HIGH);
+        sleep = false;  
+        server_mode = 0; //Modo AP
+      }
   #endif
   if (eeprom_read_ok) 
   {
