@@ -24,3 +24,4 @@ get wlan auth\r              (Devuelve las autentificaciones guardadas en el Mod
 get wlan ext_antenna\r              (Devuelve los tipos de antena guardadas en el Modulo)
 clear nets\r                  (Limpia de redes la memoria)
 exit\r                           (Vuelve al modo de funcionamiento normal)
+#data\r  					(Devuelve por terminal en formato json los datos de la EEPROM)
