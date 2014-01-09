@@ -215,6 +215,18 @@ ISR(TIMER1_OVF_vect)
       digitalWrite(AWAKE, LOW);
       wait = true;
     }
+    if (sckCheckText(inByte, "#data\r", &check_data_read))  
+    { 
+      uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
+      if (temp > 0) { 
+        terminal_mode = true; 
+        usb_mode = true;
+        //wait = true; 
+        //server_mode = 0;
+      }
+      Serial.print(F("updates: "));
+      Serial.println(temp);
+    }
     Serial1.write(inByte); 
   }
 
@@ -233,9 +245,9 @@ ISR(TIMER1_OVF_vect)
     { 
       uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
       if (temp > 0) { 
-        iphone_mode = true; 
+        terminal_mode = true; 
         wait = true; 
-        server_mode = 0;
+        //server_mode = 0;
       }
       Serial1.print(F("updates: "));
       Serial1.println(temp);

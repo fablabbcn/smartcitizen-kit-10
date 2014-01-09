@@ -11,7 +11,8 @@
 
 boolean wait        = false;
 boolean sleep       = true; 
-boolean iphone_mode = false;
+boolean terminal_mode = false;
+boolean usb_mode      = false;
 byte server_mode    = 0;
 uint16_t  nets      = 0;
 
@@ -125,13 +126,14 @@ void setup() {
 void loop() {     
 #if sensorEnabled  
     #if wiflyEnabled
-      if (iphone_mode) // Telnet  (#data + *OPEN* detectado )
+      if (terminal_mode) // Telnet  (#data + *OPEN* detectado )
       {
         timer1Stop();
         sleep = false;
         digitalWrite(AWAKE, HIGH);
-        sckJson_update(0);
-        iphone_mode = false;
+        sckJson_update(0, usb_mode);
+        usb_mode = false;
+        terminal_mode = false;
         timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
       }
     #endif

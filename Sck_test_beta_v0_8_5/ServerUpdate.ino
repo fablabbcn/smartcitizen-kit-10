@@ -108,45 +108,49 @@ boolean sckServer_reconnect()
     return ok; 
   }
 
-void sckJson_update(uint16_t initial)
+void sckJson_update(uint16_t initial, boolean terminal)
   {  
     uint16_t updates = ((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10); 
-    if ((initial + POST_MAX) <= updates) updates = initial + POST_MAX;    
-    if (updates > 0)
-      {
-        Serial1.print(F("["));  
-        for (uint16_t pending = initial; pending < updates; pending++)
-         { 
-           byte i;
-           for (i = 0; i<10; i++)
-            {
-              Serial1.print(SERVER[i]);
-              Serial1.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
-            }  
-           Serial1.print(SERVER[i]);
-           if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
-         }
-        Serial1.println(F("]"));
-        Serial1.println();
-      }
-    #if debuggSCK  
+    if (!terminal)
+    {
+      if ((initial + POST_MAX) <= updates) updates = initial + POST_MAX;    
       if (updates > 0)
         {
-          Serial.print(F("["));  
+          Serial1.print(F("["));  
           for (uint16_t pending = initial; pending < updates; pending++)
            { 
              byte i;
              for (i = 0; i<10; i++)
               {
-                Serial.print(SERVER[i]);
-                Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
+                Serial1.print(SERVER[i]);
+                Serial1.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
               }  
-             Serial.print(SERVER[i]);
-             if ((updates > 1)&&(pending < (updates-1))) Serial.print(F(","));
+             Serial1.print(SERVER[i]);
+             if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
            }
-          Serial.println(F("]"));
+          Serial1.println(F("]"));
+          Serial1.println();
         }
-     #endif 
+    }
+    else
+    {
+        if (updates > 0)
+          {
+            Serial.print(F("["));  
+            for (uint16_t pending = initial; pending < updates; pending++)
+             { 
+               byte i;
+               for (i = 0; i<10; i++)
+                {
+                  Serial.print(SERVER[i]);
+                  Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
+                }  
+               Serial.print(SERVER[i]);
+               if ((updates > 1)&&(pending < (updates-1))) Serial.print(F(","));
+             }
+            Serial.println(F("]"));
+          }
+    }
   }  
 
 
@@ -175,7 +179,7 @@ void txWiFly() {
           Serial.print(F("updates = "));
           Serial.println(updates-initial);
         #endif
-        sckJson_update(initial);
+        sckJson_update(initial, false);
         initial = initial + POST_MAX;
         #if debuggEnabled
           Serial.println(F("Posted to Server!")); 
@@ -186,7 +190,7 @@ void txWiFly() {
             Serial.print(F("updates = "));
             Serial.println(updates-initial);
           #endif
-          sckJson_update(initial);
+          sckJson_update(initial, false);
           initial = initial + POST_MAX;
           #if debuggEnabled
             Serial.println(F("Posted to Server!")); 
