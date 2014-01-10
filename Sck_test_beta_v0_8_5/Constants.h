@@ -43,7 +43,6 @@
 #define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
 
 #define POST_MAX             20       //Maximo numero de posteos a la vez
-#define buffer_length        32
 
 //Direcciones I2C
 #define RTC_ADDRESS          0x68    // Direcion de la RTC

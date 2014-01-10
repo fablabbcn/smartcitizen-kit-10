@@ -74,6 +74,7 @@ ISR(TIMER1_OVF_vect)
         sleep = false;  
         server_mode = 0; //Modo AP
       }
+    else digitalWrite(AWAKE, LOW);
   #endif
   if (eeprom_read_ok) 
   {

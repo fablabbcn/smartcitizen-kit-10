@@ -9,6 +9,7 @@ char* antennaExt[redes]  = { INT_ANT      , INT_ANT       , INT_ANT            }
 
 boolean connected;                  
 
+#define buffer_length        32
 static char buffer[buffer_length];
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
@@ -598,13 +599,14 @@ void sckAPmode(char* ssid)
           sckSendCommand(F("set wlan ssid "), true); // Set up network broadcast SSID
           sckSendCommand(ssid);
           
+          buffer[6] = 0x00;
           sckSendCommand(F("set opt device_id "), true); // Set up network broadcast SSID
           sckSendCommand(ssid);
           
           sckSendCommand(F("set ip dhcp 4")); // Enable DHCP server
-          sckSendCommand(F("set ip address 192.168.0.1")); // Specify the IP address
+          sckSendCommand(F("set ip address 1.2.3.4")); // Specify the IP address
           sckSendCommand(F("set ip net 255.255.255.0")); // Specify the subnet mask
-          sckSendCommand(F("set ip gateway 192.168.0.1")); // Specify the gateway
+          sckSendCommand(F("set ip gateway 1.2.3.4")); // Specify the gateway
           sckSendCommand(F("save"), false, "Storing in config"); // Store settings
           sckSendCommand(F("reboot"), false, "*READY*"); // Reboot the module in AP mode
     }
@@ -708,11 +710,9 @@ char* sckid() {
   buffer[3] = '_';
   for(byte i=12; i<len; i++)
   {
-    if (temp[i] != ':') 
-      {
-        buffer[j] = temp[i];
+        if (temp[i] == ':') buffer[j] = '-';
+        else buffer[j] = temp[i];
         j++;
-      }
   }
   buffer[j] = 0x00;
   return buffer;
