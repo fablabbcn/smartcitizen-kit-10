@@ -9,12 +9,14 @@ char* antennaExt[redes]  = { INT_ANT      , INT_ANT       , INT_ANT            }
 
 boolean connected;                  
 
+#define buffer_length        32
 static char buffer[buffer_length];
 
+#define TWI_FREQ 400000L //Frecuencia bus I2C
+
 void sckBegin() {
-  I2c.begin();
-  I2c.setSpeed(fast);
-  I2c.timeOut(100);
+  Wire.begin();
+  TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
   Serial.begin(115200);
   Serial1.begin(9600);
   pinMode(IO0, OUTPUT); //VH_MICS5525
@@ -66,6 +68,7 @@ void sckConfig(){
     
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
+    sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
     
     #if (redes > 0)
       for(byte i=0; i<redes; i++)
@@ -136,18 +139,29 @@ void sckCheckData()
   
 void sckWriteMCP(byte deviceaddress, byte address, int data ) {
   if (data>RES) data=RES;
-  address = (address<<4)|bitRead(data, 8) ;
-  I2c.write(deviceaddress,address,lowByte(data),false); //configura el dispositivo para medir temperatura
+  Wire.beginTransmission(deviceaddress);
+  address=(address<<4)|bitRead(data, 8) ;
+  Wire.write(address);
+  Wire.write(lowByte(data));
+  Wire.endTransmission();
+  delay(4);
 }
   
 int sckReadMCP(int deviceaddress, uint16_t address ) {
   byte rdata = 0xFF;
   int  data = 0x0000;
-  
+  Wire.beginTransmission(deviceaddress);
   address=(address<<4)|B00001100;
-  I2c.read(deviceaddress, address, 2, false); //read 2 bytes
-  data = I2c.receive()<<8; 
-  data = data | I2c.receive();
+  Wire.write(address);
+  Wire.endTransmission();
+  Wire.requestFrom(deviceaddress,2);
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return 0x00;
+  rdata = Wire.read(); 
+  data=rdata<<8;
+  while (!Wire.available()); 
+  rdata = Wire.read(); 
+  data=data|rdata;
   return data;
 }
 
@@ -190,17 +204,24 @@ void sckWriteEEPROM(uint16_t eeaddress, uint8_t data ) {
   uint8_t retry = 0;
   while ((sckReadEEPROM(eeaddress)!=data)&&(retry<10))
   {  
-    I2c.write(E2PROM, eeaddress, data, true);
-    delay(4);
-    retry++;
+      Wire.beginTransmission(E2PROM);
+      Wire.write((byte)(eeaddress >> 8));   // MSB
+      Wire.write((byte)(eeaddress & 0xFF)); // LSB
+      Wire.write(data);
+      Wire.endTransmission();
+      delay(4);
   }
 }
 
 byte sckReadEEPROM(uint16_t eeaddress ) {
-  byte data = 0xFF;
-  I2c.read(E2PROM,  eeaddress, 1, true); //read 1 byte
-  data = I2c.receive();
-  return data;
+    byte rdata = 0xFF;
+    Wire.beginTransmission(E2PROM);
+    Wire.write((byte)(eeaddress >> 8));   // MSB
+    Wire.write((byte)(eeaddress & 0xFF)); // LSB
+    Wire.endTransmission();
+    Wire.requestFrom(E2PROM,1);
+    while (!Wire.available()); rdata = Wire.read();
+    return rdata;
 }
 
 void sckWriteintEEPROM(uint16_t eeaddress, uint16_t data )
@@ -250,8 +271,15 @@ void sckWriteData(uint16_t eeaddress, uint16_t pos, char* text )
 }
 
 boolean sckCheckRTC() {
-  if (I2c.write(RTC_ADDRESS, 0x00) == 0) return true; 
-  return false;
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write(0x00); //Address
+  Wire.endTransmission();
+  delay(4);
+  Wire.requestFrom(RTC_ADDRESS,1);
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return false;
+  Wire.read();
+  return true;
 }
   
 boolean sckRTCadjust(char *time) {    
@@ -273,12 +301,34 @@ boolean sckRTCadjust(char *time) {
     if (data_count == 5)
     {
       #if F_CPU == 8000000 
-        uint8_t DATA [7] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0]} ;
-        I2c.write(RTC_ADDRESS, 0x00, DATA, 7); 
-        I2c.write(RTC_ADDRESS, (uint16_t)0x0E, 0x00, false);   // COMMAND 
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write((int)0);
+        Wire.write(rtc[5]);
+        Wire.write(rtc[4]);
+        Wire.write(rtc[3]);
+        Wire.write(0x00);
+        Wire.write(rtc[2]);
+        Wire.write(rtc[1]);
+        Wire.write(rtc[0]);
+        Wire.endTransmission();
+        delay(4);
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write(0x0E); //Address
+        Wire.write(0x00); //Value
+        Wire.endTransmission();
       #else
-        uint8_t DATA [8] = { rtc[5], rtc[4], rtc[3], 0x00 ,rtc[2], rtc[1], rtc[0], 0x00 } ;
-        I2c.write(RTC_ADDRESS, 0x00, DATA, 8);   // COMMAND
+        Wire.beginTransmission(RTC_ADDRESS);
+        Wire.write((int)0);
+        Wire.write(rtc[5]);
+        Wire.write(rtc[4]);
+        Wire.write(rtc[3]);
+        Wire.write(0x00);
+        Wire.write(rtc[2]);
+        Wire.write(rtc[1]);
+        Wire.write(rtc[0]);
+        Wire.write((int)0);
+        Wire.endTransmission();
+        return true;
       #endif
       return true;
     }
@@ -286,14 +336,17 @@ boolean sckRTCadjust(char *time) {
 }
 
 char* sckRTCtime() {
-      I2c.read(RTC_ADDRESS, (uint16_t)0x00, 7, false); //read 7 bytes
-      uint8_t seconds = (I2c.receive() & 0x7F);
-      uint8_t minutes = I2c.receive();
-      uint8_t hours = I2c.receive();
-      I2c.receive();
-      uint8_t day = I2c.receive();
-      uint8_t month = I2c.receive();
-      uint8_t year = I2c.receive(); 
+      Wire.beginTransmission(RTC_ADDRESS);
+      Wire.write((int)0);	
+      Wire.endTransmission();
+      Wire.requestFrom(RTC_ADDRESS, 7);
+      uint8_t seconds = (Wire.read() & 0x7F);
+      uint8_t minutes = Wire.read();
+      uint8_t hours = Wire.read();
+      Wire.read();
+      uint8_t day = Wire.read();
+      uint8_t month = Wire.read();
+      uint8_t year = Wire.read();
       buffer[0] = '2';
       buffer[1] = '0';
       buffer[2] = (year>>4) + '0';
@@ -545,10 +598,15 @@ void sckAPmode(char* ssid)
           //sckSendCommand(F("set wlan channel <value> // Specify the channel to create network
           sckSendCommand(F("set wlan ssid "), true); // Set up network broadcast SSID
           sckSendCommand(ssid);
+          
+          buffer[6] = 0x00;
+          sckSendCommand(F("set opt device_id "), true); // Set up network broadcast SSID
+          sckSendCommand(ssid);
+          
           sckSendCommand(F("set ip dhcp 4")); // Enable DHCP server
-          sckSendCommand(F("set ip address 192.168.0.1")); // Specify the IP address
+          sckSendCommand(F("set ip address 1.2.3.4")); // Specify the IP address
           sckSendCommand(F("set ip net 255.255.255.0")); // Specify the subnet mask
-          sckSendCommand(F("set ip gateway 192.168.0.1")); // Specify the gateway
+          sckSendCommand(F("set ip gateway 1.2.3.4")); // Specify the gateway
           sckSendCommand(F("save"), false, "Storing in config"); // Store settings
           sckSendCommand(F("reboot"), false, "*READY*"); // Reboot the module in AP mode
     }
@@ -652,11 +710,9 @@ char* sckid() {
   buffer[3] = '_';
   for(byte i=12; i<len; i++)
   {
-    if (temp[i] != ':') 
-      {
-        buffer[j] = temp[i];
+        if (temp[i] == ':') buffer[j] = '-';
+        else buffer[j] = temp[i];
         j++;
-      }
   }
   buffer[j] = 0x00;
   return buffer;

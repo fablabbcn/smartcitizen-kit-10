@@ -1,0 +1,27 @@
+Cambio de linea con \r y donde hay XXX con el valor correspondiente.
+
+$$$                                 (Despierta el Modulo y activa modo terminal WIFLY)
+set wlan ssid XXX\r           (Agrega un SSID a la memoria)
+set wlan phrase XXX\r        (Agrega una phrase a la memoria)
+set wlan key XXX\r            (Agrega una Key a la memoria)
+set wlan auth XXX\r           (Agrega un tipo de autentificacion a la memoria)
+set wlan ext_antenna XXX\r           (Agrega el tipo de antena a la memoria)
+exit\r                               (Vuelve al modo de funcionamiento normal)
+
+
+Estos son los comandos especiales del SCK que no van en modo WIFLY.
+
+###                             (Despierta el Modulo y activa modo terminal SCK)
+get time update\r          (Devuelve el tiempo de actualizacion de los sensores del Modulo)
+set time update XXX\r    (Estableces el tiempo de actualizacion de los sensores del Modulo)
+get number updates\r    (Devuelve el numero de updates que se postean a la vez a la web)
+set number updates XXX\r    (Numero de updates que se postean a la vez a la web)
+get apikey\r                  (Devuelve la APIKEY del Modulo)
+set apikey XXX\r            (Estableces la APIKEY del Modulo)
+get wlan ssid\r              (Devuelve las SSID guardadas en el Modulo)
+get wlan phrase\r          (Devuelve las phrase y KEY guardadas en el Modulo)
+get wlan auth\r              (Devuelve las autentificaciones guardadas en el Modulo)
+get wlan ext_antenna\r              (Devuelve los tipos de antena guardadas en el Modulo)
+clear nets\r                  (Limpia de redes la memoria)
+exit\r                           (Vuelve al modo de funcionamiento normal)
+#data\r  					(Devuelve por terminal en formato json los datos de la EEPROM)
