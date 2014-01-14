@@ -1,19 +1,5 @@
 #if wiflyEnabled
 
-char* WEB[10]={
-                  "data.smartcitizen.me",
-                  "PUT /add HTTP/1.1 \n", 
-                  "Host: data.smartcitizen.me \n", 
-                  "User-Agent: SmartCitizen \n", 
-                  "X-SmartCitizenMacADDR: ", 
-                  " \n", 
-                  "X-SmartCitizenData: ",
-                  /*Servidor de tiempo*/
-                  "GET /datetime HTTP/1.1 \n",
-                  "Host: data.smartcitizen.me \n",
-                  "User-Agent: SmartCitizen \n\n"  
-                  };
-
 #define TIME_BUFFER_SIZE 20 
 
 char* sckWIFItime() {
@@ -28,7 +14,7 @@ char* sckWIFItime() {
       }
     if(retry<5)
     {
-      for(byte i = 7; i<10; i++) Serial1.print(WEB[i]); //Peticiones al servidor de tiempo
+      for(byte i = 0; i<3; i++) Serial1.print(WEBTIME[i]); //Peticiones al servidor de tiempo
       if (sckFindInResponse("UTC:", 2000)) 
       {
         char newChar;
@@ -61,7 +47,7 @@ char* sckWIFItime() {
     if (connected) {
         sckClose();
       }
-    sckExitCommandMode();
+    //sckExitCommandMode();
   } 
   if (!ok)
     {
@@ -69,6 +55,7 @@ char* sckWIFItime() {
       buffer[1] = 0x00;
       //Serial.println("Fail!!");
     }
+  sckExitCommandMode();
   return buffer;
 } 
 
@@ -95,6 +82,7 @@ boolean sckServer_connect()
 boolean sckServer_reconnect()
   {
     char* mac_Address = sckMAC();
+    //char* ApiKey = sckReadData(EE_ADDR_APIKEY, 0, 0);
     int retry = 0;
     boolean ok = false;   
     while ((!ok)&&(retry<numbers_retry)){
@@ -105,51 +93,64 @@ boolean sckServer_reconnect()
             if (retry >= numbers_retry) return ok;
           }
       }    
+//    for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
+//    Serial1.print(mac_Address);
+//    for (byte i = 11; i<13; i++) Serial1.print(WEB[i]);
+
+
     for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
-    Serial1.print(mac_Address);
-    for (byte i = 5; i<7; i++) Serial1.print(WEB[i]);
+    Serial1.println(mac_Address);
+    Serial1.print(WEB[5]);
+    Serial1.println(sckReadData(EE_ADDR_APIKEY, 0, 0)); //Apikey
+    Serial1.print(WEB[6]);
+    Serial1.println(FirmWare);
+    Serial1.print(WEB[7]);
     return ok; 
   }
 
-void sckJson_update(uint16_t initial)
+void sckJson_update(uint16_t initial, boolean terminal)
   {  
     uint16_t updates = ((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10); 
-    if ((initial + POST_MAX) <= updates) updates = initial + POST_MAX;    
-    if (updates > 0)
-      {
-        Serial1.print(F("["));  
-        for (uint16_t pending = initial; pending < updates; pending++)
-         { 
-           byte i;
-           for (i = 0; i<10; i++)
-            {
-              Serial1.print(SERVER[i]);
-              Serial1.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
-            }  
-           Serial1.print(SERVER[i]);
-           if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
-         }
-        Serial1.println(F("]"));
-        Serial1.println();
-      }
-    #if debuggSCK  
+    if (!terminal)
+    {
+      if ((initial + POST_MAX) <= updates) updates = initial + POST_MAX;    
       if (updates > 0)
         {
-          Serial.print(F("["));  
+          Serial1.print(F("["));  
           for (uint16_t pending = initial; pending < updates; pending++)
            { 
              byte i;
              for (i = 0; i<10; i++)
               {
-                Serial.print(SERVER[i]);
-                Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
+                Serial1.print(SERVER[i]);
+                Serial1.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
               }  
-             Serial.print(SERVER[i]);
-             if ((updates > 1)&&(pending < (updates-1))) Serial.print(F(","));
+             Serial1.print(SERVER[i]);
+             if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
            }
-          Serial.println(F("]"));
+          Serial1.println(F("]"));
+          Serial1.println();
         }
-     #endif 
+    }
+    else
+    {
+        if (updates > 0)
+          {
+            Serial.print(F("["));  
+            for (uint16_t pending = initial; pending < updates; pending++)
+             { 
+               byte i;
+               for (i = 0; i<10; i++)
+                {
+                  Serial.print(SERVER[i]);
+                  Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
+                }  
+               Serial.print(SERVER[i]);
+               if ((updates > 1)&&(pending < (updates-1))) Serial.print(F(","));
+             }
+            Serial.println(F("]"));
+          }
+    }
   }  
 
 
@@ -159,14 +160,14 @@ void txWiFly() {
   uint16_t updates = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10; 
   boolean ok_sleep = false;
   
-  if ((sleep)&&(updates>=MIN_UPDATES)){
+  if ((sleep)&&(updates>=NumUpdates)){
     #if debuggEnabled
       Serial.println(F("SCK Waking up..."));
     #endif
     ok_sleep = true;
     digitalWrite(AWAKE, HIGH);
   }
-  if ((sckConnect())&&(updates>=MIN_UPDATES))
+  if ((sckConnect())&&(updates>=NumUpdates))
    { 
       #if debuggEnabled
         Serial.println(F("SCK Connected!!")); 
@@ -178,7 +179,7 @@ void txWiFly() {
           Serial.print(F("updates = "));
           Serial.println(updates-initial);
         #endif
-        sckJson_update(initial);
+        sckJson_update(initial, false);
         initial = initial + POST_MAX;
         #if debuggEnabled
           Serial.println(F("Posted to Server!")); 
@@ -189,7 +190,7 @@ void txWiFly() {
             Serial.print(F("updates = "));
             Serial.println(updates-initial);
           #endif
-          sckJson_update(initial);
+          sckJson_update(initial, false);
           initial = initial + POST_MAX;
           #if debuggEnabled
             Serial.println(F("Posted to Server!")); 
@@ -226,7 +227,7 @@ void txWiFly() {
      #if debuggEnabled
        Serial.print(F("updates = "));
        Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-       if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=MIN_UPDATES) Serial.println(F("Error in connectionn!!"));
+       if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=NumUpdates) Serial.println(F("Error in connectionn!!"));
        else Serial.println(F("Saved in memory!!"));
      #endif
     }
@@ -315,12 +316,8 @@ char* UNITS[10]={
                   " V",
                   " kOhm",
                   " kOhm",
-                  #if F_CPU == 8000000 
-                    #if DataRaw
-                      " mV",
-                    #else
-                      " dB",
-                    #endif
+                  #if DataRaw
+                    " mV",
                   #else
                     " dB",
                   #endif
@@ -342,16 +339,25 @@ char* UNITS[10]={
            #else 
              if (i<4) dec = 1;
            #endif
+           else if (i<7) dec = 3;
+           #if DataRaw
+             else if (i<8) dec = 0;
+           #else 
+             else if (i<8) dec = 2;
+           #endif
          #else
            if (i<4) dec = 1;
+           else if (i<7) dec = 3;
+           #if DataRaw
+             else if (i<8) dec = 0;
+           #else 
+             else if (i<8) dec = 2;
+           #endif
          #endif
-         else if (i<7) dec = 3;
-         else if (i<8) dec = 2;
          else dec = 0;
          Serial.print(SENSOR[i]); Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, pos + i, dec)); Serial.println(UNITS[i]);
        }
-        Serial.println(F("*******************"));
-       
+        Serial.println(F("*******************"));     
   }
 #endif
 
