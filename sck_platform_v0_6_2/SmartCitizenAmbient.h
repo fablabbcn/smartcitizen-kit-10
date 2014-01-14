@@ -6,9 +6,6 @@
  *  Busca la ultima version en https://github.com/fablabbcn/Smart-Citizen-Kit 
  */
  
-#ifndef SMARTCITIZENAMBIENT_h
-#define SMARTCITIZENAMBIENT_h
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <avr/pgmspace.h>
@@ -22,33 +19,33 @@
 #define MCP2               0x2E    // Direcion del mcp2 REGULADORES
 
 //Espacio reservado para los parametros de configuracion del SCK
-#define EE_ADDR_SIGNATURE_CODE1                     0  //1BYTE
-#define EE_ADDR_SIGNATURE_CODE2                     1  //1BYTE
-#define EE_ADDR_SIGNATURE_CODE3                     2  //1BYTE
-#define EE_ADDR_SIGNATURE_CODE4                     3  //1BYTE
-#define EE_ADDR_CODE_MAYOR_VERSION                  4  //1BYTE               
-#define EE_ADDR_CODE_MINOR_VERSION                  5  //1BYTE
-#define EE_ADDR_MAX_BATTERY                         6  //1BYTE
-#define EE_ADDR_FREE_ADDR_UPDATE_WEB                8  //2BYTE                
-#define EE_ADDR_FREE_ADDR_MEASURES                  10  //2BYTE
+#define EE_ADDR_CODE_MAYOR_VERSION                  0  //1BYTE               
+#define EE_ADDR_CODE_MINOR_VERSION                  1  //1BYTE
+#define EE_ADDR_CODE_LETTER_VERSION                 2  //1BYTE
+#define EE_ADDR_MAX_BATTERY                         4  //2BYTE
+#define EE_ADDR_FREE_ADDR_MEASURES                  6  //2BYTE
+#define EE_ADDR_POST_MEASURES                       8  //2BYTE
+#define EE_ADDR_NUMBER_MEASURES                     10  //2BYTE
+#define EE_ADDR_NUMBER_NETS                         12  //2BYTE
+#define EE_ADDR_FREE_SSID                           14  //2BYTE
+#define EE_ADDR_FREE_PASS                           16  //2BYTE
+#define EE_ADDR_FREE_AUTH                           18  //2BYTE
 
-//Espacio reservado para la configuracion de subida a la web
-#define EE_ADDR_UPDATE_WEB                          100
+
+//Espacio reservado para los SSID y PASS
+//uint16_t EE_ADDR_SSID[3] =                            {100, 300, 400};
+//uint16_t EE_ADDR_PASS[3] =                            {150, 350, 450};
+#define EE_ADDR_SSID                                100
+#define EE_ADDR_PASS                                600
+#define EE_ADDR_AUTH                                1100  //2BYTE
 
 //Espacio reservado para los datos no posteados a la web
-#define EE_ADDR_MEASURES                            2000
+#define EE_ADDR_MEASURES                            1200
 
-//Valores por defecto
-#define SIGNATURE_CODE1             23 // day 
-#define SIGNATURE_CODE2             03 // month
-#define SIGNATURE_CODE3             20 // century
-#define SIGNATURE_CODE4             13 // year of century
-#define CODE_MAYOR_VERSION          0 
-#define CODE_MINOR_VERSION          4 
+#define VAL_MAX_BATTERY                             840
+#define FREE_ADDR_UPDATE_WEB                        EE_ADDR_UPDATE_WEB
+#define FREE_ADDR_MEASURES                          EE_ADDR_MEASURES
 
-#define VAL_MAX_BATTERY             840
-#define FREE_ADDR_UPDATE_WEB        EE_ADDR_UPDATE_WEB
-#define FREE_ADDR_MEASURES          EE_ADDR_MEASURES
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
 
@@ -63,7 +60,7 @@
 #define RES 256
 #define R1 82  //Kohm
 #define P1 100  //Kohm 
-//#define  k  10 //float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tensión de los reguladores 
+//#define  k  10 //float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
 //#define  kr  10 //float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometros 
 
 
@@ -78,7 +75,7 @@
 #define S4 A0 //MICRO
 #define S5 A1 //LDR
 
-#define AWAKE  4 //Despertar WIFI
+#define AWAKE  4 // Despertar WIFI
 #define PANEL A8 //Entrada panel
 #define BAT   A7 //Entrada bateria
 
@@ -94,65 +91,63 @@
 
 #define EXT_ANT "1" // antena externa
 #define INT_ANT "0" // antena interna
-  
-class ClockTime {
-public:
-    byte year; 
-    byte month; 
-    byte day; 
-    byte hours; 
-    byte minutes; 
-    byte seconds; 
-};
-
+                  
 class SmartCitizen {
   public:  
     void begin();
-    void RTCadjust(ClockTime time);
-    void RTCtime();
-    void writeEEPROM(unsigned int eeaddress, byte data );
-    byte readEEPROM(unsigned int eeaddress );
-    char* readCommand(unsigned int eeaddress, unsigned int *pointer );
-    void writeCommand(unsigned int eeaddress, char* text );
-    int decimal(float temp); 
+    boolean RTCadjust(char *time);
+    char* RTCtime();
+    void writeEEPROM(uint16_t eeaddress, byte data );
+    void writeintEEPROM(uint16_t eeaddress, uint16_t data );
+    byte readEEPROM(uint16_t eeaddress );
+    uint16_t readintEEPROM(uint16_t eeaddress );
+    char* readCommand(uint16_t eeaddress, uint16_t *pointer );
+    void writeCommand(uint16_t eeaddress, char* text );
+    boolean check_text(byte inByte, char* text, byte *check);
+    void check_data();
     void DHT22(uint8_t pin);
     boolean dhtRead();
-    float getTemperatureC(); 
-    float getHumidity(); 
-    float getNO2(); 
-    float getCO(); 
-    float getPanel();
-    float getBattery();
-    float getLight();
-    float getNoise();
-    float getMICS(unsigned long time0, unsigned long time1);  
+    int getTemperatureC(); 
+    int getHumidity(); 
+    unsigned long getNO2(); 
+    unsigned long getCO(); 
+    uint16_t getPanel();
+    uint16_t getBattery();
+    uint16_t getLight();
+    uint16_t getNoise();
+    void getMICS(unsigned long time0, unsigned long time1);  
+    void updateSensors(byte mode);
+    
     /*Wifi*/
-    void config(char* ssid, char* pass, char* auth, char* antenna);
-    boolean wifi_ready();
-    const char * ip();
-    ClockTime WIFItime();
+    boolean connect();
+    void APmode(char* ssid);
+    boolean ready();
+    char* mac();
+    char* id();
+    char* scan();
+    char* WIFItime();
+    boolean server_connect();
+    void json_updtate();
     boolean sleep();
     boolean open(const char *addr, int port=80);
     boolean close();
     boolean enterCommandMode();  
     boolean exitCommandMode();  
     boolean isConnected();
+    
   private:
     uint8_t _bitmask;
     volatile uint8_t *_baseReg;
     unsigned long _lastReadTime;
     short int _lastHumidity;
     short int _lastTemperature;
-    
     float average(int anaPin);
-    float mapfloat(long x, long in_min, long in_max, long out_min, long out_max);
+    char* itoa(uint32_t number);
     void writeMCP(byte deviceaddress, byte address, int data );
     int readMCP(int deviceaddress, byte address );
     void VH_MICS(byte device, long voltage );
     float readVH(byte device);
     void RL_MICS(byte device, long resistor);  
-    uint8_t bcd2bin (uint8_t val);
-    uint8_t bin2bcd (uint8_t val);
     /*Wifi*/
     boolean connected;
     boolean findInResponse(const char *toMatch, unsigned int timeOut);
@@ -165,4 +160,4 @@ class SmartCitizen {
                     const char *expectedResponse); // Has default value
 };
 
-#endif
+

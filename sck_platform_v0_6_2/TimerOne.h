@@ -1,7 +1,7 @@
 /*
  *  Interrupt and PWM utilities for 16 bit Timer1 on ATmega168/328
  *  Original code by Jesse Tane for http://labs.ideo.com August 2008
- *  Modified March 2009 by Jérôme Despatis and Jesse Tane for ATmega328 support
+ *  Modified March 2009 by JÃ©rÃ´me Despatis and Jesse Tane for ATmega328 support
  *  Modified June 2009 by Michael Polli and Jesse Tane to fix a bug in setPeriod() which caused the timer to stop
  *  Modified June 2011 by Lex Talionis to add a function to read the timer
  *  Modified Oct 2011 by Andrew Richards to avoid certain problems:
@@ -68,3 +68,4 @@ class TimerOne
 
 extern TimerOne Timer1;
 #endif
+

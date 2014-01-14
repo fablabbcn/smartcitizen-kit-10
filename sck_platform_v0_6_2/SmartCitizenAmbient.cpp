@@ -3,30 +3,42 @@
 
 #include "SmartCitizenAmbient.h"
 
+char* WEB[10]={
+                  "data.smartcitizen.me",
+                  "PUT /add HTTP/1.1 \n", 
+                  "Host: data.smartcitizen.me \n", 
+                  "User-Agent: SmartCitizen \n", 
+                  "X-SmartCitizenMacADDR: ", 
+                  " \n", 
+                  "X-SmartCitizenData: ",
+                  /*Servidor de tiempo*/
+                  "GET /datetime HTTP/1.1 \n",
+                  "Host: data.smartcitizen.me \n",
+                  "User-Agent: SmartCitizen \n\n"  
+                  };
+                  
+char* SERVER[11]={
+                  "{\"temp\":\"",
+                  "\",\"hum\":\"", 
+                  "\",\"co\":\"", 
+                  "\",\"no2\":\"", 
+                  "\",\"light\":\"", 
+                  "\",\"noise\":\"", 
+                  "\",\"bat\":\"", 
+                  "\",\"panel\":\"", 
+                  "\",\"nets\":\"", 
+                  "\",\"timestamp\":\"", 
+                  "\"}"
+                  };
+                  
 float Rs0 = 0;
 float Rs1 = 0;
 
-float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tensión de los reguladores 
+float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tensiÃ³n de los reguladores 
 float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometros 
 
-
-float RS_RO_MICS_5525[22] = {
-    0.72, 0.68, 0.66, 0.64, 0.63, 0.62, 0.61, 0.6, 0.59, 0.58, 0.5, 0.45, 0.41, 0.38, 0.34, 0.31, 0.29, 0.275, 0.26, 0.17, 0.12, 0.088}; //Rs/Ro
-float PPM_MICS_5525[22] =   {   
-    1,    2,    3,    4,    5,    6,    7,   8,    9,   10,  20,   30,   40,   50,   60,   70,   80,    90,  100,  200,  300,   400}; //ppm 
-float RS_RO_MICS_2710[10] = { 
-    25,  55,  90, 140, 190, 260, 330, 410, 500, 1000}; //Rs/Ro
-float PPM_MICS_2710[10]   = {
-    0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,   1,  1.5}; //ppm
-
-#define DIRECT_READ(base, mask)		(((*(base)) & (mask)) ? 1 : 0)
-#define DIRECT_MODE_INPUT(base, mask)	((*(base+1)) &= ~(mask))
-#define DIRECT_MODE_OUTPUT(base, mask)	((*(base+1)) |= (mask))
-#define DIRECT_WRITE_LOW(base, mask)	((*(base+2)) &= ~(mask))
-
-// This should be 40, but the sensor is adding an extra bit at the start
-#define DHT22_DATA_BIT_COUNT 41
-
+#define buffer_length 64
+static char buffer[buffer_length];
 
 void SmartCitizen::begin() {
   Wire.begin();
@@ -47,19 +59,43 @@ float SmartCitizen::average(int anaPin) {
   return(average);
 }
 
-int SmartCitizen::decimal(float temp)
-{
-  return((int)((temp-(int)(temp))*100));
-}
+boolean SmartCitizen::check_text(byte inByte, char* text, byte *check)
+  {
+    if (inByte == text[*check]) 
+      {
+        *check = *check + 1;
+        if (*check == strlen(text)) 
+        {
+          *check = 0;
+          return true;
+        }
+      }
+    else *check = 0;
+    return false;
+  }
 
-uint8_t SmartCitizen::bcd2bin (uint8_t val) { return val - 6 * (val >> 4); }
-uint8_t SmartCitizen::bin2bcd (uint8_t val) { return val + 6 * (val / 10); }
-
-float SmartCitizen::mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
-{
-  return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
-}
-
+void SmartCitizen::check_data()
+  {  
+    uint16_t check_measures = readintEEPROM(EE_ADDR_NUMBER_MEASURES);
+//    uint16_t post = readintEEPROM(EE_ADDR_POST_MEASURES);
+    if (check_measures > 0) {check_measures = check_measures%10;}
+    uint16_t address = readintEEPROM(EE_ADDR_FREE_ADDR_MEASURES);
+    byte count=0;
+    if (check_measures > 0)
+      {
+        while ((count<=check_measures)&&(address>(EE_ADDR_MEASURES-2))) 
+          {
+            if (readEEPROM(address) == 0x00) count++;
+            address--;
+          }
+          address = address + 2;
+      }
+//    Serial.println(address);
+      writeintEEPROM(EE_ADDR_NUMBER_MEASURES, readintEEPROM(EE_ADDR_NUMBER_MEASURES) - check_measures);
+      writeintEEPROM(EE_ADDR_FREE_ADDR_MEASURES, address); 
+  }
+    
+    
 void SmartCitizen::writeMCP(byte deviceaddress, byte address, int data ) {
   if (data>RES) data=RES;
   Wire.beginTransmission(deviceaddress);
@@ -69,6 +105,14 @@ void SmartCitizen::writeMCP(byte deviceaddress, byte address, int data ) {
   Wire.endTransmission();
   delay(4);
 }
+
+#define DIRECT_READ(base, mask)		(((*(base)) & (mask)) ? 1 : 0)
+#define DIRECT_MODE_INPUT(base, mask)	((*(base+1)) &= ~(mask))
+#define DIRECT_MODE_OUTPUT(base, mask)	((*(base+1)) |= (mask))
+#define DIRECT_WRITE_LOW(base, mask)	((*(base+2)) &= ~(mask))
+
+// This should be 40, but the sensor is adding an extra bit at the start
+#define DHT22_DATA_BIT_COUNT 41
 
 void SmartCitizen::DHT22(uint8_t pin)
 {
@@ -233,7 +277,8 @@ int SmartCitizen::readMCP(int deviceaddress, byte address ) {
   Wire.write(address);
   Wire.endTransmission();
   Wire.requestFrom(deviceaddress,2);
-  while (!Wire.available()); 
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return 0x00;
   rdata = Wire.read(); 
   data=rdata<<8;
   while (!Wire.available()); 
@@ -266,7 +311,7 @@ void SmartCitizen::RL_MICS(byte device, long resistor) {
 }
   
   
-void SmartCitizen::writeEEPROM(unsigned int eeaddress, byte data ) {
+void SmartCitizen::writeEEPROM(uint16_t eeaddress, byte data ) {
   Wire.beginTransmission(E2PROM);
   Wire.write((byte)(eeaddress >> 8));   // MSB
   Wire.write((byte)(eeaddress & 0xFF)); // LSB
@@ -275,7 +320,13 @@ void SmartCitizen::writeEEPROM(unsigned int eeaddress, byte data ) {
   delay(8);
 }
 
-byte SmartCitizen::readEEPROM(unsigned int eeaddress ) {
+void SmartCitizen::writeintEEPROM(uint16_t eeaddress, uint16_t data )
+{
+  writeEEPROM(eeaddress , highByte(data));
+  writeEEPROM(eeaddress  + 1, lowByte(data)); ;
+}
+
+byte SmartCitizen::readEEPROM(uint16_t eeaddress ) {
   byte rdata = 0xFF;
   Wire.beginTransmission(E2PROM);
   Wire.write((byte)(eeaddress >> 8));   // MSB
@@ -287,70 +338,103 @@ byte SmartCitizen::readEEPROM(unsigned int eeaddress ) {
   return rdata;
 }
 
-char* SmartCitizen::readCommand(unsigned int eeaddress, unsigned int *pointer )
+uint16_t SmartCitizen::readintEEPROM(uint16_t eeaddress)
 {
-  char text[128];
-  unsigned int i;
-  for (i = eeaddress; readEEPROM(i)!= 0x00; i++) text[i - eeaddress] = readEEPROM(i);
-  text[i - eeaddress] = 0x00;
+  return (readEEPROM(eeaddress)<<8)+ readEEPROM(eeaddress + 1); 
+}
+
+char* SmartCitizen::readCommand(uint16_t eeaddress, uint16_t *pointer )
+{
+  uint16_t i;
+  for (i = eeaddress; (readEEPROM(i)!= 0x00&&((i - eeaddress)<buffer_length)); i++) buffer[i - eeaddress] = readEEPROM(i);
+  buffer[i - eeaddress] = 0x00;
   *pointer = i+1;
   delayMicroseconds(10);
-  return text;
+  return buffer;
 }
 
-void SmartCitizen::writeCommand(unsigned int eeaddressfree, char* text )
+void SmartCitizen::writeCommand(uint16_t eeaddressfree, char* text )
 {
-  unsigned int eeaddress = (readEEPROM(eeaddressfree)<<8) + (readEEPROM(eeaddressfree + 1));
-  unsigned int i;
+  uint16_t eeaddress = readintEEPROM(eeaddressfree);
+  uint16_t i;
   for (i = eeaddress; text[i - eeaddress]!= 0x00; i++) writeEEPROM(i, text[i - eeaddress]);
   writeEEPROM(i, 0x00);
-  i++;
-  writeEEPROM(eeaddressfree, highByte(i));
-  writeEEPROM(eeaddressfree + 1, lowByte(i));
-}
-  
-void SmartCitizen::RTCadjust(ClockTime time) {
-    Wire.beginTransmission(DS1307_ADDRESS);
-    Wire.write((int)0);
-    Wire.write(time.seconds);
-    Wire.write(time.minutes);
-    Wire.write(time.hours);
-    Wire.write(0x00);
-    Wire.write(time.day);
-    Wire.write(time.month);
-    Wire.write(time.year);
-    Wire.write((int)0);
-    Wire.endTransmission();
+  i++; 
+  writeintEEPROM(eeaddressfree, i);
+  if (eeaddressfree == EE_ADDR_FREE_ADDR_MEASURES) writeintEEPROM(EE_ADDR_NUMBER_MEASURES, readintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1);
+  else if (eeaddressfree == EE_ADDR_FREE_SSID) writeintEEPROM(EE_ADDR_NUMBER_NETS, readintEEPROM(EE_ADDR_NUMBER_NETS) + 1);
 }
 
-void SmartCitizen::RTCtime() {
+boolean SmartCitizen::RTCadjust(char *time) {
+    byte rtc[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    byte count = 0x00;
+    byte data_count=0;
+    while (time[count]!=0x00)
+    {
+      if(time[count] == '-') data_count++;
+      else if(time[count] == ' ') data_count++;
+      else if(time[count] == ':') data_count++;
+      else if ((time[count] >= '0')&&(time[count] <= '9'))
+            { 
+              rtc[data_count] =(rtc[data_count]<<4)|(0x0F&time[count]);
+            }  
+      else break;
+      count++;
+    }  
+    if (data_count == 5)
+    {
+      Wire.beginTransmission(DS1307_ADDRESS);
+      Wire.write((int)0);
+      Wire.write(rtc[5]);
+      Wire.write(rtc[4]);
+      Wire.write(rtc[3]);
+      Wire.write(0x00);
+      Wire.write(rtc[2]);
+      Wire.write(rtc[1]);
+      Wire.write(rtc[0]);
+      Wire.write((int)0);
+      Wire.endTransmission();
+      return true;
+    }
+    return false;
+}
+
+char* SmartCitizen::RTCtime() { 
   Wire.beginTransmission(DS1307_ADDRESS);
   Wire.write((int)0);	
   Wire.endTransmission();
-  
   Wire.requestFrom(DS1307_ADDRESS, 7);
-  uint8_t ss = bcd2bin(Wire.read() & 0x7F);
-  uint8_t mm = bcd2bin(Wire.read());
-  uint8_t hh = bcd2bin(Wire.read());
+  uint8_t seconds = (Wire.read() & 0x7F);
+  uint8_t minutes = Wire.read();
+  uint8_t hours = Wire.read();
   Wire.read();
-  uint8_t d = bcd2bin(Wire.read());
-  uint8_t m = bcd2bin(Wire.read());
-  uint16_t y = bcd2bin(Wire.read()) + 2000;
-  Serial.print(y, DEC);
-  Serial.print('/');
-  Serial.print(m, DEC);
-  Serial.print('/');
-  Serial.print(d, DEC);
-  Serial.print(' ');
-  Serial.print(hh, DEC);
-  Serial.print(':');
-  Serial.print(mm, DEC);
-  Serial.print(':');
-  Serial.print(ss, DEC);
-  Serial.println();
+  uint8_t day = Wire.read();
+  uint8_t month = Wire.read();
+  uint8_t year = Wire.read();
+  buffer[0] = '2';
+  buffer[1] = '0';
+  buffer[2] = (year>>4) + '0';
+  buffer[3] = (year&0x0F) + '0';
+  buffer[4] = '-';
+  buffer[5] = (month>>4) + '0';
+  buffer[6] = (month&0x0F) + '0';
+  buffer[7] = '-';
+  buffer[8] = (day>>4) + '0';
+  buffer[9] = (day&0x0F) + '0';
+  buffer[10] = ' ';
+  buffer[11] = (hours>>4) + '0';
+  buffer[12] = (hours&0x0F) + '0';
+  buffer[13] = ':';
+  buffer[14] = (minutes>>4) + '0';
+  buffer[15] = (minutes&0x0F) + '0';
+  buffer[16] = ':';
+  buffer[17] = (seconds>>4) + '0';
+  buffer[18] = (seconds&0x0F) + '0';
+  buffer[19] = 0x00;
+  return buffer;
 }
 
-float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){          
+void SmartCitizen::getMICS(unsigned long time0, unsigned long time1){          
      
       /*Correccion de la tension del Heather*/
       
@@ -420,18 +504,9 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
       
       delay(time0); //Tiempo de enfriamiento para lectura
   
-      //Vc = (float)average(S2)*Vcc/1023; //mV 
-      //current = Vc/Rc; //mA 
-  
       float RL0 = kr*readMCP(MCP1, MICS_5525)/1000; //Kohm
       float VL0 = ((float)average(S0)*Vcc)/1023; //mV
       Rs0 = ((Vcc-VL0)/VL0)*RL0; //Kohm
-      
-      #if debuggSCK
-        Serial.print("MICS5525 Rs: ");
-        Serial.print(Rs0);
-        Serial.println("K");
-      #endif
   
       /*Correccion de impedancia de carga*/
       if (Rs0 < 100)
@@ -442,6 +517,15 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
         VL0 = ((float)average(S0)*Vcc)/1023; //mV
         Rs0 = ((Vcc-VL0)/VL0)*RL0; //Kohm
       }
+      
+      Rs0 = Rs0*1000; //ohm
+      
+      #if debuggSCK
+        Serial.print("MICS5525 Rs: ");
+        Serial.print(Rs0);
+        Serial.println("K");
+      #endif
+      
       RL_MICS(MICS_2710, 10000);
       
       delay(time1 - time0); 
@@ -456,7 +540,8 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
       delay(100);
       RL1 = kr*readMCP(MCP1, MICS_2710)/1000; //Kohm
       VL1 = ((float)average(S1)*Vcc)/1023; //mV
-      Rs1 = ((2500-VL1)/VL1)*RL1; //Kohm
+      
+      Rs1 = ((2500-VL1)/VL1)*RL1*1000; //ohm
       
       #if debuggSCK
         Serial.print("MICS2710 Rs: ");
@@ -471,80 +556,45 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
       #endif
 }
   
-  float SmartCitizen::getTemperatureC(){
-      float temperature = _lastTemperature/10.;
-      #if debuggSCK
-        Serial.println("*******************");
-        Serial.print("Temperature: ");
-        Serial.println(temperature);
-      #endif
-      //return myDHT22.getTemperatureC();
-      return temperature;
+  int SmartCitizen::getTemperatureC(){
+      return _lastTemperature;
   }
   
-  float SmartCitizen::getHumidity(){
-      float humidity = _lastHumidity/10.;
-      #if debuggSCK
-        Serial.print("Humidity: ");
-        Serial.println(humidity);
-      #endif
-      //return myDHT22.getHumidity();
-      return humidity;
+  int SmartCitizen::getHumidity(){
+      return _lastHumidity;
   }
   
-  float SmartCitizen::getPanel(){
-    float value = mapfloat(average(PANEL), 409, 819, 0, 100); 
-    if (value>0) {
-      return value;  // %
-    } 
-    else { 
-      return 0;  // %
-    }
+  uint16_t SmartCitizen::getPanel(){
+    uint16_t value = 3*average(PANEL)*Vcc/1023;
+    return value;
+//    uint16_t value = map(average(PANEL), 409, 819, 0, 1000); 
+//    if (value>0) return value;
+//    else return 0;
   }
   
-  float SmartCitizen::getBattery() {
-    float temp = average(BAT);
-    int MAX = (readEEPROM(EE_ADDR_MAX_BATTERY )<<8) + (readEEPROM(EE_ADDR_MAX_BATTERY  + 1));
+  uint16_t SmartCitizen::getBattery() {
+    uint16_t temp = average(BAT);
+    uint16_t MAX = readintEEPROM(EE_ADDR_MAX_BATTERY);
     if (temp > MAX)
       {
-        writeEEPROM(EE_ADDR_MAX_BATTERY , highByte((int)temp));
-        writeEEPROM(EE_ADDR_MAX_BATTERY  + 1, lowByte((int)temp));
-        MAX = (int)temp;
+        writeintEEPROM(EE_ADDR_MAX_BATTERY, temp);
+        MAX = temp;
       }
-    #if debuggSCK
-      Serial.print("Battery mV: ");
-      Serial.print(temp);
-      Serial.print("  -  Maximo mV: ");
-      Serial.println(MAX);
-      Serial.println("*******************");
-    #endif
-    temp = mapfloat(temp, 613, MAX, 0, 100);
-    if (temp>100) temp=100;
+    temp = map(temp, 613, MAX, 0, 1000);
+    if (temp>1000) temp=1000;
     if (temp<0) temp=0;
     return temp; 
   }
   
-  float SmartCitizen::getLight(){
-    //float temp = mapfloat(average(S5), 370, 1021, 0, 100); 
-    float temp = mapfloat(average(S5), 0, 1023, 0, 100);
-    if (temp>100) temp=100;
+  uint16_t SmartCitizen::getLight(){
+    int temp = map(average(S5), 0, 1023, 0, 1000);
+    if (temp>1000) temp=1000;
     if (temp<0) temp=0;
-    #if debuggSCK
-      Serial.print("light mV: ");
-      Serial.println(((float)((float)average(S5)/1023)*Vcc));
-    #endif
     return temp;
-    // return ((float)((float)average(S5)/1023)*Vcc);
   }
   
-  float SmartCitizen::getNoise() {
+  unsigned int SmartCitizen::getNoise() {
     unsigned long temp = 0;
-    int temp_actual = 0;
-    int max_temp = 0;
-    float mVRaw = 0;
-    float max_mVRaw = 0;
-    float dB_temp = 0;
-    float dB = 0;
     int n = 200;
     
     digitalWrite(IO1, HIGH); //VH_MICS2710
@@ -554,16 +604,16 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
     {
       delay(1);
       //temp_actual = analogRead(S4);
-      mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
+      float mVRaw = (float)((analogRead(S4))/1023.)*Vcc;
       
       //dB_temp = 16.801*log( (mVRaw*200)/1000. ) + 9.872;
-      dB_temp = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
+      float dB_temp = 9.7*log( (mVRaw*200)/1000. ) + 40;  // calibracion para ruido rosa // energia constante por octava
   
       temp = temp + dB_temp;
   
     }
   //  
-    dB = temp/n;
+    float dB = (float)temp/n;
     if(dB < 50) dB = 50; // minimo con la resolucion actual!
     
     //mVRaw = (float)((float)(average(S4))/1023)*Vcc;
@@ -576,20 +626,58 @@ float SmartCitizen::getMICS(unsigned long time0, unsigned long time1){
     digitalWrite(IO1, LOW); //VH_MICS2710
     
     //return max_mVRaw;
-    return dB;
+    return dB*100;
     
   }
  
-  float SmartCitizen::getCO()
+  unsigned long SmartCitizen::getCO()
   {
     return Rs0;
   }  
   
-  float SmartCitizen::getNO2()
+  unsigned long SmartCitizen::getNO2()
   {
     return Rs1;
   } 
  
+ 
+ void SmartCitizen::updateSensors(byte mode) { 
+   
+  if (mode == 2) 
+    {
+      writeintEEPROM(EE_ADDR_POST_MEASURES, 0x0000);
+      writeintEEPROM(EE_ADDR_FREE_ADDR_MEASURES, FREE_ADDR_MEASURES);
+    }
+  else check_data();
+  
+  if (dhtRead())
+  {
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getTemperatureC())); // C
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getHumidity())); // %
+  }
+  else 
+  {
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0"); // C
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0"); // %
+  }
+
+  getMICS(4000, 30000);
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getCO())); //ppm
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getNO2())); //ppm
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getLight())); //mV
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getNoise())); //mV
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getBattery())); //%
+  writeCommand(EE_ADDR_FREE_ADDR_MEASURES, itoa(getPanel()));  // %
+      
+  if (mode != 1)
+       {
+         writeCommand(EE_ADDR_FREE_ADDR_MEASURES, "0");  //Wifi Nets
+         writeCommand(EE_ADDR_FREE_ADDR_MEASURES, RTCtime());
+       } 
+  writeintEEPROM(EE_ADDR_POST_MEASURES, readintEEPROM(EE_ADDR_POST_MEASURES) + 1);
+}
+  
+  
  boolean SmartCitizen::findInResponse(const char *toMatch,
                                     unsigned int timeOut = 1000) {
   int byteRead;
@@ -691,11 +779,9 @@ boolean SmartCitizen::enterCommandMode() {
       Serial1.println();
       if (findInResponse("\r\n<", 1000))
       {
-        //Serial.println("ok");
         return true;
       }
     }
-    //Serial.println("fail");
     return false;
 }
 
@@ -718,45 +804,30 @@ boolean SmartCitizen::exitCommandMode() {
     return false;
 }
 
-void SmartCitizen::config(char* ssid, char* pass, char* auth, char* antenna)
+boolean SmartCitizen::connect()
+  {
+    if (!ready()) return false;     
+    else return true;  
+  }  
+
+void SmartCitizen::APmode(char* ssid)
   {
     if (enterCommandMode())
     {    
-        sendCommand(F("set wlan ssid "), true);
-        sendCommand(ssid);
-        
-        sendCommand(F("set wlan auth "), true);
-        sendCommand(auth);
-        
-        if( (auth == "1") || (auth == "8") )
-          sendCommand(F("set wlan key "), true);  // WEP, WEP64 -> characters in HEX!!!!!
-        else
-          sendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
-        
-        sendCommand(pass);
-          
-        sendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
-        
-        sendCommand(F("set sys autoconn 0"));
-        
-        sendCommand(F("set wlan join 1"));
-        
-        sendCommand(F("set comm remote 0"));
-        
-        sendCommand(F("set ftp address 198.175.253.161"));
-        
-        sendCommand(F("set wlan ext_antenna "), true); // ANTENA: 0-> interna, 1-> externa
-        sendCommand(antenna);
-        
-        sendCommand(F("set ip dhcp 1"));
-        
-        sendCommand(F("save"), false, "Storing in config");
-        
-        sendCommand(F("reboot"), false, "*READY*");
+          sendCommand(F("set wlan join 7")); // Enable AP mode
+          //sendCommand(F("set wlan channel <value> // Specify the channel to create network
+          sendCommand(F("set wlan ssid "), true); // Set up network broadcast SSID
+          sendCommand(ssid);
+          sendCommand(F("set ip dhcp 4")); // Enable DHCP server
+          sendCommand(F("set ip address 192.168.0.1")); // Specify the IP address
+          sendCommand(F("set ip net 255.255.255.0")); // Specify the subnet mask
+          sendCommand(F("set ip gateway 192.168.0.1")); // Specify the gateway
+          sendCommand(F("save"), false, "Storing in config"); // Store settings
+          sendCommand(F("reboot"), false, "*READY*"); // Reboot the module in AP mode
     }
-  }  
+  } 
   
-boolean SmartCitizen::wifi_ready()
+boolean SmartCitizen::ready()
 {
   
   if (enterCommandMode())
@@ -765,6 +836,7 @@ boolean SmartCitizen::wifi_ready()
       if (findInResponse("Associated!", 8000)) 
       {
         skipRemainderOfResponse(3000);
+        exitCommandMode();
         return(true);
       }
    } 
@@ -772,8 +844,7 @@ boolean SmartCitizen::wifi_ready()
 }
 
 boolean SmartCitizen::open(const char *addr, int port) {
-  Serial1.flush();
-  Serial.flush();
+  
   if (connected) {
 	close();
     } 
@@ -790,6 +861,7 @@ boolean SmartCitizen::open(const char *addr, int port) {
         }
       else return false;
     }
+   enterCommandMode();
    return false;
 }
 
@@ -812,116 +884,221 @@ boolean SmartCitizen::close() {
   return false;
 }
 
-#define IP_ADDRESS_BUFFER_SIZE 16 // "255.255.255.255\0"
+#define MAC_ADDRESS_BUFFER_SIZE 18 // "FF:FF:FF:FF:FF:FF\0"
 
-const char * SmartCitizen::ip() {
-  /*
-
-    The return value is intended to be dropped directly
-    into calls to 'print' or 'println' style methods.
-
-   */
-  static char ip[IP_ADDRESS_BUFFER_SIZE] = "";
-
-  // TODO: Ensure we're not in a connection?
-
+char* SmartCitizen::mac() {
   if (enterCommandMode()) 
   {
-      delay(5000);
-      // Version 2.19 of the WiFly firmware has a "get ip a" command but
-      // we can't use it because we want to work with 2.18 too.
-      if (sendCommand(F("get ip"), false, "IP="))
+      if (sendCommand(F("get mac"), false, "Mac Addr="))
       {
           char newChar;
           byte offset = 0;
     
-          // Copy the IP address from the response into our buffer
-          while (offset < IP_ADDRESS_BUFFER_SIZE) {
+          while (offset < MAC_ADDRESS_BUFFER_SIZE) {
             if (Serial1.available())
             {
                newChar = Serial1.read();
                //Serial.println(newChar);
-              if (newChar == ':') {
-                ip[offset] = '\x00';
+              if ((newChar == '\n')||(newChar < '0')) {
+                buffer[offset] = '\x00';
                 break;
               } 
               else if (newChar != -1) {
-                ip[offset] = newChar;
+                buffer[offset] = newChar;
                 offset++;
               }
             }
           }
-          ip[IP_ADDRESS_BUFFER_SIZE-1] = '\x00';
-          
-          // This should skip the remainder of the output.
-          // TODO: Handle this better?
-          /*waitForResponse("<");
-          while (uart->read() != ' ') {
-          // Skip the prompt
-          }*/
-          
-          //findInResponse("> ");
+          buffer[MAC_ADDRESS_BUFFER_SIZE-1] = '\x00';
           exitCommandMode();
       }        
   }
   
-  return ip;
+  return buffer;
 }
 
-ClockTime SmartCitizen::WIFItime() {
-  /*
+char* SmartCitizen::id() {
+  char* temp = mac();  
+  byte len = strlen(temp);
+  byte j = 4;
+  buffer[0] = 'S';
+  buffer[1] = 'C';
+  buffer[2] = 'K';
+  buffer[3] = '_';
+  for(byte i=12; i<len; i++)
+  {
+    if (temp[i] != ':') 
+      {
+        buffer[j] = temp[i];
+        j++;
+      }
+  }
+  buffer[j] = 0x00;
+  return buffer;
+}
 
-    The return value is intended to be dropped directly
-    into calls to 'print' or 'println' style methods.
+#define TIME_BUFFER_SIZE 20 
 
-   */
-  //static char time[TIME_BUFFER_SIZE] = "";
-  ClockTime time;
-  // TODO: Ensure we're not in a connection?
-
+char* SmartCitizen::WIFItime() {
+  boolean ok=false;
+  uint8_t count = 0;
   if (enterCommandMode()) 
   {
-      sendCommand(F("time"));
-      if (sendCommand(F("show t"), false, "Time="))
+    byte retry=0;
+    while ((!open(WEB[0], 80))&&(retry<5)) 
+      {
+        retry++; //Serial.println("Retry!!");
+      }
+    if(retry<5)
+    {
+      for(byte i = 7; i<10; i++) Serial1.print(WEB[i]); //Peticiones al servidor de tiempo
+      if (findInResponse("UTC:", 2000)) 
+      {
+        char newChar;
+        byte offset = 0;
+  
+        while (offset < TIME_BUFFER_SIZE) {
+          if (Serial1.available())
+          {
+            newChar = Serial1.read();
+            if (newChar == '#') {
+              ok = true;
+              buffer[offset] = '\x00';
+              break;
+            } 
+            else if (newChar != -1) {
+              if (newChar==',') 
+                {
+                  if (count<2) buffer[offset]='-';
+                  else if (count>2) buffer[offset]=':';
+                  else buffer[offset]=' ';
+                  count++;
+                }
+              else buffer[offset] = newChar;
+              offset++;
+            }
+          }
+        }
+      }
+    }
+    if (isConnected()) {
+        close();
+      }
+    exitCommandMode();
+  } 
+  if (!ok)
+    {
+      buffer[0] = '#';
+      buffer[1] = 0x00;
+      //Serial.println("Fail!!");
+    }
+  return buffer;
+} 
+
+
+#define SCAN_BUFFER_SIZE 4 
+
+char* SmartCitizen::scan() {
+  if (enterCommandMode()) 
+  {
+      if (sendCommand(F("scan"), false, "Found "))
       {
           char newChar;
           byte offset = 0;
     
-          // Copy the IP address from the response into our buffer
-          while (offset < 9) {
+          while (offset < SCAN_BUFFER_SIZE) {
             if (Serial1.available())
             {
                newChar = Serial1.read();
-               if ((newChar >= '0')&& (newChar <= '9'))
-               {
-                 byte hex = newChar - '0';
-                 if (offset == 0) time.hours = hex<<4;
-                 if (offset == 1) time.hours = time.hours|hex;
-                 if (offset == 3) time.minutes = hex<<4;
-                 if (offset == 4) time.minutes = time.minutes|hex;
-                 if (offset == 6) time.seconds = hex<<4;
-                 if (offset == 7) time.seconds = time.seconds|hex;
-                 //Serial.println(hex);
-               }
-              if (newChar == '\n') {
-                //time[offset] = '\x00';
+              if ((newChar == '\r')||(newChar < '0')) {
+                buffer[offset] = '\x00';
                 break;
               } 
               else if (newChar != -1) {
-                //time[offset] = newChar;
+                buffer[offset] = newChar;
                 offset++;
               }
             }
           }
-          time.year = 0x13;
-          time.month = 0x03;
-          time.day = 0x20;
-          //time[TIME_BUFFER_SIZE-1] = '\x00';
+          buffer[SCAN_BUFFER_SIZE-1] = '\x00';
+          findInResponse("END:\r\n", 2000);
           exitCommandMode();
       }        
   }
-  
-  return time;
+  return buffer;
 } 
+  
+char* SmartCitizen::itoa(uint32_t number)
+  {
+   byte count = 0;
+   uint32_t temp = number;
+   while ((temp/10)!=0) 
+   {
+     temp = temp/10;
+     count++;
+   }
+   int i;
+   for (i = count; i>=0; i--) 
+   { 
+     buffer[i] = number%10 + '0'; 
+     number = number/10; 
+   }
+   buffer[count + 1] = 0x00;
+   return buffer;   
+  }
+  
+#define numbers_retry 5
 
+boolean SmartCitizen::server_connect()
+  {
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, scan());  //Wifi Nets
+    //writeCommand(EE_ADDR_FREE_ADDR_MEASURES, RTCtime());
+    writeCommand(EE_ADDR_FREE_ADDR_MEASURES, WIFItime());
+    char* temp = mac();
+    int retry = 0;
+    boolean ok = false;   
+    while ((!ok)&&(retry<numbers_retry)){
+        if (open(WEB[0], 80)) ok = true;
+        else 
+          {
+            retry++;
+            if (retry >= numbers_retry) return ok;
+          }
+      }    
+    for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
+    Serial1.print(temp);
+    for (byte i = 5; i<7; i++) Serial1.print(WEB[i]);
+    return ok; 
+  }
+
+void SmartCitizen::json_updtate()
+  {   
+    uint16_t pointer0 = EE_ADDR_MEASURES; 
+    uint16_t updates = readintEEPROM(EE_ADDR_POST_MEASURES); 
+    if (updates > 0)
+      {
+        Serial.print(F("updates = "));
+        Serial.println(updates);
+        delay(100);
+        Serial1.print(F("["));  
+        for (byte pending = 0; pending < updates; pending++)
+         { 
+           byte i;
+           for (i = 0; i<10; i++)
+            {
+              Serial1.print(SERVER[i]);
+              Serial1.print(readCommand(pointer0, &pointer0));
+            }  
+           Serial1.print(SERVER[i]);
+           if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
+         }
+        Serial1.println(F("]"));
+        Serial1.println();
+        writeintEEPROM(EE_ADDR_POST_MEASURES, 0x0000);
+        writeintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
+        writeintEEPROM(EE_ADDR_FREE_ADDR_MEASURES, FREE_ADDR_MEASURES);
+      }
+  }  
+  
 #endif
+
