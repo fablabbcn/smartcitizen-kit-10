@@ -7,7 +7,7 @@ Smart Citizen Kit
 
 * Firmware for the [SmartCitizen Ambient Kit](http://smartcitizen.me/pages/sck) 1.0 and 1.1.
 
-* More hardware info [here](http://).
+* More hardware info [here](https://github.com/pral2a/Smart-Citizen-Kit/blob/master/hardware.md).
 
 ### Loading Firmware
 
