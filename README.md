@@ -1,7 +1,7 @@
-Smart-Citizen-Kit
+Smart Citizen Kit
 =================
 
-Smart Citizen Kit BETA version for Ambient Sensor Board.
+**Smart Citizen Kit BETA version for Ambient Sensor Board.**
 
 ### Hardware
 
@@ -11,7 +11,7 @@ Smart Citizen Kit BETA version for Ambient Sensor Board.
 
 ### Loading Firmware
 
-The firmware is totally compatible with Arduino. You can upload the firmware using the [Arduino IDE](http://arduino.cc/en/main/software).
+**The firmware is totally compatible with Arduino. You can upload the firmware using the [Arduino IDE](http://arduino.cc/en/main/software).**
 
 * For SmartCitizen Kit version 1.0 select `Tools/Boards/Arduino Leonardo` on the Arduino IDE (ATmega 23U4 at 16Mhz) 
 
