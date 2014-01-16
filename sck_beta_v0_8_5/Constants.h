@@ -88,7 +88,7 @@
 #endif
 
 #if F_CPU == 8000000 
-  #define  Vcc 3000. //mV 
+  #define  Vcc 3300. //mV 
   #define  VMIC0 2734.
   #define  VMIC1 2734.
 #else
