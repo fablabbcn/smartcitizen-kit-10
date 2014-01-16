@@ -3,7 +3,6 @@
 boolean eeprom_write_ok      = false;
 boolean eeprom_read_ok       = false;
 unsigned int address_eeprom  = 0;
-uint16_t  nets               = 0;
 
 byte check_ssid_read         = 0;
 byte check_ssid_write        = 0;
@@ -19,6 +18,8 @@ byte check_time_read         = 0;
 byte check_time_write        = 0;
 byte check_api_read          = 0;
 byte check_api_write         = 0;
+byte check_number_read       = 0;
+byte check_number_write      = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -29,7 +30,6 @@ byte check_telnet_close       = 0;
 
 
 /*TIMER*/
-     
 void timer1SetPeriod()		// AR modified for atomic access
 { 
   char oldSREG = SREG;				
@@ -67,12 +67,14 @@ ISR(TIMER1_OVF_vect)
   sei();
   timer1Stop();
   #if F_CPU == 8000000 
-//    if (!digitalRead(CONTROL))
-//      {
-//        for (int i=0; i<7; i++) { digitalWrite(FACTORY, HIGH); delay(1000); digitalWrite(FACTORY, LOW); delay(1000); }
-//        Serial.println(F("RESET RN131"));
-//      }
-      digitalWrite(FACTORY, !digitalRead(CONTROL));
+    if (!digitalRead(CONTROL))
+      {
+        digitalWrite(AWAKE, HIGH);
+        digitalWrite(FACTORY, HIGH);
+        sleep = false;  
+        server_mode = 0; //Modo AP
+      }
+    else digitalWrite(AWAKE, LOW);
   #endif
   if (eeprom_read_ok) 
   {
@@ -144,6 +146,10 @@ ISR(TIMER1_OVF_vect)
       eeprom_read_ok = true; 
       address_eeprom = EE_ADDR_TIME_UPDATE; 
     }
+    if (sckCheckText(inByte, "get number updates\r", &check_number_read)){
+      eeprom_read_ok = true; 
+      address_eeprom = EE_ADDR_NUMBER_UPDATES; 
+    }
     if (sckCheckText(inByte, "get apikey\r", &check_api_read)){
       eeprom_read_ok = true; 
       address_eeprom = EE_ADDR_APIKEY; 
@@ -193,6 +199,10 @@ ISR(TIMER1_OVF_vect)
       eeprom_write_ok = true; 
       address_eeprom = EE_ADDR_TIME_UPDATE;
     } 
+    if (sckCheckText(inByte, "set number updates ", &check_number_write)){
+      eeprom_write_ok = true; 
+      address_eeprom = EE_ADDR_NUMBER_UPDATES;
+    } 
     if (sckCheckText(inByte, "set apikey ", &check_api_write)){
       eeprom_write_ok = true; 
       address_eeprom = EE_ADDR_APIKEY;
@@ -205,6 +215,18 @@ ISR(TIMER1_OVF_vect)
       delayMicroseconds(100);
       digitalWrite(AWAKE, LOW);
       wait = true;
+    }
+    if (sckCheckText(inByte, "#data\r", &check_data_read))  
+    { 
+      uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
+      if (temp > 0) { 
+        terminal_mode = true; 
+        usb_mode = true;
+        //wait = true; 
+        //server_mode = 0;
+      }
+      Serial.print(F("updates: "));
+      Serial.println(temp);
     }
     Serial1.write(inByte); 
   }
@@ -224,9 +246,9 @@ ISR(TIMER1_OVF_vect)
     { 
       uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
       if (temp > 0) { 
-        iphone_mode = true; 
+        terminal_mode = true; 
         wait = true; 
-        server_mode = 0;
+        //server_mode = 0;
       }
       Serial1.print(F("updates: "));
       Serial1.println(temp);

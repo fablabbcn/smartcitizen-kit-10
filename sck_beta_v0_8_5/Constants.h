@@ -1,3 +1,26 @@
+#define debuggSCK     false
+#define decouplerComp true
+#define DataRaw       true
+
+
+
+#if F_CPU == 8000000 
+  #if DataRaw 
+    #define FirmWare  "1.1-0.8.5-A"
+  #else
+    #define FirmWare  "1.1-0.8.5-B"
+  #endif
+#else
+  #if DataRaw 
+    #define FirmWare  "1.0-0.8.5-A"
+  #else
+    #define FirmWare  "1.0-0.8.5-B"
+  #endif
+#endif
+
+  
+
+
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
 #define BAT   A7 //Entrada bateria
@@ -14,28 +37,15 @@
 #define S2 A2 //SENS_5525
 #define S3 A3 //SENS_2710
 #define S4 A0 //MICRO
-
-#if F_CPU == 8000000 
-  #define IO4 A1 //LDR
-#else
-  #define S5 A1 //LDR
-#endif
+#define S5 A1 //LDR
 
 #define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
-#define POST_MAX             20       //Maximo numero de posteos a la vez
-#define MIN_UPDATES          5       //Minimo numero de actualizaciones antes de postear
-#define fast true //Frecuencia del bus i2c, false 100KHz, true 400 kHz
-#define SensorModel 1 //0 DHT22, 1 SHT21, 2 SI7005
+#define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
 
-#define buffer_length        32
+#define POST_MAX             20       //Maximo numero de posteos a la vez
 
 //Direcciones I2C
-#if F_CPU == 8000000 
-  #define RTC_ADDRESS        0x6F    // Direcion de la RTC
-#else
-  #define RTC_ADDRESS        0x68    // Direcion de la RTC
-#endif
-
+#define RTC_ADDRESS          0x68    // Direcion de la RTC
 #define E2PROM               0x50    // Direcion de la EEPROM
 
 #if F_CPU == 8000000 
@@ -43,7 +53,7 @@
   #define MCP2               0x2F    // Direcion del mcp2 Potenciometros que controlan la ganancia del microfono
   #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
   #define bh1730             0x29    // Direcion del sensor de luz
-  #define Temperature        0x40    // Direcion del si7005    
+  #define Temperature        0x40    // Direcion del sht21    
 #else
   #define MCP1               0x2F    // Direcion del mcp1 MICS
   #define MCP2               0x2E    // Direcion del mcp2 REGULADORES
@@ -51,10 +61,11 @@
 
 //Espacio reservado para los parametros de configuracion del SCK  
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
-#define EE_ADDR_TIME_UPDATE                         32  //32BYTES
-#define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE
-#define EE_ADDR_NUMBER_NETS                         66  //2BYTE
-#define EE_ADDR_APIKEY                              68  //32BYTES
+#define EE_ADDR_TIME_UPDATE                         32  //16BYTES Tiempo entre actualizacion y actualizacion de los sensores en segundos
+#define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Numero de actualizaciones antes de postear
+#define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE Numero de medidas en memoria
+#define EE_ADDR_NUMBER_NETS                         66  //2BYTE Numero de redes en memoria
+#define EE_ADDR_APIKEY                              68  //32BYTES Apikey del dispositivo
 
 //Espacio reservado para los SSID y PASS
 #define DEFAULT_ADDR_SSID                                200
@@ -86,8 +97,14 @@
   #define  VMIC1 2500.
 #endif
 
-#define  VAL_MAX_BATTERY                             4200
-#define  VAL_MIN_BATTERY                             3000
+#if F_CPU == 8000000 
+  #define  VAL_MAX_BATTERY                             4200
+  #define  VAL_MIN_BATTERY                             3000
+#else
+  #define  VAL_MAX_BATTERY                             4050
+  #define  VAL_MIN_BATTERY                             3000
+#endif
+
 
 #define DHTLIB_INVALID_VALUE    -999
 
@@ -99,4 +116,21 @@
 
 #define EXT_ANT "1" // antena externa
 #define INT_ANT "0" // antena interna
+
+char* WEB[8]={
+                  "data.smartcitizen.me",
+                  "PUT /add HTTP/1.1 \n", 
+                  "Host: data.smartcitizen.me \n", 
+                  "User-Agent: SmartCitizen \n", 
+                  "X-SmartCitizenMacADDR: ", 
+                  "X-SmartCitizenApiKey: ", 
+                  "X-SmartCitizenVersion: ",  
+                  "X-SmartCitizenData: "};
+                  
+char* WEBTIME[3]={                  
+                  /*Servidor de tiempo*/
+                  "GET /datetime HTTP/1.1 \n",
+                  "Host: data.smartcitizen.me \n",
+                  "User-Agent: SmartCitizen \n\n"  
+                  };
 
