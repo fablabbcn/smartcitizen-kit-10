@@ -23,7 +23,7 @@ The current version in use is `0.8.5`.
 
 In order to check previous versions clone the archive and checkout the tags you like using git:
 
-`git clone https://github.com/pral2a/Smart-Citizen-Kit.git`
+`git clone https://github.com/fablabbcn/Smart-Citizen-Kit.git`
 
 `git tag`
 
@@ -31,6 +31,6 @@ In order to check previous versions clone the archive and checkout the tags you 
 
 ### Advanced References
 
-* Setup commands reference in [sck-commands.md](https://github.com/pral2a/Smart-Citizen-Kit/blob/master/sck-commands.md)
+* Setup commands reference in [sck-commands.md](https://github.com/fablabbcn/Smart-Citizen-Kit/blob/master/sck-commands.md)
 
 * Basic documentation for creating your own Sensor Boards [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Making-a-Shield)
