@@ -19,7 +19,7 @@ Smart Citizen Kit
 
 ### Versions
 
-The current version in use is `0.8.5`.
+The current firmware version in use is `0.8.5`.
 
 In order to check previous versions clone the archive and checkout the tags you like using git:
 
@@ -29,7 +29,7 @@ In order to check previous versions clone the archive and checkout the tags you 
 
 `git checkout "the_tag_you_want"`
 
-### Advanced References
+### Advance References
 
 * Setup commands reference in [sck-commands.md](https://github.com/fablabbcn/Smart-Citizen-Kit/blob/master/sck-commands.md)
 
