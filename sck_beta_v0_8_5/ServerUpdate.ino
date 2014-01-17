@@ -357,7 +357,7 @@ char* UNITS[10]={
          else dec = 0;
          Serial.print(SENSOR[i]); Serial.print(sckReadData(DEFAULT_ADDR_MEASURES, pos + i, dec)); Serial.println(UNITS[i]);
        }
-        Serial.println(F("*******************"));     
+       Serial.println(F("*******************"));     
   }
 #endif
 
