@@ -44,6 +44,12 @@ void sckBegin() {
     
     pinMode(IO3, OUTPUT);
     digitalWrite(IO3, HIGH); //Alimentacion de los MICS
+    sckWriteADXL(0x2D, 0x08);
+    //  sckWriteADXL(0x31, 0x00); //2g
+    //  sckWriteADXL(0x31, 0x01); //4g
+    sckWriteADXL(0x31, 0x02); //8g
+    //  sckWriteADXL(0x31, 0x03); //16g
+      
   #else
     sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
     digitalWrite(IO0, HIGH); //VH_MICS5525
@@ -65,7 +71,6 @@ void sckConfig(){
       Serial.println(F("Resetting..."));
     #endif
     for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  //Borrado de la memoria
-    
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
     sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
@@ -81,6 +86,7 @@ void sckConfig(){
       sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, redes);
     #endif
   }
+ 
 }
 
 float average(int anaPin) {
@@ -209,7 +215,8 @@ void sckWriteEEPROM(uint16_t eeaddress, uint8_t data ) {
       Wire.write((byte)(eeaddress & 0xFF)); // LSB
       Wire.write(data);
       Wire.endTransmission();
-      delay(4);
+      delay(6);
+      retry++;
   }
 }
 

@@ -54,6 +54,7 @@
   #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
   #define bh1730             0x29    // Direcion del sensor de luz
   #define Temperature        0x40    // Direcion del sht21    
+  #define ADXL 0x53    //ADXL345 device address
 #else
   #define MCP1               0x2F    // Direcion del mcp1 MICS
   #define MCP2               0x2E    // Direcion del mcp2 REGULADORES
@@ -88,7 +89,7 @@
 #endif
 
 #if F_CPU == 8000000 
-  #define  Vcc 3000. //mV 
+  #define  Vcc 3300. //mV 
   #define  VMIC0 2734.
   #define  VMIC1 2734.
 #else
