@@ -5,7 +5,7 @@ Smart Citizen Kit
 
 ### Download
 
-* Download the current firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/tag/v0.8.5).
+* Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
 
 ### Hardware
 
