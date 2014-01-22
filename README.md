@@ -3,6 +3,10 @@ Smart Citizen Kit
 
 **Smart Citizen Kit BETA version for the Ambient Sensor Board.**
 
+### Download
+
+* Download the current firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/tag/v0.8.5).
+
 ### Hardware
 
 * Firmware for the [SmartCitizen Ambient Kit](http://smartcitizen.me/pages/sck) 1.0 and 1.1.
@@ -21,13 +25,7 @@ Smart Citizen Kit
 
 The current firmware version in use is `0.8.5`.
 
-In order to check previous versions clone the archive and checkout the tags you like using git:
-
-`git clone https://github.com/fablabbcn/Smart-Citizen-Kit.git`
-
-`git tag`
-
-`git checkout "the_tag_you_want"`
+You see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
 
 ### Advance References
 
