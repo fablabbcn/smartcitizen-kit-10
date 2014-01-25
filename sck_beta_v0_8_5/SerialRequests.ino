@@ -20,6 +20,8 @@ byte check_api_read          = 0;
 byte check_api_write         = 0;
 byte check_number_read       = 0;
 byte check_number_write      = 0;
+byte check_sck_info          = 0;
+byte check_sck_mac           = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -121,6 +123,12 @@ ISR(TIMER1_OVF_vect)
         if ((address_eeprom < DEFAULT_ADDR_PASS)&&(address_eeprom >= DEFAULT_ADDR_SSID)) sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, sckReadintEEPROM(EE_ADDR_NUMBER_NETS) + 1);
         eeprom_write_ok = false;
       }
+    } 
+    if (sckCheckText(inByte, "get sck info\r", &check_sck_info)){
+      Serial.println(FirmWare);
+    } 
+    if (sckCheckText(inByte, "get mac\r", &check_sck_mac)){
+      Serial.println(sckMAC());
     }  
     if (sckCheckText(inByte, "get wlan ssid\r", &check_ssid_read)){
       eeprom_read_ok = true; 
