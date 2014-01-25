@@ -2,12 +2,13 @@ Change XXX with the corresponding value.
 
 ### Basic SCK setup commands
 
-* `$$$`							Wake uo the module and activates the wifi
+* `$$$`							Wake up the module and activates the wifi
 * `set wlan ssid XXX\r`        Add a new SSID into memmory
 * `set wlan phrase XXX\r`      Add a new phrase into memmory
 * `set wlan key XXX\r`         Add a new Key into memmory
 * `set wlan auth XXX\r`        Add a authentication method into memmory
 * `set wlan ext_antenna XXX\r` Add an anthena type into memmory
+* `get mac\r`                  Get the mac address of the kit
 * `exit\r`                     Goes back to normal operational mode
 
 
