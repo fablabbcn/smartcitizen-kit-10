@@ -17,9 +17,9 @@ Smart Citizen Kit
 
 **The firmware is totally compatible with Arduino. You can upload the firmware using the [Arduino IDE](http://arduino.cc/en/main/software).**
 
-* For SmartCitizen Kit version 1.0 select `Tools/Boards/Arduino Leonardo` on the Arduino IDE (ATmega 23U4 at 16Mhz) 
+* For SmartCitizen Kit version 1.0 select `Tools/Boards/Arduino Leonardo` on the Arduino IDE (ATmega 32U4 at 16Mhz) 
 
-* For SmartCitizen Kit version 1.1 select `Tools/Boards/Lylipad Arduino USB` on the Arduino IDE (ATmega 23U4 at 8Mhz) 
+* For SmartCitizen Kit version 1.1 select `Tools/Boards/Lylipad Arduino USB` on the Arduino IDE (ATmega 32U4 at 8Mhz) 
 
 ### Versions
 
