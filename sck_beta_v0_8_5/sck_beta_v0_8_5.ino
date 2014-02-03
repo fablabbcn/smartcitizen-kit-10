@@ -124,7 +124,7 @@ void setup() {
 #endif  
 }
 
-void loop() {     
+void loop() {  
 #if sensorEnabled  
     #if wiflyEnabled
       if (terminal_mode) // Telnet  (#data + *OPEN* detectado )

@@ -36,22 +36,22 @@ void timer1SetPeriod()		// AR modified for atomic access
 { 
   char oldSREG = SREG;				
   cli();							// Disable interrupts for 16 bit register access
-   #if F_CPU == 8000000 
-    ICR1 = 2000; 
-   #else
-    ICR1 = 4000;
-   #endif
+#if F_CPU == 8000000 
+  ICR1 = 2000; 
+#else
+  ICR1 = 4000;
+#endif
   SREG = oldSREG;
   TCCR1B &= ~(_BV(CS10) | _BV(CS11) | _BV(CS12));
   TCCR1B |= _BV(CS10);
 }
 
 void timer1Initialize()
-    {
-      TCCR1A = 0;                 // clear control register A 
-      TCCR1B = _BV(WGM13);        // set mode 8: phase and frequency correct pwm, stop the timer
-      timer1SetPeriod();
-    }
+{
+  TCCR1A = 0;                 // clear control register A 
+  TCCR1B = _BV(WGM13);        // set mode 8: phase and frequency correct pwm, stop the timer
+  timer1SetPeriod();
+}
 
 void timer1AttachInterrupt()
 {
@@ -68,16 +68,16 @@ ISR(TIMER1_OVF_vect)
 {
   sei();
   timer1Stop();
-  #if F_CPU == 8000000 
-    if (!digitalRead(CONTROL))
-      {
-        digitalWrite(AWAKE, HIGH);
-        digitalWrite(FACTORY, HIGH);
-        sleep = false;  
-        server_mode = 0; //Modo AP
-      }
-    else digitalWrite(AWAKE, LOW);
-  #endif
+#if F_CPU == 8000000 
+  if (!digitalRead(CONTROL))
+  {
+    digitalWrite(AWAKE, HIGH);
+    digitalWrite(FACTORY, HIGH);
+    sleep = false;  
+    server_mode = 0; //Modo AP
+  }
+  else digitalWrite(AWAKE, LOW);
+#endif
   if (eeprom_read_ok) 
   {
     if ((nets>0)||(address_eeprom < DEFAULT_ADDR_SSID))
@@ -96,10 +96,10 @@ ISR(TIMER1_OVF_vect)
         else address_eeprom = DEFAULT_ADDR_ANTENNA + (buffer_length * (nets - 1));
       }
       else
-         {
-           Serial.print(F("\r\n")); 
-           eeprom_read_ok = false;
-         }   
+      {
+        Serial.print(F("\r\n")); 
+        eeprom_read_ok = false;
+      }   
     }
     else { 
       Serial.print(F("\r\n")); 
@@ -164,41 +164,41 @@ ISR(TIMER1_OVF_vect)
     }
     if (sckCheckText(inByte, "set wlan ssid ", &check_ssid_write)){
       if (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)<10)
-        {
-          address_eeprom = DEFAULT_ADDR_SSID + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)) * buffer_length;
-          eeprom_write_ok = true;
-          server_mode = 1; 
-          if (TimeUpdate < 60) sleep = false;
-          else sleep = true; 
-        }
+      {
+        address_eeprom = DEFAULT_ADDR_SSID + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)) * buffer_length;
+        eeprom_write_ok = true;
+        server_mode = 1; 
+        if (TimeUpdate < 60) sleep = false;
+        else sleep = true; 
+      }
     }
     if (sckCheckText(inByte, "set wlan phrase ", &check_pass_write)){
       if (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)<10)
-       {
-          address_eeprom = DEFAULT_ADDR_PASS + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
-          eeprom_write_ok = true;
-       } 
+      {
+        address_eeprom = DEFAULT_ADDR_PASS + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
+        eeprom_write_ok = true;
+      } 
     }  
     if (sckCheckText(inByte, "set wlan key ", &check_key_write)){
       if (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)<10)
-        {
-          address_eeprom = DEFAULT_ADDR_PASS + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
-          eeprom_write_ok = true; 
-        }
+      {
+        address_eeprom = DEFAULT_ADDR_PASS + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
+        eeprom_write_ok = true; 
+      }
     }  
     if (sckCheckText(inByte, "set wlan ext_antenna ", &check_antenna_write)){
       if (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)<10)
-        {
-          address_eeprom = DEFAULT_ADDR_ANTENNA + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
-          eeprom_write_ok = true; 
-        }
+      {
+        address_eeprom = DEFAULT_ADDR_ANTENNA + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
+        eeprom_write_ok = true; 
+      }
     }  
     if (sckCheckText(inByte, "set wlan auth ", &check_auth_write)){
       if (sckReadintEEPROM(EE_ADDR_NUMBER_NETS)<10)
-        {
-          address_eeprom = DEFAULT_ADDR_AUTH + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
-          eeprom_write_ok = true; 
-        }
+      {
+        address_eeprom = DEFAULT_ADDR_AUTH + (sckReadintEEPROM(EE_ADDR_NUMBER_NETS) - 1) * buffer_length;
+        eeprom_write_ok = true; 
+      }
     }  
     if (sckCheckText(inByte, "clear nets\r", &check_clear)){
       sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, 0x0000);
@@ -277,3 +277,4 @@ ISR(TIMER1_OVF_vect)
   timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 }
 #endif
+
