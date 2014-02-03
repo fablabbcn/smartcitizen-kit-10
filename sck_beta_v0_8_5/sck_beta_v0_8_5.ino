@@ -5,7 +5,7 @@
 #define wiflyEnabled    true
 #define wiflySleep      true
 #define sensorEnabled   true
-#define debuggEnabled   true
+#define debuggEnabled   false
 #define MICSEnabled     true
 #define SDEnabled       false
 
@@ -13,6 +13,7 @@ boolean wait        = false;
 boolean sleep       = true; 
 boolean terminal_mode = false;
 boolean usb_mode      = false;
+boolean serial_bridge = false;
 byte server_mode    = 0;
 uint16_t  nets      = 0;
 

@@ -215,14 +215,25 @@ ISR(TIMER1_OVF_vect)
       eeprom_write_ok = true; 
       address_eeprom = EE_ADDR_APIKEY;
     } 
-    
-    if (sckCheckText(inByte, "exit\r", &check_terminal_exit)) wait = false;
-    if ((sckCheckText(inByte, "$$$", &check_terminal_mode))||(sckCheckText(inByte, "###", &check_sck_mode)))
+
+    if (sckCheckText(inByte, "exit\r", &check_terminal_exit)) {
+      wait = false;
+      serial_bridge = false;
+    }
+    if (sckCheckText(inByte, "###", &check_sck_mode))
     {
       digitalWrite(AWAKE, HIGH); 
       delayMicroseconds(100);
       digitalWrite(AWAKE, LOW);
       wait = true;
+    }
+    if (sckCheckText(inByte, "$$$", &check_terminal_mode))
+    {
+      digitalWrite(AWAKE, HIGH); 
+      delayMicroseconds(100);
+      digitalWrite(AWAKE, LOW);
+      wait = true;
+      serial_bridge = true;
     }
     if (sckCheckText(inByte, "#data\r", &check_data_read))  
     { 
@@ -261,7 +272,7 @@ ISR(TIMER1_OVF_vect)
       Serial1.print(F("updates: "));
       Serial1.println(temp);
     }
-    if (wait != true) Serial.write(inByte);
+    if (serial_bridge == true) Serial.write(inByte);
   }
   timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 }
