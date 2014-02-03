@@ -261,7 +261,7 @@ ISR(TIMER1_OVF_vect)
       Serial1.print(F("updates: "));
       Serial1.println(temp);
     }
-    Serial.write(inByte); 
+    if (wait != true) Serial.write(inByte);
   }
   timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 }
