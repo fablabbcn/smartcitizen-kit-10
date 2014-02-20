@@ -7,6 +7,10 @@ Smart Citizen Kit
 
 * Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
 
+### QuickStart
+
+* Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
+
 ### Hardware
 
 * Firmware for the [SmartCitizen Ambient Kit](http://smartcitizen.me/pages/sck) 1.0 and 1.1.
