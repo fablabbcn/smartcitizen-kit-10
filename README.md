@@ -7,7 +7,7 @@ Smart Citizen Kit
 
 * Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
 
-### QuickStart
+### Quick start
 
 * Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
 
