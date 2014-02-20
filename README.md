@@ -7,15 +7,15 @@ Smart Citizen Kit
 
 * Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
 
-### Quick start
-
-* Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
-
 ### Hardware
 
 * Firmware for the [SmartCitizen Ambient Kit](http://smartcitizen.me/pages/sck) 1.0 and 1.1.
 
 * More hardware info [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Hardware).
+
+### Quick start
+
+* Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
 
 ### Loading Firmware
 
@@ -30,9 +30,3 @@ Smart Citizen Kit
 The current firmware version in use is `0.8.5`.
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
-
-### Advance References
-
-* Setup commands reference in [sck-commands.md](https://github.com/fablabbcn/Smart-Citizen-Kit/blob/master/sck-commands.md)
-
-* Basic documentation for creating your own Sensor Boards [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Making-a-Shield)
