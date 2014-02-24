@@ -569,23 +569,31 @@ boolean sckConnect()
                 sckSendCommand(auth);
                 boolean mode = true;
                 if ((auth==WEP)||(auth==WEP64)) mode=false;
-                Serial.print(auth);
+                #if USBEnabled
+                  Serial.print(auth);
+                #endif
                 ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
                 sckSendCommand(F("set wlan ssid "), true);
                 sckSendCommand(ssid);
-                Serial.print(F(" "));
-                Serial.print(ssid);
+                #if USBEnabled
+                  Serial.print(F(" "));
+                  Serial.print(ssid);
+                #endif
                 pass = sckReadData(DEFAULT_ADDR_PASS, nets, 0);
                 if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
                 else sckSendCommand(F("set wlan key "), true);
                 sckSendCommand(pass);
-                Serial.print(F(" "));
-                Serial.print(pass);
+                #if USBEnabled
+                  Serial.print(F(" "));
+                  Serial.print(pass);
+                #endif
                 antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
                 sckSendCommand(F("set wlan ext_antenna "), true);
                 sckSendCommand(antenna);
-                Serial.print(F(" "));
-                Serial.println(antenna);
+                #if USBEnabled
+                  Serial.print(F(" "));
+                  Serial.println(antenna);
+                #endif
                 sckSendCommand(F("save"), false, "Storing in config"); // Store settings
                 sckSendCommand(F("reboot"), false, "*READY*");
                 if (sckReady()) return true;

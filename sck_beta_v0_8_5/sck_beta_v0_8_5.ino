@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include "Constants.h"
 
-#define USBEnabled      true 
+#define USBEnabled      false 
 #define wiflyEnabled    true
 #define wiflySleep      true
 #define sensorEnabled   true
