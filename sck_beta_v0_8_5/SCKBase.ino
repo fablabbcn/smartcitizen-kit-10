@@ -618,14 +618,33 @@ void sckAPmode(char* ssid)
           sckSendCommand(F("reboot"), false, "*READY*"); // Reboot the module in AP mode
     }
   } 
-  
+
+uint32_t baud[7]={2400, 4800, 9600, 19200, 38400, 57600, 115200};
+
+void sckRepair()
+{
+  if(!sckEnterCommandMode())
+    {
+      boolean repair = true;
+      for (int i=6; ((i>=0)&&repair); i--)
+      {
+        Serial1.begin(baud[i]);
+        Serial.println(baud[i]);
+        if(sckEnterCommandMode()) 
+        {
+          sckReset();
+          repair = false;
+        }
+        Serial1.begin(9600);
+      }
+    }
+}
+
 boolean sckReady()
 {
   if(!sckEnterCommandMode())
     {
-      Serial1.begin(115200);
-      if(sckEnterCommandMode()) sckReset();
-      Serial1.begin(9600);
+      sckRepair();
     }
   if (sckEnterCommandMode())
     {

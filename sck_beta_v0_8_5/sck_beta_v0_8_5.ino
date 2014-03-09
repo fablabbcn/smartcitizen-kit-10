@@ -75,6 +75,7 @@ void setup() {
   {
     sleep = false;  
     server_mode = 0; //Modo AP
+    sckRepair();
     sckAPmode(sckid());
     #if debuggEnabled
         Serial.println(F("AP initialized!"));
