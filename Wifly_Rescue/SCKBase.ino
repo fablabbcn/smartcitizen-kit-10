@@ -89,7 +89,7 @@ void sckBegin() {
 
 void sckRecovery()
 {
-    Serial.println("Reseting..."); 
+    Serial.println(F("Reseting...")); 
     digitalWrite(FACTORY, HIGH);
     delay(1000);
     digitalWrite(FACTORY, LOW);
@@ -113,7 +113,7 @@ void sckRecovery()
     Serial1.println();
     sckFindInResponse("<WEB_APP", 3000);
     sckReset();
-    Serial.println("Successfully reset"); 
+    Serial.println(F("Successfully reset")); 
     //digitalWrite(FACTORY, HIGH);
     sckEnterCommandMode();
 }
