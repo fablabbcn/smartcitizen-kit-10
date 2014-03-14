@@ -2,7 +2,9 @@
 #define decouplerComp true
 #define DataRaw       true
 
-
+#define WIFLY_LATEST_VERSION 441
+#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
+#define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
 #if F_CPU == 8000000 
   #if DataRaw 
@@ -17,9 +19,6 @@
     #define FirmWare  "1.0-0.8.6-B"
   #endif
 #endif
-
-  
-
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
@@ -117,6 +116,7 @@
 
 #define EXT_ANT "1" // antena externa
 #define INT_ANT "0" // antena interna
+
 
 char* WEB[8]={
                   "data.smartcitizen.me",
