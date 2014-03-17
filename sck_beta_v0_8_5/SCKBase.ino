@@ -44,12 +44,15 @@ void sckBegin() {
     
     pinMode(IO3, OUTPUT);
     digitalWrite(IO3, HIGH); //Alimentacion de los MICS
-    sckWriteADXL(0x2D, 0x08);
-    //  sckWriteADXL(0x31, 0x00); //2g
-    //  sckWriteADXL(0x31, 0x01); //4g
-    sckWriteADXL(0x31, 0x02); //8g
-    //  sckWriteADXL(0x31, 0x03); //16g
-      
+    
+    #if ADXL345
+      sckWriteADXL(0x2D, 0x08);
+      //  sckWriteADXL(0x31, 0x00); //2g
+      //  sckWriteADXL(0x31, 0x01); //4g
+      sckWriteADXL(0x31, 0x02); //8g
+      //  sckWriteADXL(0x31, 0x03); //16g
+    #endif  
+    
   #else
     sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
     digitalWrite(IO0, HIGH); //VH_MICS5525
@@ -618,14 +621,33 @@ void sckAPmode(char* ssid)
           sckSendCommand(F("reboot"), false, "*READY*"); // Reboot the module in AP mode
     }
   } 
-  
+
+uint32_t baud[7]={2400, 4800, 9600, 19200, 38400, 57600, 115200};
+
+void sckRepair()
+{
+  if(!sckEnterCommandMode())
+    {
+      boolean repair = true;
+      for (int i=6; ((i>=0)&&repair); i--)
+      {
+        Serial1.begin(baud[i]);
+        Serial.println(baud[i]);
+        if(sckEnterCommandMode()) 
+        {
+          sckReset();
+          repair = false;
+        }
+        Serial1.begin(9600);
+      }
+    }
+}
+
 boolean sckReady()
 {
   if(!sckEnterCommandMode())
     {
-      Serial1.begin(115200);
-      if(sckEnterCommandMode()) sckReset();
-      Serial1.begin(9600);
+      sckRepair();
     }
   if (sckEnterCommandMode())
     {

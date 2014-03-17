@@ -8,6 +8,7 @@
 #define debuggEnabled   true
 #define MICSEnabled     true
 #define SDEnabled       false
+#define ADXL345         false
 
 boolean wait        = false;
 boolean sleep       = true; 
@@ -75,6 +76,7 @@ void setup() {
   {
     sleep = false;  
     server_mode = 0; //Modo AP
+    sckRepair();
     sckAPmode(sckid());
     #if debuggEnabled
         Serial.println(F("AP initialized!"));
@@ -123,7 +125,8 @@ void setup() {
 #endif  
 }
 
-void loop() {     
+void loop() {    
+  
 #if sensorEnabled  
     #if wiflyEnabled
       if (terminal_mode) // Telnet  (#data + *OPEN* detectado )
