@@ -8,6 +8,7 @@
 #define debuggEnabled   true
 #define MICSEnabled     true
 #define SDEnabled       false
+#define ADXL345         false
 
 boolean wait        = false;
 boolean sleep       = true; 
@@ -124,7 +125,8 @@ void setup() {
 #endif  
 }
 
-void loop() {     
+void loop() {    
+  
 #if sensorEnabled  
     #if wiflyEnabled
       if (terminal_mode) // Telnet  (#data + *OPEN* detectado )

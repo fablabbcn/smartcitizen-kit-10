@@ -44,12 +44,15 @@ void sckBegin() {
     
     pinMode(IO3, OUTPUT);
     digitalWrite(IO3, HIGH); //Alimentacion de los MICS
-    sckWriteADXL(0x2D, 0x08);
-    //  sckWriteADXL(0x31, 0x00); //2g
-    //  sckWriteADXL(0x31, 0x01); //4g
-    sckWriteADXL(0x31, 0x02); //8g
-    //  sckWriteADXL(0x31, 0x03); //16g
-      
+    
+    #if ADXL345
+      sckWriteADXL(0x2D, 0x08);
+      //  sckWriteADXL(0x31, 0x00); //2g
+      //  sckWriteADXL(0x31, 0x01); //4g
+      sckWriteADXL(0x31, 0x02); //8g
+      //  sckWriteADXL(0x31, 0x03); //16g
+    #endif  
+    
   #else
     sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
     digitalWrite(IO0, HIGH); //VH_MICS5525

@@ -88,15 +88,18 @@
   #define  Rc1  10. //Ohm Resistencia medica de corriente en el sensor MICS_2710
 #endif
 
+
 #if F_CPU == 8000000 
-  #define  Vcc 3300. //mV 
+  float  Vcc = 3300.; //mV 
   #define  VMIC0 2734.
   #define  VMIC1 2734.
 #else
-  #define  Vcc 5000. //mV 
+  float  Vcc = 5000.; //mV 
   #define  VMIC0 5000.
   #define  VMIC1 2500.
 #endif
+
+#define reference 2560.
 
 #if F_CPU == 8000000 
   #define  VAL_MAX_BATTERY                             4200

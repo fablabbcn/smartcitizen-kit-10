@@ -145,10 +145,19 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     float Rc=Rc0;
     byte Sensor = S2;
     if (device == MICS_2710) { Rc=Rc1; Sensor = S3;}
-    float Vc = (float)average(Sensor)*Vcc/1023; //mV 
+    float temp = average(Sensor);
+    float Vc = (float)temp*Vcc/1023; //mV 
     float current_measure = Vc/Rc; //mA 
     float Rh = (sckReadVH(device)- Vc)/current_measure;
     float Vh = (Rh + Rc)*current;
+    if (device != MICS_2710)
+      {
+        analogReference(INTERNAL);
+        delay(100);
+        Vcc = (float)(average(Sensor)/temp)*reference;
+        analogReference(DEFAULT);
+      }
+    
     sckWriteVH(device, Vh);
       #if debuggSCK
         if (device == MICS_2710) Serial.print("MICS2710 corriente: ");
@@ -252,81 +261,82 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
         Serial.println(" %");    
       #endif
     }
-    
-    void sckWriteADXL(byte address, byte val) {
-       Wire.beginTransmission(ADXL); //start transmission to device 
-       Wire.write(address);        // write register address
-       Wire.write(val);        // write value to write
-       Wire.endTransmission(); //end transmission
-    }
-    
-    //reads num bytes starting from address register on device in to buff array
-    void sckrReadADXL(byte address, int num, byte buff[]) {
-      Wire.beginTransmission(ADXL); //start transmission to device 
-      Wire.write(address);        //writes address to read from
-      Wire.endTransmission(); //end transmission
-      
-      Wire.beginTransmission(ADXL); //start transmission to device
-      Wire.requestFrom(ADXL, num);    // request 6 bytes from device
-      
-      int i = 0;
-      unsigned long time = millis();
-      while (!Wire.available()) 
-      {
-        if ((millis() - time)>500) 
-        {
-          for(int i=0; i<num; i++) buff[i]=0x00;
-          break;
+    #if ADXL345
+        void sckWriteADXL(byte address, byte val) {
+           Wire.beginTransmission(ADXL); //start transmission to device 
+           Wire.write(address);        // write register address
+           Wire.write(val);        // write value to write
+           Wire.endTransmission(); //end transmission
         }
-      }
-      while(Wire.available())    //device may write less than requested (abnormal)
-      { 
-        buff[i] = Wire.read(); // read a byte
-        i++;
-      }
-      Wire.endTransmission(); //end transmission
-    }
-    
-    void sckAverageADXL()
-    {
-      #define lim 512
-      int temp_x=0;
-      int temp_y=0;
-      int temp_z=0;
-      int lecturas=10;
-      byte buffADXL[6] ;    //6 bytes buffer for saving data read from the device
-      accel_x=0;
-      accel_y=0;
-      accel_z=0;
-      
-      for(int i=0; i<lecturas; i++)
-      {
-        sckrReadADXL(0x32, 6, buffADXL); //read the acceleration data from the ADXL345
-        temp_x = (((int)buffADXL[1]) << 8) | buffADXL[0]; 
-        temp_x = map(temp_x,-lim,lim,0,1023);  
-        temp_y = (((int)buffADXL[3])<< 8) | buffADXL[2];
-        temp_y = map(temp_y,-lim,lim,0,1023); 
-        temp_z = (((int)buffADXL[5]) << 8) | buffADXL[4];
-        temp_z = map(temp_z,-lim,lim,0,1023); 
-        accel_x = (int)(temp_x + accel_x);
-        accel_y = (int)(temp_y + accel_y);
-        accel_z = (int)(temp_z + accel_z);
-      }
-      accel_x = (int)(accel_x / lecturas);
-      accel_y = (int)(accel_y / lecturas);
-      accel_z = (int)(accel_z / lecturas);
-      
-      #if debuggSCK
-        Serial.print("eje_x= ");
-        Serial.print(accel_x);
-        Serial.print(", ");
-        Serial.print("eje_y= ");
-        Serial.print(accel_y);
-        Serial.print(", ");
-        Serial.print("eje_z= ");
-        Serial.println(accel_z);  
-      #endif
-    }
+        
+        //reads num bytes starting from address register on device in to buff array
+        void sckrReadADXL(byte address, int num, byte buff[]) {
+          Wire.beginTransmission(ADXL); //start transmission to device 
+          Wire.write(address);        //writes address to read from
+          Wire.endTransmission(); //end transmission
+          
+          Wire.beginTransmission(ADXL); //start transmission to device
+          Wire.requestFrom(ADXL, num);    // request 6 bytes from device
+          
+          int i = 0;
+          unsigned long time = millis();
+          while (!Wire.available()) 
+          {
+            if ((millis() - time)>500) 
+            {
+              for(int i=0; i<num; i++) buff[i]=0x00;
+              break;
+            }
+          }
+          while(Wire.available())    //device may write less than requested (abnormal)
+          { 
+            buff[i] = Wire.read(); // read a byte
+            i++;
+          }
+          Wire.endTransmission(); //end transmission
+        }
+        
+        void sckAverageADXL()
+        {
+          #define lim 512
+          int temp_x=0;
+          int temp_y=0;
+          int temp_z=0;
+          int lecturas=10;
+          byte buffADXL[6] ;    //6 bytes buffer for saving data read from the device
+          accel_x=0;
+          accel_y=0;
+          accel_z=0;
+          
+          for(int i=0; i<lecturas; i++)
+          {
+            sckrReadADXL(0x32, 6, buffADXL); //read the acceleration data from the ADXL345
+            temp_x = (((int)buffADXL[1]) << 8) | buffADXL[0]; 
+            temp_x = map(temp_x,-lim,lim,0,1023);  
+            temp_y = (((int)buffADXL[3])<< 8) | buffADXL[2];
+            temp_y = map(temp_y,-lim,lim,0,1023); 
+            temp_z = (((int)buffADXL[5]) << 8) | buffADXL[4];
+            temp_z = map(temp_z,-lim,lim,0,1023); 
+            accel_x = (int)(temp_x + accel_x);
+            accel_y = (int)(temp_y + accel_y);
+            accel_z = (int)(temp_z + accel_z);
+          }
+          accel_x = (int)(accel_x / lecturas);
+          accel_y = (int)(accel_y / lecturas);
+          accel_z = (int)(accel_z / lecturas);
+          
+          #if debuggSCK
+            Serial.print("eje_x= ");
+            Serial.print(accel_x);
+            Serial.print(", ");
+            Serial.print("eje_y= ");
+            Serial.print(accel_y);
+            Serial.print(", ");
+            Serial.print("eje_z= ");
+            Serial.println(accel_z);  
+          #endif
+        }
+     #endif
  #else
     uint8_t bits[5];  // buffer to receive data
     
