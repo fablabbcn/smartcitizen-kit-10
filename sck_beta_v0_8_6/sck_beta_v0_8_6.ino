@@ -9,6 +9,7 @@
 #define MICSEnabled     true
 #define SDEnabled       false
 #define autoUpdateWiFly true
+#define ADXLEnabled     false
 
 boolean wait        = false;
 boolean sleep       = true; 
