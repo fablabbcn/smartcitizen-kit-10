@@ -9,6 +9,7 @@
 #define MICSEnabled     true
 #define SDEnabled       false
 #define autoUpdateWiFly true
+#define ADXLEnabled     false
 
 boolean wait        = false;
 boolean sleep       = true; 
@@ -23,9 +24,10 @@ uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y 
 uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
 
 #if SDEnabled
-#include <SD.h>
-File myFile;
-long SENSORvalue[8];
+  #include <SPI.h>
+  #include <SD.h>
+  File myFile;
+  long SENSORvalue[8];
 #endif
 
 void setup() {
