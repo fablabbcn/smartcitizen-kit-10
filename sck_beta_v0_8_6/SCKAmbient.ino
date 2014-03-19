@@ -140,15 +140,27 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     return (sckReadRGAIN(0x00)/1000)*(sckReadRGAIN(0x01)/1000);
   }    
 
+  void sckVcc()
+  {
+    float temp = average(S3);
+    analogReference(INTERNAL);
+    delay(100);
+    Vcc = (float)(average(S3)/temp)*reference;
+    analogReference(DEFAULT);
+    delay(100);
+  }
+  
   void sckHeat(byte device, int current)
   {
     float Rc=Rc0;
     byte Sensor = S2;
     if (device == MICS_2710) { Rc=Rc1; Sensor = S3;}
+
     float Vc = (float)average(Sensor)*Vcc/1023; //mV 
     float current_measure = Vc/Rc; //mA 
     float Rh = (sckReadVH(device)- Vc)/current_measure;
     float Vh = (Rh + Rc)*current;
+
     sckWriteVH(device, Vh);
       #if debuggSCK
         if (device == MICS_2710) Serial.print("MICS2710 corriente: ");
@@ -540,6 +552,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
   if (pos > 0) pos = pos + 1;
   
   #if F_CPU == 8000000 
+    sckVcc();
     sckGetSHT21();
     ok_read = true;
   #else
