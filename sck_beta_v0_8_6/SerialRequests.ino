@@ -22,6 +22,7 @@ byte check_number_read       = 0;
 byte check_number_write      = 0;
 byte check_sck_info          = 0;
 byte check_sck_mac           = 0;
+byte check_wifi_info         = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -126,6 +127,9 @@ ISR(TIMER1_OVF_vect)
     } 
     if (sckCheckText(inByte, "get sck info\r", &check_sck_info)){
       Serial.println(FirmWare);
+    } 
+    if (sckCheckText(inByte, "get wifi info\r", &check_wifi_info)){
+      Serial.println(getWiFlyVersion());
     } 
     if (sckCheckText(inByte, "get mac\r", &check_sck_mac)){
       eeprom_read_ok = true; 

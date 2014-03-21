@@ -868,7 +868,8 @@ int getWiFlyVersion() {
         }
       }
       sckExitCommandMode();
-    }        
+      buffer[offset] = 0x00;
+    } 
   }
   return atoi(buffer);
 }
