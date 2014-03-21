@@ -578,13 +578,13 @@ boolean sckConnect()
         sckSendCommand(auth);
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
-#if USBEnabled
+#if debuggEnabled
         Serial.print(auth);
 #endif
         ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
         sckSendCommand(F("set wlan ssid "), true);
         sckSendCommand(ssid);
-#if USBEnabled
+#if debuggEnabled
         Serial.print(F(" "));
         Serial.print(ssid);
 #endif
@@ -592,14 +592,14 @@ boolean sckConnect()
         if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
-#if USBEnabled
+#if debuggEnabled
         Serial.print(F(" "));
         Serial.print(pass);
 #endif
         antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
         sckSendCommand(F("set wlan ext_antenna "), true);
         sckSendCommand(antenna);
-#if USBEnabled
+#if debuggEnabled
         Serial.print(F(" "));
         Serial.println(antenna);
 #endif
