@@ -92,7 +92,8 @@ void sckConfig(){
     sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, redes);
 #endif
   }
-
+  timer1Initialize();
+  timer1AttachInterrupt();
 }
 
 float average(int anaPin) {
@@ -579,29 +580,38 @@ boolean sckConnect()
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
 #if debuggEnabled
-        Serial.print(auth);
+       if (!wait) Serial.print(auth);
 #endif
         ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
         sckSendCommand(F("set wlan ssid "), true);
         sckSendCommand(ssid);
 #if debuggEnabled
-        Serial.print(F(" "));
-        Serial.print(ssid);
+        if (!wait) 
+        {
+          Serial.print(F(" "));
+          Serial.print(ssid);
+        }
 #endif
         pass = sckReadData(DEFAULT_ADDR_PASS, nets, 0);
         if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
 #if debuggEnabled
-        Serial.print(F(" "));
-        Serial.print(pass);
+        if (!wait)
+        {
+          Serial.print(F(" "));
+          Serial.print(pass);
+        }
 #endif
         antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
         sckSendCommand(F("set wlan ext_antenna "), true);
         sckSendCommand(antenna);
 #if debuggEnabled
+      if (!wait)
+      {
         Serial.print(F(" "));
         Serial.println(antenna);
+      }
 #endif
         sckSendCommand(F("save"), false, "Storing in config"); // Store settings
         sckSendCommand(F("reboot"), false, "*READY*");
@@ -808,23 +818,23 @@ char* itoa(int32_t number)
 boolean sckCheckWiFly() {
   if(getWiFlyVersion() < WIFLY_LATEST_VERSION){
 #if debuggEnabled
-    Serial.println(F("WiFly old firm. Updating..."));
+    if (!wait) Serial.println(F("WiFly old firm. Updating..."));
 #endif
     if(sckUpdate()) {
 #if USBEnabled
-      Serial.println(F("Wifly Updated"));
+    if (!wait) Serial.println(F("Wifly Updated"));
 #endif
       sckReset();
     } 
     else {
 #if debuggEnabled
-      Serial.println(F("Update Fail"));
+    if (!wait) Serial.println(F("Update Fail"));
 #endif
     } 
   }   
   else {
 #if USBEnabled
-    Serial.println(F("WiFly up to date"));
+   if (!wait) Serial.println(F("WiFly up to date"));
 #endif
   }
 }

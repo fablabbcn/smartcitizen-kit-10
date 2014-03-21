@@ -162,7 +162,7 @@ void txWiFly() {
 
   if ((sleep)&&(updates>=NumUpdates)){
 #if debuggEnabled
-    Serial.println(F("SCK Waking up..."));
+    if (!wait) Serial.println(F("SCK Waking up..."));
 #endif
     ok_sleep = true;
     digitalWrite(AWAKE, HIGH);
@@ -170,44 +170,53 @@ void txWiFly() {
   if ((sckConnect())&&(updates>=NumUpdates))
   { 
 #if debuggEnabled
-    Serial.println(F("SCK Connected!!")); 
+    if (!wait) Serial.println(F("SCK Connected!!")); 
 #endif   
     if (sckServer_connect())
     {
       uint16_t initial = 0; 
 #if debuggEnabled
+    if (!wait)
+    {
       Serial.print(F("updates = "));
       Serial.println(updates-initial);
+    }
 #endif
       sckJson_update(initial, false);
       initial = initial + POST_MAX;
 #if debuggEnabled
-      Serial.println(F("Posted to Server!")); 
+     if (!wait) Serial.println(F("Posted to Server!")); 
 #endif
       while (updates > initial){
         sckServer_reconnect();
 #if debuggEnabled
+      if (!wait)
+      {
         Serial.print(F("updates = "));
         Serial.println(updates-initial);
+      }
 #endif
         sckJson_update(initial, false);
         initial = initial + POST_MAX;
 #if debuggEnabled
-        Serial.println(F("Posted to Server!")); 
+      if (!wait) Serial.println(F("Posted to Server!")); 
 #endif
       }
       sckWriteintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
     }
     else {
 #if debuggEnabled
+    if (!wait)
+    {
       Serial.println(F("Error posting on Server..!"));
       uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
       sckWriteData(DEFAULT_ADDR_MEASURES, pos - 1, sckRTCtime());
+    }
 #endif
     }
     if (connected) {
 #if debuggEnabled
-      Serial.println(F("Old connection active. Closing..."));
+    if (!wait) Serial.println(F("Old connection active. Closing..."));
 #endif
       sckClose();
     }
@@ -225,10 +234,13 @@ void txWiFly() {
     }
     sckCheckData();//No hace falta que se guarda en memoria si falla la RTC
 #if debuggEnabled
-    Serial.print(F("updates = "));
-    Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-    if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=NumUpdates) Serial.println(F("Error in connectionn!!"));
-    else Serial.println(F("Saved in memory!!"));
+    if (!wait)
+      {
+        Serial.print(F("updates = "));
+        Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
+        if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=NumUpdates) Serial.println(F("Error in connectionn!!"));
+        else Serial.println(F("Saved in memory!!"));
+      }
 #endif
   }
 
@@ -237,45 +249,13 @@ void txWiFly() {
   {
     sckSleep();
 #if debuggEnabled
-    Serial.println(F("SCK Sleeping")); 
-    Serial.println(F("*******************"));
+    if (!wait)
+    {
+      Serial.println(F("SCK Sleeping")); 
+      Serial.println(F("*******************"));
+    }
 #endif
     digitalWrite(AWAKE, LOW); 
-  }
-}
-
-#endif
-
-#if SDEnabled
-
-void txSD() {
-  myFile = SD.open("post.csv", FILE_WRITE);
-  // if the file opened okay, write to it:
-  if (myFile) {
-#if debuggEnabled
-    Serial.println(F("Writing...")); 
-#endif 
-
-    float dec = 0;
-    for (int i=0; i<8; i++)
-    {
-      if (i<4) dec = 10;
-      else if (i<7) dec = 1000;
-      else if (i<8) dec = 100;
-      else dec = 1;
-
-      myFile.print(i);
-      myFile.print(", ");
-      myFile.print(SENSORvalue[i]/dec);
-      myFile.print(", ");
-    }
-    myFile.print(sckRTCtime());
-    myFile.println();
-    // close the file:
-    myFile.close();
-#if debuggEnabled
-    Serial.println(F("Closing...")); 
-#endif 
   }
 }
 
@@ -362,46 +342,6 @@ void txDebug() {
     }
     Serial.println(F("*******************"));    
   } 
-}
-#endif
-
-#if SDEnabled
-void updateSensorsSD() {
-#if F_CPU == 8000000 
-  sckGetSHT21();
-  SENSORvalue[0] = lastTemperature; // C
-  SENSORvalue[1] = lastHumidity; // %
-#else
-  if (sckDHT22(IO3))
-  {
-    SENSORvalue[0] = lastTemperature; // C
-    SENSORvalue[1] = lastHumidity; // %
-  }
-#endif
-  sckGetMICS();
-  SENSORvalue[2] = sckGetLight(); // %
-  SENSORvalue[3] = sckGetBattery(); //%
-  SENSORvalue[4] = sckGetPanel();  // %
-  SENSORvalue[5] = sckGetCO(); //Ohm
-  SENSORvalue[6] = sckGetNO2(); //Ohm
-  SENSORvalue[7] = sckGetNoise(); //dB    
-}
-
-void txDebugSD() {
-  float dec = 0;
-  for(int i=0; i<8; i++) 
-  {
-    if (i<4) dec = 10;
-    else if (i<7) dec = 1000;
-    else if (i<8) dec = 100;
-    else dec = 1;
-    Serial.print(SENSOR[i]); 
-    Serial.print((SENSORvalue[i])/dec); 
-    Serial.println(UNITS[i]);
-  }
-  Serial.print(SENSOR[9]);
-  Serial.println(sckRTCtime());
-  Serial.println(F("*******************"));     
 }
 #endif
 
