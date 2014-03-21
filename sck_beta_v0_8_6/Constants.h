@@ -66,6 +66,7 @@
 #define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE Numero de medidas en memoria
 #define EE_ADDR_NUMBER_NETS                         66  //2BYTE Numero de redes en memoria
 #define EE_ADDR_APIKEY                              68  //32BYTES Apikey del dispositivo
+#define EE_ADDR_MAC                              100  //32BYTES Apikey del dispositivo
 
 //Espacio reservado para los SSID y PASS
 #define DEFAULT_ADDR_SSID                                200

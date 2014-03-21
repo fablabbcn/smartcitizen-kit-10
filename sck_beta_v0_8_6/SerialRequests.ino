@@ -128,7 +128,8 @@ ISR(TIMER1_OVF_vect)
       Serial.println(FirmWare);
     } 
     if (sckCheckText(inByte, "get mac\r", &check_sck_mac)){
-      Serial.println(sckMAC());
+      eeprom_read_ok = true; 
+      address_eeprom = EE_ADDR_MAC; 
     }  
     if (sckCheckText(inByte, "get wlan ssid\r", &check_ssid_read)){
       eeprom_read_ok = true; 
