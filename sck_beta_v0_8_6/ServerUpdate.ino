@@ -167,59 +167,65 @@ void txWiFly() {
     ok_sleep = true;
     digitalWrite(AWAKE, HIGH);
   }
-  if ((sckConnect())&&(updates>=NumUpdates))
+  if (updates>=NumUpdates)
   { 
-#if debuggEnabled
-    if (!wait) Serial.println(F("SCK Connected!!")); 
-#endif   
-    if (sckServer_connect())
-    {
-      uint16_t initial = 0; 
-#if debuggEnabled
-    if (!wait)
-    {
-      Serial.print(F("updates = "));
-      Serial.println(updates-initial);
-    }
-#endif
-      sckJson_update(initial, false);
-      initial = initial + POST_MAX;
-#if debuggEnabled
-     if (!wait) Serial.println(F("Posted to Server!")); 
-#endif
-      while (updates > initial){
-        sckServer_reconnect();
-#if debuggEnabled
-      if (!wait)
+    if (sckConnect())
       {
-        Serial.print(F("updates = "));
-        Serial.println(updates-initial);
+        #if debuggEnabled
+            if (!wait) Serial.println(F("SCK Connected!!")); 
+        #endif   
+        if (sckServer_connect())
+        {
+          uint16_t initial = 0; 
+          #if debuggEnabled
+              if (!wait)
+              {
+                Serial.print(F("updates = "));
+                Serial.println(updates-initial);
+              }
+          #endif
+          sckJson_update(initial, false);
+          initial = initial + POST_MAX;
+          #if debuggEnabled
+               if (!wait) Serial.println(F("Posted to Server!")); 
+          #endif
+          while (updates > initial)
+          {
+            sckServer_reconnect();
+            #if debuggEnabled
+                  if (!wait)
+                  {
+                    Serial.print(F("updates = "));
+                    Serial.println(updates-initial);
+                  }
+            #endif
+            sckJson_update(initial, false);
+            initial = initial + POST_MAX;
+            #if debuggEnabled
+                  if (!wait) Serial.println(F("Posted to Server!")); 
+            #endif
+          }
+          sckWriteintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
+        }
+        else 
+        {
+          #if debuggEnabled
+              if (!wait)
+              {
+                Serial.println(F("Error posting on Server..!"));
+                uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
+                sckWriteData(DEFAULT_ADDR_MEASURES, pos - 1, sckRTCtime());
+              }
+          #endif
+        }
+        if (connected) 
+          {
+            #if debuggEnabled
+                if (!wait) Serial.println(F("Old connection active. Closing..."));
+            #endif
+              sckClose();
+          }
       }
-#endif
-        sckJson_update(initial, false);
-        initial = initial + POST_MAX;
-#if debuggEnabled
-      if (!wait) Serial.println(F("Posted to Server!")); 
-#endif
-      }
-      sckWriteintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
-    }
-    else {
-#if debuggEnabled
-    if (!wait)
-    {
-      Serial.println(F("Error posting on Server..!"));
-      uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos - 1, sckRTCtime());
-    }
-#endif
-    }
-    if (connected) {
-#if debuggEnabled
-    if (!wait) Serial.println(F("Old connection active. Closing..."));
-#endif
-      sckClose();
-    }
   }
   else 
   {
