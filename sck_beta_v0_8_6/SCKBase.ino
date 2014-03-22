@@ -570,6 +570,8 @@ boolean sckConnect()
       sckSendCommand(F("set wlan join 1")); // Disable AP mode
       sckSendCommand(F("set ip dhcp 1")); // Enable DHCP server
       sckSendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
+      sckSendCommand(F("set ftp address 198.175.253.161")); //ftp server update
+      sckSendCommand(F("set ftp mode 1"));
       char* auth;
       char* ssid;
       char* pass;
@@ -825,13 +827,13 @@ boolean sckCheckWiFly() {
 #if USBEnabled
     if (!wait) Serial.println(F("Wifly Updated"));
 #endif
-      sckReset();
     } 
     else {
 #if debuggEnabled
     if (!wait) Serial.println(F("Update Fail"));
 #endif
     } 
+    sckReset();
   }   
   else {
 #if USBEnabled
