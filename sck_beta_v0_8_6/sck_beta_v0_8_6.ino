@@ -40,7 +40,7 @@ void setup() {
   nets = sckReadintEEPROM(EE_ADDR_NUMBER_NETS);
   if (TimeUpdate < 60) sleep = false;
   else sleep = true; 
-  delay(5000);
+//  delay(5000);
   if (nets==0)
   {
     sleep = false;  

@@ -883,7 +883,7 @@ boolean sckUpdate() {
     sckSendCommand(F(DEFAULT_WIFLY_FTP_UPDATE));
     sckSendCommand(F(DEFAULT_WIFLY_FIRMWARE));
     delay(1000);
-    if (sckFindInResponse("FTP OK.", 30000))
+    if (sckFindInResponse("FTP OK.", 60000))
     {
       return true;
     }

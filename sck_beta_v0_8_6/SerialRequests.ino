@@ -222,6 +222,7 @@ ISR(TIMER1_OVF_vect)
     } 
 
     if (sckCheckText(inByte, "exit\r", &check_terminal_exit)) {
+      serial_bridge = false;
       wait = false;
     }
     if (sckCheckText(inByte, "###", &check_sck_mode))
@@ -233,6 +234,7 @@ ISR(TIMER1_OVF_vect)
       digitalWrite(AWAKE, HIGH); 
       delayMicroseconds(100);
       digitalWrite(AWAKE, LOW);
+      serial_bridge = true;
       wait = true;
     }
     if (sckCheckText(inByte, "#data\r", &check_data_read))  
@@ -247,33 +249,36 @@ ISR(TIMER1_OVF_vect)
       Serial.print(F("updates: "));
       Serial.println(temp);
     }
-//    Serial1.write(inByte); 
+    if (serial_bridge) Serial1.write(inByte); 
   }
-//
-//  else if (Serial1.available()) 
-//  {
-//    byte inByte = Serial1.read();
-//    if (sckCheckText(inByte, "*OPEN*", &check_telnet_open))  { 
-//      wait = true; 
-//      server_mode = 0;
-//    }
-//    if (sckCheckText(inByte, "*CLOS*", &check_telnet_close)) { 
-//      wait = false; 
-//      server_mode = 1;
-//    }
-//    if (sckCheckText(inByte, "#data\r", &check_data_read))  
-//    { 
-//      uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
-//      if (temp > 0) { 
-//        terminal_mode = true; 
-//        wait = true; 
-//        //server_mode = 0;
-//      }
-//      Serial1.print(F("updates: "));
-//      Serial1.println(temp);
-//    }
-//    if (serial_bridge) Serial.write(inByte);
-//  }
+
+  else if (serial_bridge)
+  {
+    if (Serial1.available()) 
+    {
+      byte inByte = Serial1.read();
+      if (sckCheckText(inByte, "*OPEN*", &check_telnet_open))  { 
+        wait = true; 
+        server_mode = 0;
+      }
+      if (sckCheckText(inByte, "*CLOS*", &check_telnet_close)) { 
+        wait = false; 
+        server_mode = 1;
+      }
+      if (sckCheckText(inByte, "#data\r", &check_data_read))  
+      { 
+        uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
+        if (temp > 0) { 
+          terminal_mode = true; 
+          wait = true; 
+          //server_mode = 0;
+        }
+        Serial1.print(F("updates: "));
+        Serial1.println(temp);
+      }
+      Serial.write(inByte);
+    }
+   }
   timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 }
 #endif
