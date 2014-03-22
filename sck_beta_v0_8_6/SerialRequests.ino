@@ -234,7 +234,12 @@ ISR(TIMER1_OVF_vect)
       digitalWrite(AWAKE, HIGH); 
       delayMicroseconds(100);
       digitalWrite(AWAKE, LOW);
-      serial_bridge = true;
+      if (!wait_moment) serial_bridge = true;
+      else 
+      {
+        Serial.println();
+        Serial.println(F("Please, wait to wifly sleep"));
+      }
       wait = true;
     }
     if (sckCheckText(inByte, "#data\r", &check_data_read))  

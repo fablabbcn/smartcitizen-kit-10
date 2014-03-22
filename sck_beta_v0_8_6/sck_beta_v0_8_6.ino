@@ -13,6 +13,7 @@
 boolean wait        = false;
 boolean sleep       = true; 
 boolean terminal_mode = false;
+boolean wait_moment = true;
 boolean usb_mode      = false;
 boolean serial_bridge = false;
 byte server_mode    = 0;
@@ -98,6 +99,7 @@ void setup() {
   server_mode = 2; 
 #endif  
 #endif  
+wait_moment = false;
 }
 
 void loop() {  

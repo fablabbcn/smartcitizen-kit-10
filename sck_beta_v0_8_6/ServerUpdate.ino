@@ -156,7 +156,7 @@ void sckJson_update(uint16_t initial, boolean terminal)
 
 
 void txWiFly() {  
-
+  wait_moment = true;
   uint16_t updates = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10; 
   boolean ok_sleep = false;
 
@@ -263,6 +263,7 @@ void txWiFly() {
 #endif
     digitalWrite(AWAKE, LOW); 
   }
+  wait_moment = false;
 }
 
 #endif
