@@ -93,11 +93,6 @@ boolean sckServer_reconnect()
       if (retry >= numbers_retry) return ok;
     }
   }    
-  //    for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
-  //    Serial1.print(mac_Address);
-  //    for (byte i = 11; i<13; i++) Serial1.print(WEB[i]);
-
-
   for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
   Serial1.println(mac_Address);
   Serial1.print(WEB[5]);
@@ -161,9 +156,9 @@ void txWiFly() {
   boolean ok_sleep = false;
 
   if ((sleep)&&(updates>=NumUpdates)){
-#if debuggEnabled
-    if (!wait) Serial.println(F("SCK Waking up..."));
-#endif
+    #if debuggEnabled
+        if (!wait) Serial.println(F("SCK Waking up..."));
+    #endif
     ok_sleep = true;
     digitalWrite(AWAKE, HIGH);
   }
@@ -226,6 +221,35 @@ void txWiFly() {
               sckClose();
           }
       }
+    else 
+      {
+        uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
+        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, "0");  //Wifi Nets
+        #if debuggEnabled
+            if (!wait) Serial.println(F("Error in connectionn!!"));
+        #endif
+        if (sckCheckRTC()) 
+          {
+            sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, sckRTCtime());
+            #if debuggEnabled
+              if (!wait) 
+                {
+                  
+                  Serial.print(F("updates = "));
+                  Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
+                  Serial.println(F("Saved in memory!!"));
+                }
+            #endif
+          }
+         else 
+          {
+            #if debuggEnabled
+              Serial.println(F("RTC Fail"));
+              Serial.println(F("Removed from memory!!"));
+            #endif
+          }
+        sckCheckData();//No hace falta que se guarda en memoria si falla la RTC
+      }
   }
   else 
   {
@@ -237,19 +261,24 @@ void txWiFly() {
     if (sckCheckRTC()) 
     {
       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, sckRTCtime());
+      #if debuggEnabled
+      if (!wait)
+        {
+          Serial.print(F("updates = "));
+          Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
+          Serial.println(F("Saved in memory!!"));
+        }
+      #endif
     }
+    else 
+     {
+       #if debuggEnabled
+         Serial.println(F("RTC Fail"));
+         Serial.println(F("Removed from memory!!"));
+       #endif
+     }
     sckCheckData();//No hace falta que se guarda en memoria si falla la RTC
-#if debuggEnabled
-    if (!wait)
-      {
-        Serial.print(F("updates = "));
-        Serial.println((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-        if (((sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10)>=NumUpdates) Serial.println(F("Error in connectionn!!"));
-        else Serial.println(F("Saved in memory!!"));
-      }
-#endif
   }
-
 
   if ((sleep)&&(ok_sleep))
   {

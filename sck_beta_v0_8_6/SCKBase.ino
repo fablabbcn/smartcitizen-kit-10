@@ -620,9 +620,9 @@ boolean sckConnect()
         sckSendCommand(F("reboot"), false, "*READY*");
         if (sckReady()) return true;
         sckEnterCommandMode();
-      }
-      return false;     
+      }     
     } 
+    return false;
   }
   else return true;  
 }  
@@ -818,28 +818,34 @@ char* itoa(int32_t number)
 
 #if autoUpdateWiFly
 
-boolean sckCheckWiFly() {
-  if(getWiFlyVersion() < WIFLY_LATEST_VERSION){
-#if debuggEnabled
-    if (!wait) Serial.println(F("WiFly old firm. Updating..."));
-#endif
-    if(sckUpdate()) {
-#if USBEnabled
-    if (!wait) Serial.println(F("Wifly Updated"));
-#endif
-    } 
+void sckCheckWiFly() {
+  int ver = getWiFlyVersion();
+  if (ver > 0)
+  {
+    if (ver < WIFLY_LATEST_VERSION)
+     {
+      #if debuggEnabled
+          if (!wait) Serial.println(F("WiFly old firm. Updating..."));
+      #endif
+          if(sckUpdate()) {
+            #if USBEnabled
+                if (!wait) Serial.println(F("Wifly Updated."));
+            #endif
+          } 
+          else {
+            #if debuggEnabled
+                if (!wait) Serial.println(F("Update Fail."));
+            #endif
+      } 
+      sckReset();
+    }   
     else {
-#if debuggEnabled
-    if (!wait) Serial.println(F("Update Fail"));
-#endif
-    } 
-    sckReset();
-  }   
-  else {
-#if USBEnabled
-   if (!wait) Serial.println(F("WiFly up to date"));
-#endif
+      #if USBEnabled
+         if (!wait) Serial.println(F("WiFly up to date."));
+      #endif
+    }
   }
+  else if (!wait) Serial.println(F("Error reading the wifi version."));
 }
 
 int getWiFlyVersion() {
@@ -871,9 +877,11 @@ int getWiFlyVersion() {
       }
       sckExitCommandMode();
       buffer[offset] = 0x00;
+      return atoi(buffer);
     } 
+    return 0;
   }
-  return atoi(buffer);
+  return 0;
 }
 
 
