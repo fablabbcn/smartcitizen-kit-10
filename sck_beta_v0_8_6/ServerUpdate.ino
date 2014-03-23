@@ -213,10 +213,10 @@ void txWiFly() {
               if (!wait)
               {
                 Serial.println(F("Error posting on Server..!"));
-                uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
-                sckWriteData(DEFAULT_ADDR_MEASURES, pos - 1, sckRTCtime());
               }
           #endif
+          uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
+          sckWriteData(DEFAULT_ADDR_MEASURES, pos - 1, sckRTCtime());
         }
         if (connected) 
           {
