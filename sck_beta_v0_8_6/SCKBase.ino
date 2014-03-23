@@ -840,7 +840,7 @@ void sckCheckWiFly() {
       sckReset();
     }   
     else {
-      #if USBEnabled
+      #if debuggEnabled
          if (!wait) Serial.println(F("WiFly up to date."));
       #endif
     }
