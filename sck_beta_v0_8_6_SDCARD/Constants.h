@@ -2,24 +2,6 @@
 #define decouplerComp true
 #define DataRaw       true
 
-#define WIFLY_LATEST_VERSION 441
-#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
-#define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
-
-#if F_CPU == 8000000 
-  #if DataRaw 
-    #define FirmWare  "1.1-0.8.6-A"
-  #else
-    #define FirmWare  "1.1-0.8.6-B"
-  #endif
-#else
-  #if DataRaw 
-    #define FirmWare  "1.0-0.8.6-A"
-  #else
-    #define FirmWare  "1.0-0.8.6-B"
-  #endif
-#endif
-
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
 #define BAT   A7 //Entrada bateria
@@ -63,19 +45,7 @@
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
 #define EE_ADDR_TIME_UPDATE                         32  //16BYTES Tiempo entre actualizacion y actualizacion de los sensores en segundos
 #define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Numero de actualizaciones antes de postear
-#define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE Numero de medidas en memoria
-#define EE_ADDR_NUMBER_NETS                         66  //2BYTE Numero de redes en memoria
-#define EE_ADDR_APIKEY                              68  //32BYTES Apikey del dispositivo
-#define EE_ADDR_MAC                              100  //32BYTES Apikey del dispositivo
 
-//Espacio reservado para los SSID y PASS
-#define DEFAULT_ADDR_SSID                                200
-#define DEFAULT_ADDR_PASS                                520
-#define DEFAULT_ADDR_AUTH                                840  
-#define DEFAULT_ADDR_ANTENNA                             1160 
-
-//Espacio reservado para los datos no posteados a la web
-#define DEFAULT_ADDR_MEASURES                            1500
 
 #define MICS_5525 0x00
 #define MICS_2710 0x01
@@ -110,31 +80,4 @@
 
 
 #define DHTLIB_INVALID_VALUE    -999
-
-#define OPEN  "0"
-#define WEP   "1"
-#define WPA1  "2"
-#define WPA2  "4"
-#define WEP64 "8"
-
-#define EXT_ANT "1" // antena externa
-#define INT_ANT "0" // antena interna
-
-
-char* WEB[8]={
-                  "data.smartcitizen.me",
-                  "PUT /add HTTP/1.1 \n", 
-                  "Host: data.smartcitizen.me \n", 
-                  "User-Agent: SmartCitizen \n", 
-                  "X-SmartCitizenMacADDR: ", 
-                  "X-SmartCitizenApiKey: ", 
-                  "X-SmartCitizenVersion: ",  
-                  "X-SmartCitizenData: "};
-                  
-char* WEBTIME[3]={                  
-                  /*Servidor de tiempo*/
-                  "GET /datetime HTTP/1.1 \n",
-                  "Host: data.smartcitizen.me \n",
-                  "User-Agent: SmartCitizen \n\n"  
-                  };
 
