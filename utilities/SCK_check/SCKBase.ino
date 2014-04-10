@@ -1,3 +1,6 @@
+#define WIFLY_LATEST_VERSION 441
+#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
+#define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
@@ -38,7 +41,7 @@ boolean connected;
 static char buffer[buffer_length];
 
 void sckBegin() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial1.begin(9600);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
@@ -49,8 +52,8 @@ void sckBegin() {
   pinMode(FACTORY, OUTPUT);
   pinMode(CONTROL, INPUT);
   digitalWrite(AWAKE, HIGH); 
-  digitalWrite(FACTORY, HIGH); 
 //  digitalWrite(FACTORY, LOW); 
+  digitalWrite(FACTORY, HIGH); 
 }  
 
  boolean sckFindInResponse(const char *toMatch,
@@ -89,6 +92,7 @@ void sckBegin() {
 
 void sckRecovery()
 {
+
     Serial.println(F("Reseting...")); 
     digitalWrite(FACTORY, HIGH);
     delay(1000);
@@ -110,12 +114,14 @@ void sckRecovery()
     delay(1000);
     digitalWrite(FACTORY, LOW);
     delay(1000);
-    Serial1.println();
-    if (sckFindInResponse("<WEB_APP", 3000)) Serial.println("Started as web_app");
-    sckReset();
-    Serial.println(F("Successfully reset")); 
-    //digitalWrite(FACTORY, HIGH);
-    sckEnterCommandMode();
+    Serial.println("Please, turn off the board.");
+    while(true);
+//    Serial1.println();
+//    if (sckFindInResponse("<WEB_APP", 3000)) Serial.println("Started as web_app");
+//    sckReset();
+//    Serial.println(F("Successfully reset")); 
+//    //digitalWrite(FACTORY, HIGH);
+//    sckEnterCommandMode();
 }
 
 void sckSkipRemainderOfResponse(unsigned int timeOut) {
@@ -254,8 +260,8 @@ boolean sckRepair()
     {
       for (int i=6; ((i>=0)&&(!repair)); i--)
       {
-        Serial1.begin(baud[i]);
-        Serial.println(baud[i]);
+//        Serial1.begin(baud[i]);
+//        Serial.println(baud[i]);
         if(sckEnterCommandMode()) 
         {
           sckReset();
@@ -314,34 +320,28 @@ char* itoa(int32_t number)
 char* getWiFlyVersion() {
 //  if (sckEnterCommandMode()) 
 //  {
-    if (sckSendCommand(F("ver"), false, "wifly-GSX Ver"))
-    {
-      char newChar;
-      byte offset = 0;
-      boolean prevWasNumber = false;
-      while (offset < 4) {
+     Serial1.println();
+     char newChar = '<';
+     byte offset = 0;
+      while (true)
+      {
         if (Serial1.available())
         {
           newChar = Serial1.read();
-          if ((newChar != -1 && isdigit(newChar)) || newChar == '.') {
-              buffer[offset] = newChar;
-              offset++;
-            prevWasNumber = true;
-          } 
-          else {
-            if (prevWasNumber){
-              break;
-            }
-            prevWasNumber = false; 
+          if (( newChar != '<')&&( newChar != '>'))
+          {
+                buffer[offset] = newChar;
+                offset++;
           }
+          else if (newChar!='>') break;
         }
       }
 //      sckExitCommandMode();
       buffer[offset] = 0x00;
       sckSkipRemainderOfResponse(1000);
       return buffer;
-    }
-    return 0;
+//    }
+    return "0";
 //  }
 //  return 0;
 }
