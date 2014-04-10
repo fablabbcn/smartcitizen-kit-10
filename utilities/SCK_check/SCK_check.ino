@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 void setup() { 
   sckBegin();
   delay(5000);
@@ -7,7 +9,13 @@ void setup() {
   Serial.print("Firmware version: "); 
   char *Version = getWiFlyVersion(1000);
   Serial.println(Version);
-  checkWiFlyVersion(Version);
+  int state = checkWiFlyVersion(Version);
+  if (state==1) Serial.print("Wifi device is ok :)");
+  else if (state==-1) Serial.print("Wifi device is corrupted :(");
+  else if ((state)==0) 
+    {
+      //Serial.print("Wifi device is corrupted :(");
+    }
 } 
 
 void loop() {   

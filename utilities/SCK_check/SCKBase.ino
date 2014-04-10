@@ -43,6 +43,7 @@ static char buffer[buffer_length];
 void sckBegin() {
   Serial.begin(9600);
   Serial1.begin(9600);
+  if (EEPROM.read(0)>2) EEPROM.write(0, 0);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
   pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
@@ -92,30 +93,34 @@ void sckBegin() {
 
 void sckRecovery()
 {
-
-    Serial.println(F("Reseting...")); 
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    Serial.println("Please, turn off the board.");
-    while(true);
+  if (EEPROM.read(0) == 0)
+    {
+      Serial.println(F("Reseting...")); 
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      Serial.println("Please, turn off the board.");
+      EEPROM.write(0,1);
+      while(true);
+    }
+  else EEPROM.write(0,2);
 }
 
 void sckSkipRemainderOfResponse(unsigned int timeOut) {
@@ -327,12 +332,12 @@ char* getWiFlyVersion(unsigned long timeOut) {
                 buffer[offset] = newChar;
                 offset++;
           }
-          else if (newChar!='>') break;
+          else if (newChar=='>') break;
         }
       }
       sckSkipRemainderOfResponse(1000);
       
-      if (newChar!='>') 
+      if (newChar=='>') 
         {
           buffer[offset] = 0x00;
           return buffer;
@@ -340,10 +345,20 @@ char* getWiFlyVersion(unsigned long timeOut) {
       else return "0";   
 }
 
-void checkWiFlyVersion(char *text) {
-   if (text[0]=='0') Serial.println(F("Error reading version."));
+int checkWiFlyVersion(char *text) {
+   if (text[0]=='0')
+     {
+       Serial.println(F("Error reading version."));
+       return -1;
+     }
    else if (text[0]<'4') Serial.println(F("Old version, please update."));
    else if ((text[0]=='4')&&(text[2]=='0')) Serial.println(F("Warning version, please update."));
-   else if ((text[0]=='4')&&(text[2]=='4')) Serial.println(F("WiFly up to date."));   
+   else if ((text[0]=='4')&&(text[2]=='4')) Serial.println(F("WiFly up to date.")); 
+   else if (text[0]=='W') 
+     {
+       Serial.println(F("Started as web_app"));
+       return 0;
+     }
+   return 1;
 }
 
