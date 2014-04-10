@@ -22,6 +22,7 @@ byte check_number_read       = 0;
 byte check_number_write      = 0;
 byte check_sck_info          = 0;
 byte check_sck_mac           = 0;
+byte check_wifi_info         = 0;
 
 byte check_data_read          = 0;
 byte check_terminal_mode      = 0;
@@ -127,8 +128,12 @@ ISR(TIMER1_OVF_vect)
     if (sckCheckText(inByte, "get sck info\r", &check_sck_info)){
       Serial.println(FirmWare);
     } 
+    if (sckCheckText(inByte, "get wifi info\r", &check_wifi_info)){
+      Serial.println(getWiFlyVersion());
+    } 
     if (sckCheckText(inByte, "get mac\r", &check_sck_mac)){
-      Serial.println(sckMAC());
+      eeprom_read_ok = true; 
+      address_eeprom = EE_ADDR_MAC; 
     }  
     if (sckCheckText(inByte, "get wlan ssid\r", &check_ssid_read)){
       eeprom_read_ok = true; 
@@ -217,14 +222,11 @@ ISR(TIMER1_OVF_vect)
     } 
 
     if (sckCheckText(inByte, "exit\r", &check_terminal_exit)) {
-      wait = false;
       serial_bridge = false;
+      wait = false;
     }
     if (sckCheckText(inByte, "###", &check_sck_mode))
     {
-      digitalWrite(AWAKE, HIGH); 
-      delayMicroseconds(100);
-      digitalWrite(AWAKE, LOW);
       wait = true;
     }
     if (sckCheckText(inByte, "$$$", &check_terminal_mode))
@@ -232,8 +234,13 @@ ISR(TIMER1_OVF_vect)
       digitalWrite(AWAKE, HIGH); 
       delayMicroseconds(100);
       digitalWrite(AWAKE, LOW);
+      if (!wait_moment) serial_bridge = true;
+      else 
+      {
+        Serial.println();
+        Serial.println(F("Please, wait to wifly sleep"));
+      }
       wait = true;
-      serial_bridge = true;
     }
     if (sckCheckText(inByte, "#data\r", &check_data_read))  
     { 
@@ -247,33 +254,36 @@ ISR(TIMER1_OVF_vect)
       Serial.print(F("updates: "));
       Serial.println(temp);
     }
-    Serial1.write(inByte); 
+    if (serial_bridge) Serial1.write(inByte); 
   }
 
-  else if (Serial1.available()) 
+  else if (serial_bridge)
   {
-    byte inByte = Serial1.read();
-    if (sckCheckText(inByte, "*OPEN*", &check_telnet_open))  { 
-      wait = true; 
-      server_mode = 0;
-    }
-    if (sckCheckText(inByte, "*CLOS*", &check_telnet_close)) { 
-      wait = false; 
-      server_mode = 1;
-    }
-    if (sckCheckText(inByte, "#data\r", &check_data_read))  
-    { 
-      uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
-      if (temp > 0) { 
-        terminal_mode = true; 
+    if (Serial1.available()) 
+    {
+      byte inByte = Serial1.read();
+      if (sckCheckText(inByte, "*OPEN*", &check_telnet_open))  { 
         wait = true; 
-        //server_mode = 0;
+        server_mode = 0;
       }
-      Serial1.print(F("updates: "));
-      Serial1.println(temp);
+      if (sckCheckText(inByte, "*CLOS*", &check_telnet_close)) { 
+        wait = false; 
+        server_mode = 1;
+      }
+      if (sckCheckText(inByte, "#data\r", &check_data_read))  
+      { 
+        uint16_t temp = (sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10;
+        if (temp > 0) { 
+          terminal_mode = true; 
+          wait = true; 
+          //server_mode = 0;
+        }
+        Serial1.print(F("updates: "));
+        Serial1.println(temp);
+      }
+      Serial.write(inByte);
     }
-    if (serial_bridge) Serial.write(inByte);
-  }
+   }
   timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 }
 #endif

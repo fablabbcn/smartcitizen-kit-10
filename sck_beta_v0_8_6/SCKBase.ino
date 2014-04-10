@@ -80,6 +80,7 @@ void sckConfig(){
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
     sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
+    sckWriteData(EE_ADDR_MAC, 0, sckMAC());
 
 #if (redes > 0)
     for(byte i=0; i<redes; i++)
@@ -92,7 +93,8 @@ void sckConfig(){
     sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, redes);
 #endif
   }
-
+  timer1Initialize();
+  timer1AttachInterrupt();
 }
 
 float average(int anaPin) {
@@ -568,6 +570,8 @@ boolean sckConnect()
       sckSendCommand(F("set wlan join 1")); // Disable AP mode
       sckSendCommand(F("set ip dhcp 1")); // Enable DHCP server
       sckSendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
+      sckSendCommand(F("set ftp address 198.175.253.161")); //ftp server update
+      sckSendCommand(F("set ftp mode 1"));
       char* auth;
       char* ssid;
       char* pass;
@@ -579,37 +583,46 @@ boolean sckConnect()
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
 #if debuggEnabled
-        Serial.print(auth);
+       if (!wait) Serial.print(auth);
 #endif
         ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
         sckSendCommand(F("set wlan ssid "), true);
         sckSendCommand(ssid);
 #if debuggEnabled
-        Serial.print(F(" "));
-        Serial.print(ssid);
+        if (!wait) 
+        {
+          Serial.print(F(" "));
+          Serial.print(ssid);
+        }
 #endif
         pass = sckReadData(DEFAULT_ADDR_PASS, nets, 0);
         if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
 #if debuggEnabled
-        Serial.print(F(" "));
-        Serial.print(pass);
+        if (!wait)
+        {
+          Serial.print(F(" "));
+          Serial.print(pass);
+        }
 #endif
         antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
         sckSendCommand(F("set wlan ext_antenna "), true);
         sckSendCommand(antenna);
 #if debuggEnabled
+      if (!wait)
+      {
         Serial.print(F(" "));
         Serial.println(antenna);
+      }
 #endif
         sckSendCommand(F("save"), false, "Storing in config"); // Store settings
         sckSendCommand(F("reboot"), false, "*READY*");
         if (sckReady()) return true;
         sckEnterCommandMode();
-      }
-      return false;     
+      }     
     } 
+    return false;
   }
   else return true;  
 }  
@@ -805,28 +818,34 @@ char* itoa(int32_t number)
 
 #if autoUpdateWiFly
 
-boolean sckCheckWiFly() {
-  if(getWiFlyVersion() < WIFLY_LATEST_VERSION){
-#if debuggEnabled
-    Serial.println(F("WiFly old firm. Updating..."));
-#endif
-    if(sckUpdate()) {
-#if USBEnabled
-      Serial.println(F("Wifly Updated"));
-#endif
+void sckCheckWiFly() {
+  int ver = getWiFlyVersion();
+  if (ver > 0)
+  {
+    if (ver < WIFLY_LATEST_VERSION)
+     {
+      #if debuggEnabled
+          if (!wait) Serial.println(F("WiFly old firm. Updating..."));
+      #endif
+          if(sckUpdate()) {
+            #if USBEnabled
+                if (!wait) Serial.println(F("Wifly Updated."));
+            #endif
+          } 
+          else {
+            #if debuggEnabled
+                if (!wait) Serial.println(F("Update Fail."));
+            #endif
+      } 
       sckReset();
-    } 
+    }   
     else {
-#if debuggEnabled
-      Serial.println(F("Update Fail"));
-#endif
-    } 
-  }   
-  else {
-#if USBEnabled
-    Serial.println(F("WiFly up to date"));
-#endif
+      #if debuggEnabled
+         if (!wait) Serial.println(F("WiFly up to date."));
+      #endif
+    }
   }
+  else if (!wait) Serial.println(F("Error reading the wifi version."));
 }
 
 int getWiFlyVersion() {
@@ -857,9 +876,12 @@ int getWiFlyVersion() {
         }
       }
       sckExitCommandMode();
-    }        
+      buffer[offset] = 0x00;
+      return atoi(buffer);
+    } 
+    return 0;
   }
-  return atoi(buffer);
+  return 0;
 }
 
 
@@ -869,7 +891,7 @@ boolean sckUpdate() {
     sckSendCommand(F(DEFAULT_WIFLY_FTP_UPDATE));
     sckSendCommand(F(DEFAULT_WIFLY_FIRMWARE));
     delay(1000);
-    if (sckFindInResponse("FTP OK.", 30000))
+    if (sckFindInResponse("FTP OK.", 60000))
     {
       return true;
     }
