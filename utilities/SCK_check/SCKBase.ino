@@ -116,12 +116,6 @@ void sckRecovery()
     delay(1000);
     Serial.println("Please, turn off the board.");
     while(true);
-//    Serial1.println();
-//    if (sckFindInResponse("<WEB_APP", 3000)) Serial.println("Started as web_app");
-//    sckReset();
-//    Serial.println(F("Successfully reset")); 
-//    //digitalWrite(FACTORY, HIGH);
-//    sckEnterCommandMode();
 }
 
 void sckSkipRemainderOfResponse(unsigned int timeOut) {
@@ -317,17 +311,17 @@ char* itoa(int32_t number)
   }
   
 
-char* getWiFlyVersion() {
-//  if (sckEnterCommandMode()) 
-//  {
+char* getWiFlyVersion(unsigned long timeOut) {
      Serial1.println();
      char newChar = '<';
      byte offset = 0;
-      while (true)
+     unsigned long time = millis();
+     while (((millis()-time)<timeOut))
       {
         if (Serial1.available())
         {
-          newChar = Serial1.read();
+          byte newChar = Serial1.read();
+          time = millis();
           if (( newChar != '<')&&( newChar != '>'))
           {
                 buffer[offset] = newChar;
@@ -336,12 +330,20 @@ char* getWiFlyVersion() {
           else if (newChar!='>') break;
         }
       }
-//      sckExitCommandMode();
-      buffer[offset] = 0x00;
       sckSkipRemainderOfResponse(1000);
-      return buffer;
-//    }
-    return "0";
-//  }
-//  return 0;
+      
+      if (newChar!='>') 
+        {
+          buffer[offset] = 0x00;
+          return buffer;
+        }
+      else return "0";   
 }
+
+void checkWiFlyVersion(char *text) {
+   if (text[0]=='0') Serial.println(F("Error reading version."));
+   else if (text[0]<'4') Serial.println(F("Old version, please update."));
+   else if ((text[0]=='4')&&(text[2]=='0')) Serial.println(F("Warning version, please update."));
+   else if ((text[0]=='4')&&(text[2]=='4')) Serial.println(F("WiFly up to date."));   
+}
+

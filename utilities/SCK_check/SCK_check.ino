@@ -5,7 +5,9 @@ void setup() {
   if (!sckRepair()) sckRecovery();
   else Serial.println("Device detected.");
   Serial.print("Firmware version: "); 
-  Serial.println(getWiFlyVersion());
+  char *Version = getWiFlyVersion(1000);
+  Serial.println(Version);
+  checkWiFlyVersion(Version);
 } 
 
 void loop() {   
