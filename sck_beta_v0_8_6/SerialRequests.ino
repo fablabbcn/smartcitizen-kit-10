@@ -1,3 +1,14 @@
+/*
+
+  SerialRequest.ino
+  Serial comunication commands to setup the kit over serial commands.
+  Used by the platform configuration tool.
+
+  Commands reference: ../sck-commands.md
+
+*/
+
+
 #if wiflyEnabled
 
 boolean eeprom_write_ok      = false;

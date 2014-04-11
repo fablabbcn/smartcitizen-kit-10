@@ -1,13 +1,36 @@
+/*
+
+  SCKBase.ino
+  Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
+
+  - Modules supported:
+
+    - WIFI (Microchip RN131 (WiFly))
+    - SD CARD
+    - RTC (DS1339U and DS1307Z)
+    - EEPROM (24LC256)
+    - POWER MANAGEMENT IC's
+
+*/
+
+/* 
+
+BASE Contants and Defaults
+
+*/
+
+// WI-FI Networks can hardcoded directly here to perform manual setups.
+
 #define redes 0
 #if (redes > 0)
 char* mySSID[redes]      = { 
-  "Red1"        , "Red2"        , "Red3"             };
+  "Network1"  , "Network1"  , "Network2" };
 char* myPassword[redes]  = { 
-  "Pass1"      , "Pass2"       , "Pass3"            };
+  "Pass1"     , "Pass2"     , "Pass3"    };
 char* wifiEncript[redes] = { 
-  WPA2         , WPA2          , WPA2               };
+  WPA2        , WPA2        , WPA2       };
 char* antennaExt[redes]  = { 
-  INT_ANT      , INT_ANT       , INT_ANT            }; //EXT_ANT
+  INT_ANT     , INT_ANT     , INT_ANT     }; //EXT_ANT
 #endif
 
 boolean connected;                  
@@ -15,16 +38,18 @@ boolean connected;
 #define buffer_length        32
 static char buffer[buffer_length];
 
-#define TWI_FREQ 400000L //Frecuencia bus I2C
+#define TWI_FREQ 400000L // i2C bus freq.
+
+
 
 void sckBegin() {
   Wire.begin();
   TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
   Serial.begin(115200);
   Serial1.begin(9600);
-  pinMode(IO0, OUTPUT); //VH_MICS5525
-  pinMode(IO1, OUTPUT); //VH_MICS2710
-  pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
+  pinMode(IO0, OUTPUT);         // MICS5525_HEATHER
+  pinMode(IO1, OUTPUT);         // MICS2710_HEATHER
+  pinMode(IO2, OUTPUT);         // MICS2710_HIGH_IMPEDANCE
   pinMode(AWAKE, OUTPUT);
   pinMode(MOSI, OUTPUT);
   pinMode(SCK, OUTPUT);
@@ -38,15 +63,16 @@ void sckBegin() {
 #if F_CPU == 8000000 
   sckWriteCharge(350);
 
-  sckWriteVH(MICS_5525, 2700); //VH_MICS5525 Inicial
-  digitalWrite(IO0, HIGH); //VH_MICS5525
+  sckWriteVH(MICS_5525, 2700);    // MICS5525_START
+  digitalWrite(IO0, HIGH);        // MICS5525
 
-  sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-  digitalWrite(IO1, HIGH); //VH_MICS2710
-  digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+  sckWriteVH(MICS_2710, 1700);    // MICS2710_START
+  digitalWrite(IO1, HIGH);        // MICS2710_HEATHER
+  digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
+  pinMode(AWAKE, OUTPUT);
 
   pinMode(IO3, OUTPUT);
-  digitalWrite(IO3, HIGH); //Alimentacion de los MICS
+  digitalWrite(IO3, HIGH);         // MICS POWER LINE 
   
   #if ADXLEnabled
     sckWriteADXL(0x2D, 0x08);
@@ -57,16 +83,16 @@ void sckBegin() {
   #endif
 
 #else
-  sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
-  digitalWrite(IO0, HIGH); //VH_MICS5525
+  sckWriteVH(MICS_5525, 2400);    // MICS5525_START
+  digitalWrite(IO0, HIGH);        // MICS5525
 
-  sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-  digitalWrite(IO1, HIGH); //VH_MICS2710
-  digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+  sckWriteVH(MICS_2710, 1700);    // MICS2710_START
+  digitalWrite(IO1, HIGH);        // MICS2710
+  digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
 #endif
 
-  sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
-  sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
+  sckWriteRL(MICS_5525, 100000);  // START LOADING MICS5525
+  sckWriteRL(MICS_2710, 100000);  // START LOADING MICS2710
 }
 
 void sckConfig(){
@@ -76,7 +102,7 @@ void sckConfig(){
 #if debuggEnabled
     Serial.println(F("Resetting..."));
 #endif
-    for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  //Borrado de la memoria
+    for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  // Memory erasing
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
     sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
@@ -181,7 +207,7 @@ int sckReadMCP(int deviceaddress, uint16_t address ) {
 float sckReadCharge() {
   float resistor = kr*sckReadMCP(MCP3, 0x00)/1000;    
   float current = 1000./(2+((resistor * 10)/(resistor + 10)));
-#if debuggSCK
+#if debuggEnabled
   Serial.print("Resistor : ");
   Serial.print(resistor);
   Serial.print(" kOhm, ");  
@@ -198,7 +224,7 @@ void sckWriteCharge(int current) {
   float Rp = (1000./current)-2;
   float resistor = Rp*10/(10-Rp);
   sckWriteMCP(MCP3, 0x00, (uint8_t)(resistor*1000/kr));    
-#if debuggSCK
+#if debuggEnabled
   Serial.print("Rc : ");
   Serial.print(Rp + 2);
   Serial.print(" kOhm, ");
@@ -390,14 +416,14 @@ char* sckRTCtime() {
 uint16_t sckGetPanel(){
 #if F_CPU == 8000000 
   uint16_t value = 11*average(PANEL)*Vcc/1023.;
-  if (value > 500) value = value + 120; //Tension del diodo de proteccion
+  if (value > 500) value = value + 120; // Voltage protection diode
   else value = 0;
 #else
   uint16_t value = 3*average(PANEL)*Vcc/1023.;
-  if (value > 500) value = value + 750; //Tension del diodo de proteccion
+  if (value > 500) value = value + 750;  // Voltage protection diode
   else value = 0;
 #endif
-#if debuggSCK
+#if debuggEnabled
   Serial.print("Panel = ");
   Serial.print(value);
   Serial.println(" mV");
@@ -416,7 +442,7 @@ uint16_t sckGetBattery() {
   temp = map(voltage, VAL_MIN_BATTERY, VAL_MAX_BATTERY, 0, 1000);
   if (temp>1000) temp=1000;
   if (temp<0) temp=0;
-#if debuggSCK
+#if debuggEnabled
   Serial.print("Vbat: ");
   Serial.print(voltage);
   Serial.print(" mV, ");
@@ -445,7 +471,6 @@ unsigned int timeOut = 1000) {
       delay(1); // This seems to improve reliability slightly
     }
     byteRead = Serial1.read();
-    //Serial.print((char)byteRead);
     delay(1); // Removing logging may affect timing slightly
 
     if (byteRead != toMatch[offset]) {

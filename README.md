@@ -21,9 +21,11 @@ Smart Citizen Kit
 
 * For SmartCitizen Kit version 1.1 select `Tools/Boards/Lylipad Arduino USB` on the Arduino IDE (ATmega 23U4 at 8Mhz) 
 
+**The firmware is automatically loaded by the setup process at [smartcitizen.me](http://smartcitizen.me])
+**
 ### Versions
 
-The current firmware version in use is `0.8.5`.
+**The current firmware version in use is `0.8.6`.**
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
 
@@ -32,3 +34,8 @@ You can see the release history [here](https://github.com/fablabbcn/Smart-Citize
 * Setup commands reference in [sck-commands.md](https://github.com/fablabbcn/Smart-Citizen-Kit/blob/master/sck-commands.md)
 
 * Basic documentation for creating your own Sensor Boards [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Making-a-Shield)
+
+### Support
+
+* Forum [forum.smartcitizen.me](http://forum.smartcitizen.me)
+

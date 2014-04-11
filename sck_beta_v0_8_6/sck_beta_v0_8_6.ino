@@ -1,5 +1,40 @@
+/*
+
+  Smart Citizen Kit
+  Ambient Board Beta Firmware v.0.8.6
+
+  http://smartcitizen.me/
+
+
+  Compatible:
+
+    Smart Citizen Kit v.1.0 (Goteo)       (ATMEGA32U4 @ 16Mhz - Arduino Leonardo profile)
+    Smart Citizen Kit v.1.1 (Kickstarter) (ATMEGA32U4 @ 8Mhz  - Lylipad Arduino USB)
+
+  Structure:
+    
+    sck_beta_v0_8_6.ino - Core Runtime.
+
+    SCKAmbient.ino    - Supports the sensor reading and calibration functions.
+    SCKBase.ino       - Supports the data management functions (WiFi, SD storage, RTClock and EEPROM storage)
+    ServerUpdate.ino  - Supports data publishing to the SmartCitizen Platform over WiFi. Supports also SD storage.
+
+    Constants.h             - Defines pins configuration and other static parameters.
+    AccumulatorFilter.h     - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
+    TemperatureDecoupler.h  - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
+
+  Check REAMDE.md for more information.
+    
+*/
+
 #include <Wire.h>
 #include "Constants.h"
+
+/* 
+
+GLOBAL FIRMWARE CONFIGURATION FLAGS
+
+*/
 
 #define USBEnabled      true 
 #define wiflyEnabled    true
@@ -10,6 +45,14 @@
 #define SDEnabled       false
 #define autoUpdateWiFly true
 #define ADXLEnabled     false
+#define decouplerComp   true
+#define DataRaw         true
+
+/* 
+
+GLOBAL toggles and counters
+
+*/
 
 boolean wait        = false;
 boolean sleep       = true; 
@@ -20,8 +63,8 @@ byte server_mode    = 0;
 uint16_t  nets      = 0;
 
 uint32_t timetransmit = 0;  
-uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
-uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
+uint32_t TimeUpdate   = 0;  // Sensor Readings time interval in sec.
+uint32_t NumUpdates   = 0;  // Min. number of sensor readings before publishing
 
 #if SDEnabled
   #include <SPI.h>
@@ -29,6 +72,12 @@ uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
   File myFile;
   long SENSORvalue[8];
 #endif
+
+/* 
+
+GLOBAL SETUP
+
+*/
 
 void setup() {
 
@@ -67,8 +116,8 @@ void setup() {
   digitalWrite(AWAKE, HIGH); 
   server_mode = 1;  //Modo normal
   sckConfig(); 
-  TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
-  NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
+  TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0));    // Time between transmissions in sec.
+  NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); // Number of readings before batch update
   nets = sckReadintEEPROM(EE_ADDR_NUMBER_NETS);
 
 
@@ -115,7 +164,6 @@ void setup() {
   }  
 
 
-
   if((sleep)&&(wiflySleep))
   {
     sckSleep();
@@ -138,10 +186,16 @@ void setup() {
 #endif  
 }
 
+/* 
+
+GLOBAL RUNTIME
+
+*/
+
 void loop() {  
 #if sensorEnabled  
 #if wiflyEnabled
-  if (terminal_mode) // Telnet  (#data + *OPEN* detectado )
+  if (terminal_mode) // Telnet  (#data + *OPEN* detected )
   {
     timer1Stop();
     sleep = false;
@@ -149,17 +203,17 @@ void loop() {
     sckJson_update(0, usb_mode);
     usb_mode = false;
     terminal_mode = false;
-    timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+    timer1Initialize(); // Set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
   }
 #endif
   if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*1000)
   {  
     timetransmit = millis();
-    TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
+    TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0));    // Time between transmissions in sec.
 #if wiflyEnabled
-    NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
+    NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); // Number of readings before batch update
     sckUpdateSensors(server_mode); 
-    if (!wait) // command mode false
+    if (!wait)                                                    // CMD Mode False
     {
 #if wiflyEnabled
       timer1Stop();
@@ -169,7 +223,7 @@ void loop() {
       txDebug();
 #endif
 #if wiflyEnabled
-      timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
+      timer1Initialize(); // Set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
 #endif
     }
 #else

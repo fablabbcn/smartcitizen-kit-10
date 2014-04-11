@@ -1,3 +1,24 @@
+/*
+
+  SCKBase.ino
+   Supports the data management functions (WiFi, SD storage, RTClock and EEPROM storage)
+
+  - Sensors supported:
+
+    - TEMP / HUM (DHT22 and HPP828E031)
+    - NOISE (Electret Mic)
+    - LIGHT (LDR and BH1730FVC)
+    - CO (MICS5525 and MICS4514)
+    - NO2 (MiCS2710 and MICS4514)
+
+
+  - Dependencies:
+
+    - Constants.h
+
+*/
+
+
 #if wiflyEnabled
 
 #define TIME_BUFFER_SIZE 20 

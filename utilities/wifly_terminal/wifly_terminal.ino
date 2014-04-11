@@ -1,16 +1,21 @@
-//////////////////////////////////////////////////////////////////
-//download and upload this firmware to the sck
-//https://github.com/fablabbcn/Smart-Citizen-Kit/tree/master/Wifly_terminal
-//
-//OPEN ARDUINO SERIAL MONITOR and write the next commands:
-//
-//- ftp upload
-//(this download and install the last wifi firmware)
-//- factory RESET
-//(restart to original factory preset)
-//- reboot
-//(reboot the wifi)
-//////////////////////////////////////////////////////////////////
+/*
+
+  Smart Citizen Kit
+  Firmware for serial commands communication with the WiFly
+
+  
+  - UPDATING WIFLY FIRMWARE !
+
+    - Load this firmware and open the Arduino SERIAL MONITOR.
+
+    - Write the following commands:
+
+      - ftp upload    (this download and install the last WiFly firmware)
+      - factory RESET (restart the WiFly module to original factory presets)
+      - reboot        (reboots the WiFly module)
+
+*/
+
 
 void setup() { 
  //Initialize serial and wait for port to open:
