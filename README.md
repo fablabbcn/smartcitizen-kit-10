@@ -13,13 +13,17 @@ Smart Citizen Kit
 
 * More hardware info [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Hardware).
 
+### Quick start
+
+* Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
+
 ### Loading Firmware
 
 **The firmware is totally compatible with Arduino. You can upload the firmware using the [Arduino IDE](http://arduino.cc/en/main/software).**
 
-* For SmartCitizen Kit version 1.0 select `Tools/Boards/Arduino Leonardo` on the Arduino IDE (ATmega 23U4 at 16Mhz) 
+* For SmartCitizen Kit version 1.0 select `Tools/Boards/Arduino Leonardo` on the Arduino IDE (ATmega 32U4 at 16Mhz) 
 
-* For SmartCitizen Kit version 1.1 select `Tools/Boards/Lylipad Arduino USB` on the Arduino IDE (ATmega 23U4 at 8Mhz) 
+* For SmartCitizen Kit version 1.1 select `Tools/Boards/Lylipad Arduino USB` on the Arduino IDE (ATmega 32U4 at 8Mhz) 
 
 *The firmware is automatically loaded by the setup process at [smartcitizen.me](http://smartcitizen.me])*
 ### Versions
@@ -27,6 +31,7 @@ Smart Citizen Kit
 The current firmware version in use is `0.8.6`.
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
+<<<<<<< HEAD
 
 ### Advance References
 
@@ -38,3 +43,5 @@ You can see the release history [here](https://github.com/fablabbcn/Smart-Citize
 
 * Forum [forum.smartcitizen.me](http://forum.smartcitizen.me)
 
+=======
+>>>>>>> master
