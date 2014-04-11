@@ -42,6 +42,3 @@ You can see the release history [here](https://github.com/fablabbcn/Smart-Citize
 ### Support
 
 * Forum [forum.smartcitizen.me](http://forum.smartcitizen.me)
-
-=======
->>>>>>> master
