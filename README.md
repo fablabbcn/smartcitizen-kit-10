@@ -31,7 +31,6 @@ Smart Citizen Kit
 The current firmware version in use is `0.8.6`.
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
-<<<<<<< HEAD
 
 ### Advance References
 
