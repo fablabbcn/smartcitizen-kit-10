@@ -32,10 +32,7 @@
 char* mySSID = "Red";
 char* myPassword = "Pass";
 char* wifiEncript = WPA2;
-char* antenna  = INT_ANT; //EXT_ANT
-
-
-boolean connected;                  
+char* antenna  = INT_ANT; //EXT_ANT           
 
 #define buffer_length        32
 static char buffer[buffer_length];
@@ -43,7 +40,7 @@ static char buffer[buffer_length];
 void sckBegin() {
   Serial.begin(9600);
   Serial1.begin(9600);
-  if (EEPROM.read(0)>2) EEPROM.write(0, 0);
+  if (EEPROM.read(0)>=2) EEPROM.write(0, 0);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
   pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
@@ -318,6 +315,7 @@ char* itoa(int32_t number)
 
 char* getWiFlyVersion(unsigned long timeOut) {
      Serial1.println();
+     Serial1.println();
      char newChar = '<';
      byte offset = 0;
      unsigned long time = millis();
@@ -325,7 +323,7 @@ char* getWiFlyVersion(unsigned long timeOut) {
       {
         if (Serial1.available())
         {
-          byte newChar = Serial1.read();
+          newChar = Serial1.read();
           time = millis();
           if (( newChar != '<')&&( newChar != '>'))
           {
@@ -360,5 +358,28 @@ int checkWiFlyVersion(char *text) {
        return 0;
      }
    return 1;
+}
+
+boolean webAppRepair() {
+  if (sckEnterCommandMode())
+    {
+      Serial1.println(F("boot image 2"));
+      if (sckFindInResponse("= OK", 8000)) 
+      {
+        sckSkipRemainderOfResponse(3000);
+        Serial1.println(F("save"));
+        sckSkipRemainderOfResponse(3000);
+        Serial1.println(F("reboot"));
+        sckSkipRemainderOfResponse(3000);
+        sckEnterCommandMode();
+        Serial.print("Firmware version: "); 
+        char *Version = getWiFlyVersion(1000);
+        Serial.println(Version);
+        int state = checkWiFlyVersion(Version);
+        if (state==1) Serial.print("Wifi device is ok :)");
+        return(true);
+      }
+   } 
+  else return(false);
 }
 

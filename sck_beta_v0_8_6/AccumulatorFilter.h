@@ -1,10 +1,10 @@
-//
-//  AccumulatorFilter.h
-//  AccumulatorFilter
-//
-//  Created by Oriol Ferrer Mesià on 09/06/13.
-//
-//
+/*
+
+  AccumulatorFilter.h
+  AccumulatorFilter
+  Created by Oriol Ferrer Mesià on 09/06/13.
+
+*/
 
 #ifndef AccumulatorFilter_AccumulatorFilter_h
 #define AccumulatorFilter_AccumulatorFilter_h
@@ -25,7 +25,6 @@ public:
 	}
 
 	void goUp(){
-		//Serial.println( "goUP!");
 		if (val <= GHETTO_VAL){
 			val = GHETTO_VAL;
 		}
@@ -33,7 +32,6 @@ public:
 	}
 
 	void goDown(){
-		//Serial.println( "goDown!");
 		if (val >= 1.0f - GHETTO_VAL){
 			val = 1.0f - GHETTO_VAL;
 		}

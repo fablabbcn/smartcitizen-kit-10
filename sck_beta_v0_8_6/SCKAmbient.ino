@@ -1,14 +1,65 @@
+/*
 
-//Valores por defecto de la resistencia en vacio de los MICS
-float RoCO  = 750000;
-float RoNO2 = 2200;
+  SCKAmbient.ino
+  Supports the sensor reading and calibration functions.
+
+  - Sensors supported (sensors use on board custom peripherials):
+
+    - TEMP / HUM (DHT22 and HPP828E031)
+    - NOISE
+    - LIGHT (LDR and BH1730FVC)
+    - CO (MICS5525 and MICS4514)
+    - NO2 (MiCS2710 and MICS4514)
+
+*/
+
+
+/* 
+
+SENSOR Contants and Defaults
+
+*/
+#define decouplerComp true
 
 #if ((decouplerComp)&&(F_CPU > 8000000 ))
   #include "TemperatureDecoupler.h"
-  TemperatureDecoupler decoupler; //use this object to compensate for charger generated heat affecting temp values
+  TemperatureDecoupler decoupler; // Compensate the bat .charger generated heat affecting temp values
 #endif
-  
 
+// MICS (Gas Sensors) Ro Default Value (Ohm)
+float RoCO  = 750000;
+float RoNO2 = 2200;
+
+// MICS (Gas Sensors) RS Value (Ohm)
+float RsCO = 0;
+float RsNO2 = 0;
+
+#define RES 256    // Digital pot. resolution
+
+#if F_CPU == 8000000 
+  #define R1  12    //Kohm
+#else
+  #define R1  82    //Kohm
+#endif
+
+#define P1  100     //Kohm 
+
+float k= (RES*(float)R1/100)/1000;  //  Voltatge Constant for the Voltage reg.
+float kr= ((float)P1*1000)/RES;     //  Resistance conversion Constant for the digital pot.
+
+#if F_CPU == 8000000 
+  uint16_t lastHumidity;
+  uint16_t lastTemperature;
+  int accel_x=0;
+  int accel_y=0;
+  int accel_z=0;
+#else
+  int lastHumidity;
+  int lastTemperature;
+#endif
+
+  
+// Data JSON structure
 char* SERVER[11]={
                   "{\"temp\":\"",
                   "\",\"hum\":\"", 
@@ -22,35 +73,12 @@ char* SERVER[11]={
                   "\",\"timestamp\":\"", 
                   "\"}"
                   };
-                  
-float RsCO = 0;
-float RsNO2 = 0;
+   
+/* 
 
-#define RES 256   //Resolucion de los potenciometros digitales
+SENSOR Functions
 
-#if F_CPU == 8000000 
-  #define R1  12    //Kohm
-#else
-  #define R1  82    //Kohm
-#endif
-
-#define P1  100   //Kohm 
-
-float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
-float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
-
-#if F_CPU == 8000000 
-  uint16_t lastHumidity;
-  uint16_t lastTemperature;
-  int accel_x=0;
-  int accel_y=0;
-  int accel_z=0;
-#else
-  int lastHumidity;
-  int lastTemperature;
-#endif
-
-
+*/   
 
   void sckWriteVH(byte device, long voltage ) {
     int data=0;
@@ -98,9 +126,9 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
   float sckReadRL(byte device)
   {
     #if F_CPU == 8000000 
-      return (kr*sckReadMCP(MCP1, device + 6)); //Devuelve en Ohms
+      return (kr*sckReadMCP(MCP1, device + 6)); // Returns Resistance (Ohms)
     #else
-      return (kr*sckReadMCP(MCP1, device));  //Devuelve en Ohms
+      return (kr*sckReadMCP(MCP1, device));     // Returns Resistance (Ohms)
     #endif 
   }
 
@@ -112,7 +140,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
   
   float sckReadRGAIN(byte device)
   {
-      return (kr*sckReadMCP(MCP2, device));  //Devuelve en Ohms
+      return (kr*sckReadMCP(MCP2, device));    // Returns Resistance (Ohms)
   }
 
   void sckWriteGAIN(long value)
@@ -163,18 +191,18 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
 
     sckWriteVH(device, Vh);
       #if debuggSCK
-        if (device == MICS_2710) Serial.print("MICS2710 corriente: ");
-        else Serial.print("MICS5525 corriente: ");
+        if (device == MICS_2710) Serial.print("MICS2710 current: ");
+        else Serial.print("MICS5525 current: ");
         Serial.print(current_measure);
         Serial.println(" mA");
-        if (device == MICS_2710) Serial.print("MICS2710 correccion VH: ");
-        else  Serial.print("MICS5525 correccion VH: ");
+        if (device == MICS_2710) Serial.print("MICS2710 correction VH: ");
+        else  Serial.print("MICS5525 correction VH: ");
         Serial.print(sckReadVH(device));
         Serial.println(" mV");
         Vc = (float)average(Sensor)*Vcc/1023; //mV 
         current_measure = Vc/Rc; //mA 
-        if (device == MICS_2710) Serial.print("MICS2710 corriente corregida: ");
-        else Serial.print("MICS5525 corriente corregida: ");
+        if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
+        else Serial.print("MICS5525 current adjusted: ");
         Serial.print(current_measure);
         Serial.println(" mA");
         Serial.println("Heating...");
@@ -207,7 +235,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
       float Rs = sckReadRs(device);
       float RL = sckReadRL(device); //Ohm
       
-      /*Correccion de impedancia de carga*/
+      // Charging impedance correction
       if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
       {
         if (Rs < 2000) sckWriteRL(device, 2000);
@@ -220,9 +248,9 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
   
   void sckGetMICS(){          
        
-        /*Correccion de la tension del Heather*/
-        sckHeat(MICS_5525, 32); //Corriente en mA
-        sckHeat(MICS_2710, 26); //Corriente en mA
+      // Charging tension heaters
+        sckHeat(MICS_5525, 32); // Current in mA
+        sckHeat(MICS_2710, 26); // Current in mA
         
         RsCO = sckReadMICS(MICS_5525);
         RsNO2 = sckReadMICS(MICS_2710);
@@ -248,11 +276,11 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
    void sckGetSHT21()
    {
       #if DataRaw
-        lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
-        lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
+        lastTemperature = sckReadSHT21(0xE3); // RAW DATA for calibration in platform
+        lastHumidity    = sckReadSHT21(0xE5); // RAW DATA for calibration in platform
       #else
-        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
-        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
+        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // Original algorithm
+        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // Original algorithm   
       #endif
       
       #if debuggSCK
@@ -266,20 +294,20 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     }
     
     void sckWriteADXL(byte address, byte val) {
-       Wire.beginTransmission(ADXL); //start transmission to device 
-       Wire.write(address);        // write register address
-       Wire.write(val);        // write value to write
-       Wire.endTransmission(); //end transmission
+       Wire.beginTransmission(ADXL);    // Start transmission to device 
+       Wire.write(address);             // Write register address
+       Wire.write(val);                 // Write value to write
+       Wire.endTransmission();          // End transmission
     }
     
-    //reads num bytes starting from address register on device in to buff array
+    // Reads num bytes starting from address register on device in to buff array
     void sckrReadADXL(byte address, int num, byte buff[]) {
-      Wire.beginTransmission(ADXL); //start transmission to device 
-      Wire.write(address);        //writes address to read from
-      Wire.endTransmission(); //end transmission
+      Wire.beginTransmission(ADXL);     // Start transmission to device 
+      Wire.write(address);              // Writes address to read from
+      Wire.endTransmission();           // End transmission
       
-      Wire.beginTransmission(ADXL); //start transmission to device
-      Wire.requestFrom(ADXL, num);    // request 6 bytes from device
+      Wire.beginTransmission(ADXL);     // Start transmission to device
+      Wire.requestFrom(ADXL, num);      // Request 6 bytes from device
       
       int i = 0;
       unsigned long time = millis();
@@ -291,12 +319,12 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
           break;
         }
       }
-      while(Wire.available())    //device may write less than requested (abnormal)
+      while(Wire.available())           // Device may write less than requested (abnormal)
       { 
-        buff[i] = Wire.read(); // read a byte
+        buff[i] = Wire.read();          // Read a byte
         i++;
       }
-      Wire.endTransmission(); //end transmission
+      Wire.endTransmission();           // End transmission
     }
     
     void sckAverageADXL()
@@ -306,7 +334,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
       int temp_y=0;
       int temp_z=0;
       int lecturas=10;
-      byte buffADXL[6] ;    //6 bytes buffer for saving data read from the device
+      byte buffADXL[6] ;                //6 bytes buffer for saving data read from the device
       accel_x=0;
       accel_y=0;
       accel_z=0;
@@ -329,14 +357,14 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
       accel_z = (int)(accel_z / lecturas);
       
       #if debuggSCK
-        Serial.print("eje_x= ");
+        Serial.print("x_axis= ");
         Serial.print(accel_x);
         Serial.print(", ");
-        Serial.print("eje_y= ");
+        Serial.print("y_axis= ");
         Serial.print(accel_y);
         Serial.print(", ");
-        Serial.print("eje_z= ");
-        Serial.println(accel_z);  
+        Serial.print("z_axis= ");
+        Serial.println(accel_z); 
       #endif
     }
  #else
@@ -346,7 +374,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     
     boolean sckDHT22(uint8_t pin)
     {
-            // READ VALUES
+            // Read Values
             int rv = sckDhtRead(pin);
             if (rv != true)
             {
@@ -355,7 +383,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
                   return rv;
             }
     
-            // CONVERT AND STORE
+            // Convert and Store
             lastHumidity    = word(bits[0], bits[1]);
     
             if (bits[2] & 0x80) // negative temperature
@@ -368,7 +396,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
                 lastTemperature = word(bits[2], bits[3]);
             }
     
-            // TEST CHECKSUM
+            // Test Checksum
             uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
             if (bits[4] != sum) return false;
             if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
@@ -377,14 +405,14 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     
     boolean sckDhtRead(uint8_t pin)
     {
-            // INIT BUFFERVAR TO RECEIVE DATA
+            // init Buffer to receive data
             uint8_t cnt = 7;
             uint8_t idx = 0;
     
-            // EMPTY BUFFER
+            // empty the buffer
             for (int i=0; i< 5; i++) bits[i] = 0;
     
-            // REQUEST SAMPLE
+            // request the sensor
             pinMode(pin, OUTPUT);
             digitalWrite(pin, LOW);
             delay(20);
@@ -392,7 +420,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
             delayMicroseconds(40);
             pinMode(pin, INPUT);
     
-            // GET ACKNOWLEDGE or TIMEOUT
+            // get ACK or timeout
             unsigned int loopCnt = TIMEOUT;
             while(digitalRead(pin) == LOW)
                     if (loopCnt-- == 0) return false;
@@ -401,7 +429,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
             while(digitalRead(pin) == HIGH)
                     if (loopCnt-- == 0) return false;
     
-            // READ THE OUTPUT - 40 BITS => 5 BYTES
+            // read Ouput - 40 bits => 5 bytes
             for (int i=0; i<40; i++)
             {
                     loopCnt = TIMEOUT;
@@ -507,7 +535,7 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     #endif
     
     #if debuggSCK
-      Serial.print("nOISE = ");
+      Serial.print("NOISE = ");
       Serial.print(mVRaw);
       #if DataRaw==false
         Serial.print(" mV nOISE = ");

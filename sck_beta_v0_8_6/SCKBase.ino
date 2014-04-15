@@ -1,12 +1,35 @@
-#define redes 0
-#if (redes > 0)
-char* mySSID[redes]      = { 
+/*
+
+  SCKBase.ino
+  Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
+
+  - Modules supported:
+
+    - WIFI (Microchip RN131 (WiFly))
+    - SD CARD
+    - RTC (DS1339U and DS1307Z)
+    - EEPROM (24LC256)
+    - POWER MANAGEMENT IC's
+
+*/
+
+/* 
+
+BASE Contants and Defaults
+
+*/
+
+// WI-FI Networks can hardcoded directly here to perform manual setups.
+
+#define networks 0
+#if (networks > 0)
+char* mySSID[networks]      = { 
   "Red1"        , "Red2"        , "Red3"             };
-char* myPassword[redes]  = { 
+char* myPassword[networks]  = { 
   "Pass1"      , "Pass2"       , "Pass3"            };
-char* wifiEncript[redes] = { 
+char* wifiEncript[networks] = { 
   WPA2         , WPA2          , WPA2               };
-char* antennaExt[redes]  = { 
+char* antennaExt[networks]  = { 
   INT_ANT      , INT_ANT       , INT_ANT            }; //EXT_ANT
 #endif
 
@@ -15,16 +38,16 @@ boolean connected;
 #define buffer_length        32
 static char buffer[buffer_length];
 
-#define TWI_FREQ 400000L //Frecuencia bus I2C
+#define TWI_FREQ 400000L        // i2C bus freq.
 
 void sckBegin() {
   Wire.begin();
   TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
   Serial.begin(115200);
   Serial1.begin(9600);
-  pinMode(IO0, OUTPUT); //VH_MICS5525
-  pinMode(IO1, OUTPUT); //VH_MICS2710
-  pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
+  pinMode(IO0, OUTPUT);        //VH_MICS5525
+  pinMode(IO1, OUTPUT);        //VH_MICS2710
+  pinMode(IO2, OUTPUT);        // MICS2710_HIGH_IMPEDANCE
   pinMode(AWAKE, OUTPUT);
   pinMode(MOSI, OUTPUT);
   pinMode(SCK, OUTPUT);
@@ -38,15 +61,16 @@ void sckBegin() {
 #if F_CPU == 8000000 
   sckWriteCharge(350);
 
-  sckWriteVH(MICS_5525, 2700); //VH_MICS5525 Inicial
-  digitalWrite(IO0, HIGH); //VH_MICS5525
+  sckWriteVH(MICS_5525, 2700);    // MICS5525_START
+  digitalWrite(IO0, HIGH);        // MICS5525
 
-  sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-  digitalWrite(IO1, HIGH); //VH_MICS2710
-  digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+  sckWriteVH(MICS_2710, 1700);    // MICS2710_START
+  digitalWrite(IO1, HIGH);        // MICS2710_HEATHER
+  digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
+  pinMode(AWAKE, OUTPUT);
 
   pinMode(IO3, OUTPUT);
-  digitalWrite(IO3, HIGH); //Alimentacion de los MICS
+  digitalWrite(IO3, HIGH);         // MICS POWER LINE 
   
   #if ADXLEnabled
     sckWriteADXL(0x2D, 0x08);
@@ -55,18 +79,18 @@ void sckBegin() {
     sckWriteADXL(0x31, 0x02); //8g
     //  sckWriteADXL(0x31, 0x03); //16g
   #endif
-
+  
 #else
-  sckWriteVH(MICS_5525, 2400); //VH_MICS5525 Inicial
-  digitalWrite(IO0, HIGH); //VH_MICS5525
+  sckWriteVH(MICS_5525, 2400);    // MICS5525_START
+  digitalWrite(IO0, HIGH);        // MICS5525
 
-  sckWriteVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-  digitalWrite(IO1, HIGH); //VH_MICS2710
-  digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+  sckWriteVH(MICS_2710, 1700);    // MICS2710_START
+  digitalWrite(IO1, HIGH);        // MICS2710
+  digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
 #endif
 
-  sckWriteRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
-  sckWriteRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
+  sckWriteRL(MICS_5525, 100000);  // START LOADING MICS5525
+  sckWriteRL(MICS_2710, 100000);  // START LOADING MICS2710
 }
 
 void sckConfig(){
@@ -76,21 +100,21 @@ void sckConfig(){
 #if debuggEnabled
     Serial.println(F("Resetting..."));
 #endif
-    for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  //Borrado de la memoria
+    for(uint16_t i=0; i<DEFAULT_ADDR_MEASURES; i++) sckWriteEEPROM(i, 0x00);  // Memory erasing
     sckWriteData(EE_ADDR_TIME_VERSION, 0, __TIME__);
     sckWriteData(EE_ADDR_TIME_UPDATE, 0, DEFAULT_TIME_UPDATE);
     sckWriteData(EE_ADDR_NUMBER_UPDATES, 0, DEFAULT_MIN_UPDATES);
     sckWriteData(EE_ADDR_MAC, 0, sckMAC());
 
-#if (redes > 0)
-    for(byte i=0; i<redes; i++)
+#if (networks > 0)
+    for(byte i=0; i<networks; i++)
     {
       sckWriteData(DEFAULT_ADDR_SSID, i, mySSID[i]);
       sckWriteData(DEFAULT_ADDR_PASS, i, myPassword[i]);
       sckWriteData(DEFAULT_ADDR_AUTH, i, wifiEncript[i]);
       sckWriteData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i]);
     }
-    sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, redes);
+    sckWriteintEEPROM(EE_ADDR_NUMBER_NETS, networks);
 #endif
   }
   timer1Initialize();

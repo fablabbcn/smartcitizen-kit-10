@@ -12,10 +12,7 @@ void setup() {
   int state = checkWiFlyVersion(Version);
   if (state==1) Serial.print("Wifi device is ok :)");
   else if (state==-1) Serial.print("Wifi device is corrupted :(");
-  else if ((state)==0) 
-    {
-      //Serial.print("Wifi device is corrupted :(");
-    }
+  else if ((state)==0) if (!webAppRepair())Serial.print("Wifi device is corrupted :(");
 } 
 
 void loop() {   

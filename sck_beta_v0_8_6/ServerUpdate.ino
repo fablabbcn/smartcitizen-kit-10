@@ -1,3 +1,10 @@
+/*
+
+  SCKServer.ino
+  
+*/
+
+
 #if wiflyEnabled
 
 #define TIME_BUFFER_SIZE 20 
@@ -10,11 +17,11 @@ char* sckWIFItime() {
     byte retry=0;
     while ((!sckOpen(WEB[0], 80))&&(retry<5)) 
     {
-      retry++; //Serial.println("Retry!!");
+      retry++;
     }
     if(retry<5)
     {
-      for(byte i = 0; i<3; i++) Serial1.print(WEBTIME[i]); //Peticiones al servidor de tiempo
+      for(byte i = 0; i<3; i++) Serial1.print(WEBTIME[i]); //Requests to the server time
       if (sckFindInResponse("UTC:", 2000)) 
       {
         char newChar;
@@ -47,13 +54,11 @@ char* sckWIFItime() {
     if (connected) {
       sckClose();
     }
-    //sckExitCommandMode();
   } 
   if (!ok)
   {
     buffer[0] = '#';
     buffer[1] = 0x00;
-    //Serial.println("Fail!!");
   }
   sckExitCommandMode();
   return buffer;
@@ -64,9 +69,8 @@ char* sckWIFItime() {
 boolean sckServer_connect()
 {
   uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, sckScan());  //Wifi Nets
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, sckWIFItime());
-  //Provisionalmente ajuste de reloj
+  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, sckScan());       //Wifi Nets
+  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, sckWIFItime());   //Provisionally setting watch
   byte retry = 0;
   if (sckCheckRTC())
   {
@@ -75,7 +79,7 @@ boolean sckServer_connect()
       retry = retry + 1;
     }
   }
-  sckCheckData(); //Volvemos a verificar si datos correctos
+  sckCheckData();  //We return to see if correct data
   return sckServer_reconnect(); 
 }
 
@@ -248,7 +252,7 @@ void txWiFly() {
               Serial.println(F("Removed from memory!!"));
             #endif
           }
-        sckCheckData();//No hace falta que se guarda en memoria si falla la RTC
+        sckCheckData();//No need to be stored in memory if the RTC fails
       }
   }
   else 
@@ -277,7 +281,7 @@ void txWiFly() {
          Serial.println(F("Removed from memory!!"));
        #endif
      }
-    sckCheckData();//No hace falta que se guarda en memoria si falla la RTC
+    sckCheckData();//No need to be stored in memory if the RTC fails
   }
 
   if ((sleep)&&(ok_sleep))

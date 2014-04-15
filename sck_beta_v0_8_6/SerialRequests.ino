@@ -1,3 +1,13 @@
+/*
+
+  SerialRequest.ino
+  Serial comunication commands to setup the kit over serial commands.
+  Used by the platform configuration tool.
+
+  Commands reference: ../sck-commands.md
+
+*/
+
 #if wiflyEnabled
 
 boolean eeprom_write_ok      = false;
@@ -36,7 +46,7 @@ byte check_telnet_close       = 0;
 void timer1SetPeriod()		// AR modified for atomic access
 { 
   char oldSREG = SREG;				
-  cli();							// Disable interrupts for 16 bit register access
+  cli();			// Disable interrupts for 16 bit register access
 #if F_CPU == 8000000 
   ICR1 = 2000; 
 #else
