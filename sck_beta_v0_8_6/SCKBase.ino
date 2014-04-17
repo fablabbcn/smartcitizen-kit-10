@@ -606,82 +606,36 @@ boolean sckConnect()
         sckSendCommand(auth);
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if debuggEnabled
        if (!wait) Serial.print(auth);
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of b81b85f... debug mode changes
-#if USBEnabled
-        Serial.print(auth);
->>>>>>> parent of b81b85f... debug mode changes
-=======
->>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
         ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
         sckSendCommand(F("set wlan ssid "), true);
         sckSendCommand(ssid);
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if debuggEnabled
         if (!wait) 
         {
           Serial.print(F(" "));
           Serial.print(ssid);
         }
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of b81b85f... debug mode changes
-#if USBEnabled
-        Serial.print(F(" "));
-        Serial.print(ssid);
->>>>>>> parent of b81b85f... debug mode changes
-=======
->>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
         pass = sckReadData(DEFAULT_ADDR_PASS, nets, 0);
         if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if debuggEnabled
         if (!wait)
         {
           Serial.print(F(" "));
           Serial.print(pass);
         }
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of b81b85f... debug mode changes
-#if USBEnabled
-        Serial.print(F(" "));
-        Serial.print(pass);
->>>>>>> parent of b81b85f... debug mode changes
-=======
->>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
         antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
         sckSendCommand(F("set wlan ext_antenna "), true);
         sckSendCommand(antenna);
-<<<<<<< HEAD
-<<<<<<< HEAD
 #if debuggEnabled
       if (!wait)
       {
-<<<<<<< HEAD
-=======
-#if USBEnabled
->>>>>>> parent of b81b85f... debug mode changes
-=======
-#if USBEnabled
->>>>>>> parent of b81b85f... debug mode changes
-=======
->>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
         Serial.print(F(" "));
         Serial.println(antenna);
       }
