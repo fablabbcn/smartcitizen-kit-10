@@ -1,3 +1,6 @@
+#define WIFLY_LATEST_VERSION 441
+#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
+#define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
@@ -26,22 +29,18 @@
 #define INT_ANT "0" //EXT_ANT
 #define EXT_ANT "1" //EXT_ANT
 
-//char* mySSID = "Red";
-//char* myPassword = "Pass";
-char* mySSID = "Mi$Red";
-char* myPassword = "FINALFANTASY";
+char* mySSID = "Red";
+char* myPassword = "Pass";
 char* wifiEncript = WPA2;
-char* antenna  = INT_ANT; //EXT_ANT
-
-
-boolean connected;                  
+char* antenna  = INT_ANT; //EXT_ANT           
 
 #define buffer_length        32
 static char buffer[buffer_length];
 
 void sckBegin() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial1.begin(9600);
+  if (EEPROM.read(0)>=2) EEPROM.write(0, 0);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
   pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
@@ -50,9 +49,9 @@ void sckBegin() {
   pinMode(SCK, OUTPUT);
   pinMode(FACTORY, OUTPUT);
   pinMode(CONTROL, INPUT);
-  digitalWrite(AWAKE, LOW); 
-  digitalWrite(FACTORY, LOW); 
-  sckExitCommandMode();
+  digitalWrite(AWAKE, HIGH); 
+//  digitalWrite(FACTORY, LOW); 
+  digitalWrite(FACTORY, HIGH); 
 }  
 
  boolean sckFindInResponse(const char *toMatch,
@@ -91,33 +90,34 @@ void sckBegin() {
 
 void sckRecovery()
 {
-    Serial.println("Reseting..."); 
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    digitalWrite(FACTORY, HIGH);
-    delay(1000);
-    digitalWrite(FACTORY, LOW);
-    delay(1000);
-    Serial1.println();
-    sckFindInResponse("<WEB_APP", 3000);
-    sckReset();
-    Serial.println("Successfully reset"); 
-    //digitalWrite(FACTORY, HIGH);
-    sckEnterCommandMode();
+  if (EEPROM.read(0) == 0)
+    {
+      Serial.println(F("Reseting...")); 
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      digitalWrite(FACTORY, HIGH);
+      delay(1000);
+      digitalWrite(FACTORY, LOW);
+      delay(1000);
+      Serial.println("Please, turn off the board.");
+      EEPROM.write(0,1);
+      while(true);
+    }
+  else EEPROM.write(0,2);
 }
 
 void sckSkipRemainderOfResponse(unsigned int timeOut) {
@@ -207,19 +207,6 @@ boolean sckReset() {
       sckSendCommand(F("reboot"), false, "*READY*");
 }
 
-boolean sckUpdate() {
-      if (sckEnterCommandMode())
-      {
-        sckSendCommand(F("ftp update"));
-        delay(1000);
-        if (sckFindInResponse("FTP OK.", 10000))
-        {
-          return true;
-        }
-      }
-      else return false;
-}
-
 boolean sckExitCommandMode() {
     for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
      {
@@ -262,23 +249,25 @@ boolean sckConnect()
 
 uint32_t baud[7]={2400, 4800, 9600, 19200, 38400, 57600, 115200};
 
-void sckRepair()
+boolean sckRepair()
 {
+  boolean repair = false;
   if(!sckEnterCommandMode())
     {
-      boolean repair = true;
-      for (int i=6; ((i>=0)&&repair); i--)
+      for (int i=6; ((i>=0)&&(!repair)); i--)
       {
-        Serial1.begin(baud[i]);
-        Serial.println(baud[i]);
+//        Serial1.begin(baud[i]);
+//        Serial.println(baud[i]);
         if(sckEnterCommandMode()) 
         {
           sckReset();
-          repair = false;
+          repair = true;
         }
         Serial1.begin(9600);
       }
     }
+  else repair = true;
+  return repair;
 }
 
 boolean sckReady()
@@ -324,4 +313,73 @@ char* itoa(int32_t number)
   }
   
 
+char* getWiFlyVersion(unsigned long timeOut) {
+     Serial1.println();
+     Serial1.println();
+     char newChar = '<';
+     byte offset = 0;
+     unsigned long time = millis();
+     while (((millis()-time)<timeOut))
+      {
+        if (Serial1.available())
+        {
+          newChar = Serial1.read();
+          time = millis();
+          if (( newChar != '<')&&( newChar != '>'))
+          {
+                buffer[offset] = newChar;
+                offset++;
+          }
+          else if (newChar=='>') break;
+        }
+      }
+      sckSkipRemainderOfResponse(1000);
+      
+      if (newChar=='>') 
+        {
+          buffer[offset] = 0x00;
+          return buffer;
+        }
+      else return "0";   
+}
+
+int checkWiFlyVersion(char *text) {
+   if (text[0]=='0')
+     {
+       Serial.println(F("Error reading version."));
+       return -1;
+     }
+   else if (text[0]<'4') Serial.println(F("Old version, please update."));
+   else if ((text[0]=='4')&&(text[2]=='0')) Serial.println(F("Warning version, please update."));
+   else if ((text[0]=='4')&&(text[2]=='4')) Serial.println(F("WiFly up to date.")); 
+   else if (text[0]=='W') 
+     {
+       Serial.println(F("Started as web_app"));
+       return 0;
+     }
+   return 1;
+}
+
+boolean webAppRepair() {
+  if (sckEnterCommandMode())
+    {
+      Serial1.println(F("boot image 2"));
+      if (sckFindInResponse("= OK", 8000)) 
+      {
+        sckSkipRemainderOfResponse(3000);
+        Serial1.println(F("save"));
+        sckSkipRemainderOfResponse(3000);
+        Serial1.println(F("reboot"));
+        sckSkipRemainderOfResponse(3000);
+        sckEnterCommandMode();
+        Serial.print("Firmware version: "); 
+        char *Version = getWiFlyVersion(1000);
+        Serial.println(Version);
+        int state = checkWiFlyVersion(Version);
+        if (state==1) Serial.print("Wifi device is ok :)");
+        return(true);
+      }
+   } 
+  else return(false);
+}
 

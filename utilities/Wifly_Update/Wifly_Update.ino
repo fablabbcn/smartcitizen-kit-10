@@ -1,12 +1,3 @@
-/*
-
-  Smart Citizen Kit
-  Update Firmware to automatically update the WiFly Module 
-
-  - Settings are defined at SCKBase.ino
-
-*/
-
 void setup() { 
   sckBegin();
   delay(5000);

@@ -1,9 +1,3 @@
-/*
-
-  Smart Citizen Kit
-  Rescue Firmware to restore the WiFly Module 
-  
-*/
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel

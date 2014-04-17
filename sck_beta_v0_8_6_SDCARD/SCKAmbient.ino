@@ -1,40 +1,17 @@
-/*
 
-  SCKAmbient.ino
-  Supports the sensor reading and calibration functions.
-
-  - Sensors supported (sensors use on board custom peripherials):
-
-    - TEMP / HUM (DHT22 and HPP828E031)
-    - NOISE
-    - LIGHT (LDR and BH1730FVC)
-    - CO (MICS5525 and MICS4514)
-    - NO2 (MiCS2710 and MICS4514)
-
-*/
-
-
-/* 
-
-SENSOR Contants and Defaults
-
-*/
-#define decouplerComp true
-
-#if ((decouplerComp)&&(F_CPU > 8000000 ))
-  #include "TemperatureDecoupler.h"
-  TemperatureDecoupler decoupler; // Compensate the bat .charger generated heat affecting temp values
-#endif
-
-// MICS (Gas Sensors) Ro Default Value (Ohm)
+//Valores por defecto de la resistencia en vacio de los MICS
 float RoCO  = 750000;
 float RoNO2 = 2200;
 
-// MICS (Gas Sensors) RS Value (Ohm)
+#if ((decouplerComp)&&(F_CPU > 8000000 ))
+  #include "TemperatureDecoupler.h"
+  TemperatureDecoupler decoupler; //use this object to compensate for charger generated heat affecting temp values
+#endif
+                   
 float RsCO = 0;
 float RsNO2 = 0;
 
-#define RES 256    // Digital pot. resolution
+#define RES 256   //Resolucion de los potenciometros digitales
 
 #if F_CPU == 8000000 
   #define R1  12    //Kohm
@@ -42,10 +19,10 @@ float RsNO2 = 0;
   #define R1  82    //Kohm
 #endif
 
-#define P1  100     //Kohm 
+#define P1  100   //Kohm 
 
-float k= (RES*(float)R1/100)/1000;  //  Voltatge Constant for the Voltage reg.
-float kr= ((float)P1*1000)/RES;     //  Resistance conversion Constant for the digital pot.
+float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
+float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
 
 #if F_CPU == 8000000 
   uint16_t lastHumidity;
@@ -58,27 +35,7 @@ float kr= ((float)P1*1000)/RES;     //  Resistance conversion Constant for the d
   int lastTemperature;
 #endif
 
-  
-// Data JSON structure
-char* SERVER[11]={
-                  "{\"temp\":\"",
-                  "\",\"hum\":\"", 
-                  "\",\"light\":\"",
-                  "\",\"bat\":\"",
-                  "\",\"panel\":\"",
-                  "\",\"co\":\"", 
-                  "\",\"no2\":\"", 
-                  "\",\"noise\":\"", 
-                  "\",\"nets\":\"", 
-                  "\",\"timestamp\":\"", 
-                  "\"}"
-                  };
-   
-/* 
 
-SENSOR Functions
-
-*/   
 
   void sckWriteVH(byte device, long voltage ) {
     int data=0;
@@ -126,9 +83,9 @@ SENSOR Functions
   float sckReadRL(byte device)
   {
     #if F_CPU == 8000000 
-      return (kr*sckReadMCP(MCP1, device + 6)); // Returns Resistance (Ohms)
+      return (kr*sckReadMCP(MCP1, device + 6)); //Devuelve en Ohms
     #else
-      return (kr*sckReadMCP(MCP1, device));     // Returns Resistance (Ohms)
+      return (kr*sckReadMCP(MCP1, device));  //Devuelve en Ohms
     #endif 
   }
 
@@ -140,7 +97,7 @@ SENSOR Functions
   
   float sckReadRGAIN(byte device)
   {
-      return (kr*sckReadMCP(MCP2, device));    // Returns Resistance (Ohms)
+      return (kr*sckReadMCP(MCP2, device));  //Devuelve en Ohms
   }
 
   void sckWriteGAIN(long value)
@@ -168,7 +125,7 @@ SENSOR Functions
     return (sckReadRGAIN(0x00)/1000)*(sckReadRGAIN(0x01)/1000);
   }    
 
-  void sckVcc()
+  void sckGetVcc()
   {
     float temp = average(S3);
     analogReference(INTERNAL);
@@ -191,18 +148,18 @@ SENSOR Functions
 
     sckWriteVH(device, Vh);
       #if debuggSCK
-        if (device == MICS_2710) Serial.print("MICS2710 current: ");
-        else Serial.print("MICS5525 current: ");
+        if (device == MICS_2710) Serial.print("MICS2710 corriente: ");
+        else Serial.print("MICS5525 corriente: ");
         Serial.print(current_measure);
         Serial.println(" mA");
-        if (device == MICS_2710) Serial.print("MICS2710 correction VH: ");
-        else  Serial.print("MICS5525 correction VH: ");
+        if (device == MICS_2710) Serial.print("MICS2710 correccion VH: ");
+        else  Serial.print("MICS5525 correccion VH: ");
         Serial.print(sckReadVH(device));
         Serial.println(" mV");
         Vc = (float)average(Sensor)*Vcc/1023; //mV 
         current_measure = Vc/Rc; //mA 
-        if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
-        else Serial.print("MICS5525 current adjusted: ");
+        if (device == MICS_2710) Serial.print("MICS2710 corriente corregida: ");
+        else Serial.print("MICS5525 corriente corregida: ");
         Serial.print(current_measure);
         Serial.println(" mA");
         Serial.println("Heating...");
@@ -235,7 +192,7 @@ SENSOR Functions
       float Rs = sckReadRs(device);
       float RL = sckReadRL(device); //Ohm
       
-      // Charging impedance correction
+      /*Correccion de impedancia de carga*/
       if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
       {
         if (Rs < 2000) sckWriteRL(device, 2000);
@@ -248,9 +205,9 @@ SENSOR Functions
   
   void sckGetMICS(){          
        
-      // Charging tension heaters
-        sckHeat(MICS_5525, 32); // Current in mA
-        sckHeat(MICS_2710, 26); // Current in mA
+        /*Correccion de la tension del Heather*/
+        sckHeat(MICS_5525, 32); //Corriente en mA
+        sckHeat(MICS_2710, 26); //Corriente en mA
         
         RsCO = sckReadMICS(MICS_5525);
         RsNO2 = sckReadMICS(MICS_2710);
@@ -276,11 +233,11 @@ SENSOR Functions
    void sckGetSHT21()
    {
       #if DataRaw
-        lastTemperature = sckReadSHT21(0xE3); // RAW DATA for calibration in platform
-        lastHumidity    = sckReadSHT21(0xE5); // RAW DATA for calibration in platform
+        lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
+        lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
       #else
-        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // Original algorithm
-        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // Original algorithm   
+        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
+        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
       #endif
       
       #if debuggSCK
@@ -294,20 +251,20 @@ SENSOR Functions
     }
     
     void sckWriteADXL(byte address, byte val) {
-       Wire.beginTransmission(ADXL);    // Start transmission to device 
-       Wire.write(address);             // Write register address
-       Wire.write(val);                 // Write value to write
-       Wire.endTransmission();          // End transmission
+       Wire.beginTransmission(ADXL); //start transmission to device 
+       Wire.write(address);        // write register address
+       Wire.write(val);        // write value to write
+       Wire.endTransmission(); //end transmission
     }
     
-    // Reads num bytes starting from address register on device in to buff array
+    //reads num bytes starting from address register on device in to buff array
     void sckrReadADXL(byte address, int num, byte buff[]) {
-      Wire.beginTransmission(ADXL);     // Start transmission to device 
-      Wire.write(address);              // Writes address to read from
-      Wire.endTransmission();           // End transmission
+      Wire.beginTransmission(ADXL); //start transmission to device 
+      Wire.write(address);        //writes address to read from
+      Wire.endTransmission(); //end transmission
       
-      Wire.beginTransmission(ADXL);     // Start transmission to device
-      Wire.requestFrom(ADXL, num);      // Request 6 bytes from device
+      Wire.beginTransmission(ADXL); //start transmission to device
+      Wire.requestFrom(ADXL, num);    // request 6 bytes from device
       
       int i = 0;
       unsigned long time = millis();
@@ -319,12 +276,12 @@ SENSOR Functions
           break;
         }
       }
-      while(Wire.available())           // Device may write less than requested (abnormal)
+      while(Wire.available())    //device may write less than requested (abnormal)
       { 
-        buff[i] = Wire.read();          // Read a byte
+        buff[i] = Wire.read(); // read a byte
         i++;
       }
-      Wire.endTransmission();           // End transmission
+      Wire.endTransmission(); //end transmission
     }
     
     void sckAverageADXL()
@@ -334,7 +291,7 @@ SENSOR Functions
       int temp_y=0;
       int temp_z=0;
       int lecturas=10;
-      byte buffADXL[6] ;                //6 bytes buffer for saving data read from the device
+      byte buffADXL[6] ;    //6 bytes buffer for saving data read from the device
       accel_x=0;
       accel_y=0;
       accel_z=0;
@@ -357,14 +314,14 @@ SENSOR Functions
       accel_z = (int)(accel_z / lecturas);
       
       #if debuggSCK
-        Serial.print("x_axis= ");
+        Serial.print("eje_x= ");
         Serial.print(accel_x);
         Serial.print(", ");
-        Serial.print("y_axis= ");
+        Serial.print("eje_y= ");
         Serial.print(accel_y);
         Serial.print(", ");
-        Serial.print("z_axis= ");
-        Serial.println(accel_z); 
+        Serial.print("eje_z= ");
+        Serial.println(accel_z);  
       #endif
     }
  #else
@@ -374,7 +331,7 @@ SENSOR Functions
     
     boolean sckDHT22(uint8_t pin)
     {
-            // Read Values
+            // READ VALUES
             int rv = sckDhtRead(pin);
             if (rv != true)
             {
@@ -383,7 +340,7 @@ SENSOR Functions
                   return rv;
             }
     
-            // Convert and Store
+            // CONVERT AND STORE
             lastHumidity    = word(bits[0], bits[1]);
     
             if (bits[2] & 0x80) // negative temperature
@@ -396,7 +353,7 @@ SENSOR Functions
                 lastTemperature = word(bits[2], bits[3]);
             }
     
-            // Test Checksum
+            // TEST CHECKSUM
             uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
             if (bits[4] != sum) return false;
             if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
@@ -405,14 +362,14 @@ SENSOR Functions
     
     boolean sckDhtRead(uint8_t pin)
     {
-            // init Buffer to receive data
+            // INIT BUFFERVAR TO RECEIVE DATA
             uint8_t cnt = 7;
             uint8_t idx = 0;
     
-            // empty the buffer
+            // EMPTY BUFFER
             for (int i=0; i< 5; i++) bits[i] = 0;
     
-            // request the sensor
+            // REQUEST SAMPLE
             pinMode(pin, OUTPUT);
             digitalWrite(pin, LOW);
             delay(20);
@@ -420,7 +377,7 @@ SENSOR Functions
             delayMicroseconds(40);
             pinMode(pin, INPUT);
     
-            // get ACK or timeout
+            // GET ACKNOWLEDGE or TIMEOUT
             unsigned int loopCnt = TIMEOUT;
             while(digitalRead(pin) == LOW)
                     if (loopCnt-- == 0) return false;
@@ -429,7 +386,7 @@ SENSOR Functions
             while(digitalRead(pin) == HIGH)
                     if (loopCnt-- == 0) return false;
     
-            // read Ouput - 40 bits => 5 bytes
+            // READ THE OUTPUT - 40 BITS => 5 BYTES
             for (int i=0; i<40; i++)
             {
                     loopCnt = TIMEOUT;
@@ -535,7 +492,7 @@ SENSOR Functions
     #endif
     
     #if debuggSCK
-      Serial.print("NOISE = ");
+      Serial.print("nOISE = ");
       Serial.print(mVRaw);
       #if DataRaw==false
         Serial.print(" mV nOISE = ");
@@ -563,79 +520,5 @@ SENSOR Functions
   {
     return RsNO2;
   } 
- 
-  void sckUpdateSensors(byte mode) 
- {   
-  sckCheckData();
-  uint16_t pos = sckReadintEEPROM(EE_ADDR_NUMBER_MEASURES);
-  uint16_t MAX = 800;
-  if ((mode == 2)||(mode == 4)||(pos >= MAX)) 
-    {
-      sckWriteintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
-      pos = 0;
-    }  
-  boolean ok_read = false; 
-  byte    retry   = 0;
-  
-  if (pos > 0) pos = pos + 1;
-  
-  #if F_CPU == 8000000 
-    sckVcc();
-    sckGetSHT21();
-    ok_read = true;
-  #else
-    #if wiflyEnabled
-      timer1Stop();
-    #endif
-    while ((!ok_read)&&(retry<5))
-    {
-      ok_read = sckDHT22(IO3);
-      retry++; 
-      if (!ok_read)delay(3000);
-    }
-     #if wiflyEnabled
-       timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)
-     #endif
-  #endif
-    if (ok_read )  
-    {
-      #if ((decouplerComp)&&(F_CPU > 8000000 ))
-        uint16_t battery = sckGetBattery();
-        decoupler.update(battery);
-        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa( (int)lastTemperature - (int) decoupler.getCompensation())); // C
-      #else
-        sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, itoa(lastTemperature)); // C
-      #endif
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, itoa(lastHumidity)); // %   
-    }
-    else 
-    {
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 0, sckReadData(DEFAULT_ADDR_MEASURES, 0, 0)); // C
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 1, sckReadData(DEFAULT_ADDR_MEASURES, 1, 0)); // %
-    }  
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 2, itoa(sckGetLight())); //mV
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 3, itoa(sckGetBattery())); //%
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 4, itoa(sckGetPanel()));  // %
-  
-  if ((mode == 3)||(mode == 4))
-    { 
-       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 5, "0"); //ppm
-       sckWriteData(DEFAULT_ADDR_MEASURES, pos + 6, "0"); //ppm
-    }
-  else
-    {
-      sckGetMICS();
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 5, itoa(sckGetCO())); //ppm
-      sckWriteData(DEFAULT_ADDR_MEASURES, pos + 6, itoa(sckGetNO2())); //ppm
-    }
-    
-  sckWriteData(DEFAULT_ADDR_MEASURES, pos + 7, itoa(sckGetNoise())); //mV
-      
-  if ((mode == 0)||(mode == 2)||(mode == 4))
-       {
-         sckWriteData(DEFAULT_ADDR_MEASURES, pos + 8, "0");  //Wifi Nets
-         sckWriteData(DEFAULT_ADDR_MEASURES, pos + 9, sckRTCtime());
-       } 
-}
 
 

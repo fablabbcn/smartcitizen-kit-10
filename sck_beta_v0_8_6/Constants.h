@@ -12,16 +12,11 @@ WIFLY Firmware Setting
 
 */
 
+#define debuggSCK     false   //Use only for test sensors
+
 #define WIFLY_LATEST_VERSION 441
 #define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
-
-/* 
-
-SENSOR READINGS - Defaults
-
-*/
-
 
 #if F_CPU == 8000000 
   #if DataRaw 
@@ -36,7 +31,6 @@ SENSOR READINGS - Defaults
     #define FirmWare  "1.0-0.8.6-B"
   #endif
 #endif
-
 
 /* 
 
@@ -68,9 +62,9 @@ SENSOR READINGS - Defaults
 
 */
 
-#define DEFAULT_TIME_UPDATE  "60"     // Sensor Readings time interval
-#define DEFAULT_MIN_UPDATES  "1"      // Min. number of sensor readings before publishing
-#define POST_MAX             20       // Max. of sensor reading on a batch update
+#define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
+#define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
+#define POST_MAX             20       //Maximo numero de posteos a la vez
 
 /* 
 
@@ -78,19 +72,19 @@ i2c ADDRESSES
 
 */
 
-#define RTC_ADDRESS          0x68    // RTC     Address
-#define E2PROM               0x50    // EEPROM  Address
+#define RTC_ADDRESS          0x68    // Direcion de la RTC
+#define E2PROM               0x50    // Direcion de la EEPROM
 
 #if F_CPU == 8000000 
-  #define MCP1               0x2E    // MCP1 digital pot. address to control the MICS (gas sensors)
-  #define MCP2               0x2F    // MCP1 digital pot. address to control the pickup of the Microphone 
-  #define MCP3               0x2D    // MCP1 digital pot. address to control the battery charging mode
-  #define bh1730             0x29    // Light Sensor Address
-  #define Temperature        0x40    // Temp / Hum Sensor Address   
-  #define ADXL 0x53                  // Accelerometer Address - ADXL345
+  #define MCP1               0x2E    // Direcion del mcp1 Potenciometros que controlan los MICS
+  #define MCP2               0x2F    // Direcion del mcp2 Potenciometros que controlan la ganancia del microfono
+  #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
+  #define bh1730             0x29    // Direcion del sensor de luz
+  #define Temperature        0x40    // Direcion del sht21    
+  #define ADXL 0x53    //ADXL345 device address
 #else
-  #define MCP1               0x2F    // MCP1 digital pot. address to control the MICS (gas sensors)
-  #define MCP2               0x2E    // MCP2 digital pot. address 
+  #define MCP1               0x2F    // Direcion del mcp1 MICS
+  #define MCP2               0x2E    // Direcion del mcp2 REGULADORES
 #endif
 
 /* 
@@ -99,13 +93,14 @@ EEPROM Memory Addresses
 
 */
 
-// SCK Configuration Parameters
+// SCK Configuration Parameters 
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
 #define EE_ADDR_TIME_UPDATE                         32  //16BYTES Tiempo entre actualizacion y actualizacion de los sensores en segundos
 #define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Numero de actualizaciones antes de postear
 #define EE_ADDR_NUMBER_MEASURES                     64  //2BYTE Numero de medidas en memoria
 #define EE_ADDR_NUMBER_NETS                         66  //2BYTE Numero de redes en memoria
 #define EE_ADDR_APIKEY                              68  //32BYTES Apikey del dispositivo
+#define EE_ADDR_MAC                              100  //32BYTES Apikey del dispositivo
 
 // SCK WIFI SETTINGS Parameters
 #define DEFAULT_ADDR_SSID                                200
@@ -115,7 +110,6 @@ EEPROM Memory Addresses
 
 // SCK DATA SPACE (Sensor readings can be stored here to do batch updates)
 #define DEFAULT_ADDR_MEASURES                            1500
-
 
 /* 
 
@@ -175,7 +169,6 @@ DHT PARAMS - Temp and Hum sensor
 WIFI AND SERVER STATICS - WiFly, Http server parameters.
 
 */
-
 // WiFly Auth Modes
 #define OPEN  "0"
 #define WEP   "1"

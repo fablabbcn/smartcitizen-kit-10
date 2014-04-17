@@ -26,10 +26,8 @@
 #define INT_ANT "0" //EXT_ANT
 #define EXT_ANT "1" //EXT_ANT
 
-//char* mySSID = "Red";
-//char* myPassword = "Pass";
-char* mySSID = "Mi$Red";
-char* myPassword = "FINALFANTASY";
+char* mySSID = "Red";
+char* myPassword = "Pass";
 char* wifiEncript = WPA2;
 char* antenna  = INT_ANT; //EXT_ANT
 
@@ -52,7 +50,6 @@ void sckBegin() {
   pinMode(CONTROL, INPUT);
   digitalWrite(AWAKE, LOW); 
   digitalWrite(FACTORY, LOW); 
-  sckExitCommandMode();
 }  
 
  boolean sckFindInResponse(const char *toMatch,
