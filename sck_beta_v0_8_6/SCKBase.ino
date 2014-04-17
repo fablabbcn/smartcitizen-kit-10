@@ -607,9 +607,12 @@ boolean sckConnect()
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if debuggEnabled
        if (!wait) Serial.print(auth);
 =======
+=======
+>>>>>>> parent of b81b85f... debug mode changes
 #if USBEnabled
         Serial.print(auth);
 >>>>>>> parent of b81b85f... debug mode changes
@@ -618,6 +621,7 @@ boolean sckConnect()
         sckSendCommand(F("set wlan ssid "), true);
         sckSendCommand(ssid);
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if debuggEnabled
         if (!wait) 
         {
@@ -625,6 +629,8 @@ boolean sckConnect()
           Serial.print(ssid);
         }
 =======
+=======
+>>>>>>> parent of b81b85f... debug mode changes
 #if USBEnabled
         Serial.print(F(" "));
         Serial.print(ssid);
@@ -635,6 +641,7 @@ boolean sckConnect()
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if debuggEnabled
         if (!wait)
         {
@@ -642,6 +649,8 @@ boolean sckConnect()
           Serial.print(pass);
         }
 =======
+=======
+>>>>>>> parent of b81b85f... debug mode changes
 #if USBEnabled
         Serial.print(F(" "));
         Serial.print(pass);
@@ -651,9 +660,13 @@ boolean sckConnect()
         sckSendCommand(F("set wlan ext_antenna "), true);
         sckSendCommand(antenna);
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if debuggEnabled
       if (!wait)
       {
+=======
+#if USBEnabled
+>>>>>>> parent of b81b85f... debug mode changes
 =======
 #if USBEnabled
 >>>>>>> parent of b81b85f... debug mode changes
