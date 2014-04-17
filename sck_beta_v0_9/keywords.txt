@@ -1,0 +1,29 @@
+#######################################
+# Syntax Coloring Map Servo
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SCKBase	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+APMODE  			LITERAL1
+NORMAL  			LITERAL1
+OPEN  				LITERAL1
+WEP   				LITERAL1
+WPA   				LITERAL1
+MIXED  				LITERAL1
+WPA2  				LITERAL1
+WEP64 				LITERAL1
+EXT_ANT 			LITERAL1
+INT_ANT 			LITERAL1
