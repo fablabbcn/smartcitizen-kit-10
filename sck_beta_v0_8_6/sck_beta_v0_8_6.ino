@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
 
   SCKBase.ino
   Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
@@ -14,11 +15,85 @@
 */
 
 /* 
+=======
+
+  Smart Citizen Kit
+  Ambient Board Beta Firmware v.0.8.6
+
+  http://smartcitizen.me/
+
+
+  Compatible:
+
+    Smart Citizen Kit v.1.0 (Goteo)       (ATMEGA32U4 @ 16Mhz - Arduino Leonardo profile)
+    Smart Citizen Kit v.1.1 (Kickstarter) (ATMEGA32U4 @ 8Mhz  - Lylipad Arduino USB)
+
+  Structure:
+    
+    sck_beta_v0_8_6.ino - Core Runtime.
+
+    SCKAmbient.ino    - Supports the sensor reading and calibration functions.
+    SCKBase.ino       - Supports the data management functions (WiFi, SD storage, RTClock and EEPROM storage)
+    ServerUpdate.ino  - Supports data publishing to the SmartCitizen Platform over WiFi. Supports also SD storage.
+
+    Constants.h             - Defines pins configuration and other static parameters.
+    AccumulatorFilter.h     - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
+    TemperatureDecoupler.h  - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
+
+  Check REAMDE.md for more information.
+    
+*/
+
+#include <Wire.h>
+#include "Constants.h"
+
+/* 
+
+GLOBAL FIRMWARE CONFIGURATION FLAGS
+
+*/
+
+#define USBEnabled      true 
+#define wiflyEnabled    true
+#define wiflySleep      true
+#define sensorEnabled   true
+#define debuggEnabled   true
+#define MICSEnabled     true
+#define autoUpdateWiFly true
+#define ADXLEnabled     false
+#define DataRaw         true
+
+/* 
+
+GLOBAL toggles and counters
+
+*/
+
+boolean wait        = false;
+boolean sleep       = true; 
+boolean terminal_mode = false;
+boolean wait_moment = true;
+boolean usb_mode      = false;
+boolean serial_bridge = false;
+byte server_mode    = 0;
+uint16_t  nets      = 0;
+
+uint32_t timetransmit = 0;  
+uint32_t TimeUpdate   = 0;  // Sensor Readings time interval in sec.
+uint32_t NumUpdates   = 0;  // Min. number of sensor readings before publishing
+
+/* 
+
+GLOBAL SETUP
+
+*/
+>>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 
 BASE Contants and Defaults
 
 */
 
+<<<<<<< HEAD
 // WI-FI Networks can hardcoded directly here to perform manual setups.
 
 #define networks 0
@@ -373,6 +448,33 @@ boolean sckRTCadjust(char *time) {
     return true;
 #endif
     return true;
+=======
+#if wiflySleep
+  sckSleep();
+#endif 
+
+  /*init WiFly*/
+#if wiflyEnabled
+  digitalWrite(AWAKE, HIGH); 
+  server_mode = 1;  //Modo normal
+  sckConfig();  
+  TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0));    // Time between transmissions in sec.
+  NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); // Number of readings before batch update
+  nets = sckReadintEEPROM(EE_ADDR_NUMBER_NETS);
+  if (TimeUpdate < 60) sleep = false;
+  else sleep = true; 
+//  delay(5000);
+  if (nets==0)
+  {
+    sleep = false;  
+    server_mode = 0; //AP mode
+    sckRepair();
+
+    sckAPmode(sckid());
+#if debuggEnabled
+    if (!wait) Serial.println(F("AP initialized!"));
+#endif 
+>>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
   }
   return false;  
 }
@@ -607,7 +709,14 @@ boolean sckConnect()
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
 #if debuggEnabled
+<<<<<<< HEAD
        if (!wait) Serial.print(auth);
+=======
+      if (!wait) Serial.println(F("SCK Connected!!"));
+#endif
+#if autoUpdateWiFly
+      sckCheckWiFly();
+>>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
         ssid = sckReadData(DEFAULT_ADDR_SSID, nets, 0);
         sckSendCommand(F("set wlan ssid "), true);
@@ -624,11 +733,15 @@ boolean sckConnect()
         else sckSendCommand(F("set wlan key "), true);
         sckSendCommand(pass);
 #if debuggEnabled
+<<<<<<< HEAD
         if (!wait)
         {
           Serial.print(F(" "));
           Serial.print(pass);
         }
+=======
+        if (!wait) Serial.println(F("Updating RTC..."));
+>>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
         antenna = sckReadData(DEFAULT_ADDR_ANTENNA, nets, 0);
         sckSendCommand(F("set wlan ext_antenna "), true);
@@ -731,6 +844,7 @@ boolean sckClose() {
 char* sckMAC() {
   if (sckEnterCommandMode()) 
   {
+<<<<<<< HEAD
     if (sckSendCommand(F("get mac"), false, "Mac Addr="))
     {
       char newChar;
@@ -923,6 +1037,62 @@ boolean sckUpdate() {
   else return false;
 }
 
+=======
+    sckSleep();
+#if debuggEnabled
+    if (!wait) Serial.println(F("SCK Sleeping...")); 
+#endif
+    digitalWrite(AWAKE, LOW); 
+  }
+#if !MICSEnabled
+  server_mode = 3; 
+#endif  
+#else 
+#if !MICSEnabled
+  server_mode = 4; 
+#else 
+  server_mode = 2; 
+#endif  
+#endif  
+wait_moment = false;
+}
+
+void loop() {  
+#if sensorEnabled  
+  #if wiflyEnabled
+    if (terminal_mode) // Telnet  (#data + *OPEN* detectado )
+    {
+      sleep = false;
+      digitalWrite(AWAKE, HIGH);
+      sckJson_update(0, usb_mode);
+      usb_mode = false;
+      terminal_mode = false;
+    }
+  #endif
+    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*1000)
+    {  
+      timetransmit = millis();
+      TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0));    // Time between transmissions in sec.
+  #if wiflyEnabled
+      NumUpdates = atol(sckReadData(EE_ADDR_NUMBER_UPDATES, 0, 0)); // Number of readings before batch update
+      sckUpdateSensors(server_mode); 
+      if (!wait)                                                    // CMD Mode False
+      {
+  #if wiflyEnabled
+        if (server_mode) txWiFly();
+  #endif
+  #if USBEnabled
+        txDebug();
+  #endif
+      }
+  #else
+    #if (USBEnabled)
+        sckUpdateSensors(server_mode); 
+        txDebug();
+    #endif
+  #endif
+    }
+>>>>>>> a8e5615ef2e4f0c572845413fe738ec18471c284
 #endif
 
 
