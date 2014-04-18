@@ -694,7 +694,7 @@ void SCKAmbient::execute()
     {
       sleep = false;
       digitalWrite(AWAKE, HIGH);
-      server_.json_update(0, usb_mode, value, time);
+      server_.json_update(0, value, time);
       usb_mode = false;
       terminal_mode = false;
     }
