@@ -5,19 +5,7 @@
 
 #define debugBASE false
 
-#define networks 0
-#if (networks > 0)
-char* mySSID[networks]      = { 
-  "Mi$Red"        , "hangar_lab"        , "SSID3"             };
-char* myPassword[networks]  = { 
-  "FINALFANTASY"      , "labinteractius"       , "PASS3"            };
-char* wifiEncript[networks] = { 
-  WPA2         , WPA2          , WPA2               };
-char* antennaExt[networks]  = { 
-  INT_ANT      , INT_ANT       , INT_ANT            }; //EXT_ANT
-#endif              
 
-#define TWI_FREQ 400000L //Frecuencia bus I2C
 
 void SCKBase::begin() {
   Wire.begin();

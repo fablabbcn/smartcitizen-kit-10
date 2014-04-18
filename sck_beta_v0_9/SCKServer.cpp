@@ -67,7 +67,7 @@ boolean SCKServer::time(char *time_) {
   return ok;
 }
 
-void SCKServer::json_update(uint16_t updates, boolean terminal, long *value, char *time)
+void SCKServer::json_update(uint16_t updates, long *value, char *time)
 {  
       Serial1.print(F("["));  
         byte i;
@@ -89,7 +89,6 @@ void SCKServer::json_update(uint16_t updates, boolean terminal, long *value, cha
 //        Serial.print(SERVER[i]);  
 //        Serial.print(time);
 //        Serial.print(SERVER[i+1]);
-//        
 //      #endif
       for (int i = 0; i< updates;i++)
         {
@@ -150,54 +149,9 @@ void SCKServer::readFIFO()
     else base__.writeData(EE_ADDR_NUMBER_READ_MEASURE, eeaddress, INTERNAL);
   }  
   
-//void SCKServer::json_update(uint16_t initial, boolean terminal)
-//{  
-//  uint16_t updates = ((base.readintEEPROM(EE_ADDR_NUMBER_MEASURES) + 1)/10); 
-//  if (!terminal)
-//  {
-//    if ((initial + POST_MAX) <= updates) updates = initial + POST_MAX;    
-//    if (updates > 0)
-//    {
-//      Serial1.print(F("["));  
-//      for (uint16_t pending = initial; pending < updates; pending++)
-//      { 
-//        byte i;
-//        for (i = 0; i<10; i++)
-//        {
-//          Serial1.print(SERVER[i]);
-//          Serial1.print(base.readData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
-//        }  
-//        Serial1.print(SERVER[i]);
-//        if ((updates > 1)&&(pending < (updates-1))) Serial1.print(F(","));
-//      }
-//      Serial1.println(F("]"));
-//      Serial1.println();
-//    }
-//  }
-//  else
-//  {
-//    if (updates > 0)
-//    {
-//      Serial.print(F("["));  
-//      for (uint16_t pending = initial; pending < updates; pending++)
-//      { 
-//        byte i;
-//        for (i = 0; i<10; i++)
-//        {
-//          Serial.print(SERVER[i]);
-//          Serial.print(base.readData(DEFAULT_ADDR_MEASURES, i + pending*10, 0));
-//        }  
-//        Serial.print(SERVER[i]);
-//        if ((updates > 1)&&(pending < (updates-1))) Serial.print(F(","));
-//      }
-//      Serial.println(F("]"));
-//    }
-//  }
-//}  
-
 #define numbers_retry 5
 
-boolean SCKServer::connect(long *value, char *time_)
+boolean SCKServer::update(long *value, char *time_)
 {
   value[8] = base__.scan();  //Wifi Nets
   byte retry = 0;
@@ -215,12 +169,15 @@ boolean SCKServer::connect(long *value, char *time_)
               if (!ambient__.debug_state()) Serial.println(F("Fail server time!!"));
            #endif
          }
-  else time_ = "#";
-//  base__.checkData(); //Volvemos a verificar si datos correctos
-  return reconnect(); 
+  else 
+    {
+      time_ = "#";
+      return false;
+    }
+  return true; 
 }
 
-boolean SCKServer::reconnect()
+boolean SCKServer::connect()
 {
   int retry = 0;
   while (true){
@@ -260,9 +217,8 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
           #if debugEnabled
               if (!ambient__.debug_state()) Serial.println(F("SCK Connected!!")); 
           #endif   
-          if (connect(value, time)) //Server connect
+          if (update(value, time)) //Update time and nets
           {
-            uint16_t initial = 0; 
             #if debugEnabled
                 if (!ambient__.debug_state())
                 {
@@ -270,17 +226,30 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
                   Serial.println(updates + 1);
                 }
             #endif
-            json_update(updates, false, value, time);
+            int num_post = updates;
+            int cycles = cycles = updates/POST_MAX;;
+            if (updates > POST_MAX) 
+              {
+                for (int i=0; i<cycles; i++)
+                {
+                  connect();
+                  json_update(POST_MAX, value, time);
+                }
+                num_post = updates - cycles*POST_MAX;
+              }
+            connect();
+            json_update(num_post, value, time);
             #if debugEnabled
                   if (!ambient__.debug_state()) Serial.println(F("Posted to Server!")); 
             #endif
+            
           }
           else 
           {
             #if debugEnabled
                 if (!ambient__.debug_state())
                 {
-                  Serial.println(F("Error posting on Server..!"));
+                  Serial.println(F("Error updating time Server..!"));
                 }
             #endif
           }
@@ -321,150 +290,4 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
     }
   *wait_moment = false;
 }
-
-//void SCKServer::sendServer(boolean sleep, boolean *wait_moment) {  
-//  *wait_moment = true;
-//  uint16_t updates = (base.readintEEPROM(EE_ADDR_NUMBER_MEASURES) + 3)/10; 
-//  uint16_t NumUpdates = atol(base.readData(EE_ADDR_NUMBER_UPDATES, 0, 0)); //Numero de actualizaciones antes de postear a la web
-//  boolean ok_sleep = false;
-//
-//  if ((sleep)&&(updates>=NumUpdates)){
-//    #if debugEnabled
-//        if (!base.wait) Serial.println(F("SCK Waking up..."));
-//    #endif
-//    ok_sleep = true;
-//    digitalWrite(AWAKE, HIGH);
-//  }
-//  if (updates>=NumUpdates)
-//  { 
-//    if (base.Connect())
-//      {
-//        #if debugEnabled
-//            if (!base.wait) Serial.println(F("SCK Connected!!")); 
-//        #endif   
-//        if (server_connect())
-//        {
-//          uint16_t initial = 0; 
-//          #if debugEnabled
-//              if (!base.wait)
-//              {
-//                Serial.print(F("updates = "));
-//                Serial.println(updates-initial);
-//              }
-//          #endif
-//          json_update(initial, false);
-//          initial = initial + POST_MAX;
-//          #if debugEnabled
-//               if (!base.wait) Serial.println(F("Posted to Server!")); 
-//          #endif
-//          while (updates > initial)
-//          {
-//            server_reconnect();
-//            #if debugEnabled
-//                  if (!base.wait)
-//                  {
-//                    Serial.print(F("updates = "));
-//                    Serial.println(updates-initial);
-//                  }
-//            #endif
-//            json_update(initial, false);
-//            initial = initial + POST_MAX;
-//            #if debugEnabled
-//                  if (!base.wait) Serial.println(F("Posted to Server!")); 
-//            #endif
-//          }
-//          base.writeintEEPROM(EE_ADDR_NUMBER_MEASURES, 0x0000);
-//        }
-//        else 
-//        {
-//          #if debugEnabled
-//              if (!base.wait)
-//              {
-//                Serial.println(F("Error posting on Server..!"));
-//              }
-//          #endif
-//          uint16_t pos = base.readintEEPROM(EE_ADDR_NUMBER_MEASURES);
-//          base.writeData(DEFAULT_ADDR_MEASURES, pos - 1, base.RTCtime());
-//        }
-//        if (base.connected) 
-//          {
-//            #if debugEnabled
-//                if (!base.wait) Serial.println(F("Old connection active. Closing..."));
-//            #endif
-//              base.close();
-//          }
-//      }
-//    else 
-//      {
-//        uint16_t pos = base.readintEEPROM(EE_ADDR_NUMBER_MEASURES);
-//        base.writeData(DEFAULT_ADDR_MEASURES, pos + 1, "0");  //Wifi Nets
-//        #if debugEnabled
-//            if (!base.wait) Serial.println(F("Error in connectionn!!"));
-//        #endif
-//        if (base.checkRTC()) 
-//          {
-//            base.writeData(DEFAULT_ADDR_MEASURES, pos + 2, base.RTCtime());
-//            #if debugEnabled
-//              if (!base.wait) 
-//                {
-//                  
-//                  Serial.print(F("updates = "));
-//                  Serial.println((base.readintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-//                  Serial.println(F("Saved in memory!!"));
-//                }
-//            #endif
-//          }
-//         else 
-//          {
-//            #if debugEnabled
-//              Serial.println(F("RTC Fail"));
-//              Serial.println(F("Removed from memory!!"));
-//            #endif
-//          }
-//        base.checkData();//No hace falta que se guarda en memoria si falla la RTC
-//      }
-//  }
-//  else 
-//  {
-//    uint16_t pos = base.readintEEPROM(EE_ADDR_NUMBER_MEASURES);
-//
-//    if (ok_sleep) base.writeData(DEFAULT_ADDR_MEASURES, pos + 1, base.scan());  //Wifi Nets
-//    else base.writeData(DEFAULT_ADDR_MEASURES, pos + 1, "0");  //Wifi Nets
-//
-//    if (base.checkRTC()) 
-//    {
-//      base.writeData(DEFAULT_ADDR_MEASURES, pos + 2, base.RTCtime());
-//      #if debugEnabled
-//      if (!base.wait)
-//        {
-//          Serial.print(F("updates = "));
-//          Serial.println((base.readintEEPROM(EE_ADDR_NUMBER_MEASURES)+1)/10);
-//          Serial.println(F("Saved in memory!!"));
-//        }
-//      #endif
-//    }
-//    else 
-//     {
-//       #if debugEnabled
-//         Serial.println(F("RTC Fail"));
-//         Serial.println(F("Removed from memory!!"));
-//       #endif
-//     }
-//    base.checkData();//No hace falta que se guarda en memoria si falla la RTC
-//  }
-//
-//  if ((sleep)&&(ok_sleep))
-//  {
-//    base.sleep();
-//#if debugEnabled
-//    if (!base.wait)
-//    {
-//      Serial.println(F("SCK Sleeping")); 
-//      Serial.println(F("*******************"));
-//    }
-//#endif
-//    digitalWrite(AWAKE, LOW); 
-//  }
-//  *wait_moment = false;
-//}
 

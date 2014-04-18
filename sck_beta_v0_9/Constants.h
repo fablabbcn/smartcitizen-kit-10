@@ -1,6 +1,34 @@
 #define debugEnabled   true
 #define decouplerComp   true
 
+#define APMODE  0
+#define NORMAL  1
+#define WPA    2
+
+#define OPEN  "0"
+#define WEP   "1"
+#define WPA   "2"
+#define MIXED  "3"
+#define WPA2  "4"
+#define WEP64 "8"
+
+#define EXT_ANT "1" // antena externa
+#define INT_ANT "0" // antena interna
+
+#define networks 0
+#if (networks > 0)
+static char* mySSID[networks]      = { 
+  "SSID1"        , "SSID2"        , "SSID3"             };
+static char* myPassword[networks]  = { 
+  "PASS1"      , "PASS2"       , "PASS3"            };
+static char* wifiEncript[networks] = { 
+  WPA2         , WPA2          , WPA2               };
+static char* antennaExt[networks]  = { 
+  INT_ANT      , INT_ANT       , INT_ANT            };
+#endif              
+
+#define TWI_FREQ 400000L //Frecuencia bus I2C
+
 #define WIFLY_LATEST_VERSION 441
 #define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
@@ -117,20 +145,6 @@ static char buffer[buffer_length];
 
 
 #define DHTLIB_INVALID_VALUE    -999
-
-#define APMODE  0
-#define NORMAL  1
-#define WPA    2
-
-#define OPEN  "0"
-#define WEP   "1"
-#define WPA   "2"
-#define MIXED  "3"
-#define WPA2  "4"
-#define WEP64 "8"
-
-#define EXT_ANT "1" // antena externa
-#define INT_ANT "0" // antena interna
 
 #define  SENSORS 9  //Numero de sensores en la placa
 
