@@ -47,8 +47,11 @@ GLOBAL FIRMWARE CONFIGURATION FLAGS
 
 #include "Constants.h"
 
-
+<<<<<<< HEAD
 /*  
+=======
+/* 
+>>>>>>> master
 
 GLOBAL toggles and counters
 
