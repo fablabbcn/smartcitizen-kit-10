@@ -22,13 +22,13 @@ WIFLY Firmware Setting
   #if DataRaw 
     #define FirmWare  "1.1-0.8.6-A"
   #else
-    #define FirmWare  "1.1-0.8.6-B"
+    #define FirmWare  "1.1-0.8.6-C"
   #endif
 #else
   #if DataRaw 
     #define FirmWare  "1.0-0.8.6-A"
   #else
-    #define FirmWare  "1.0-0.8.6-B"
+    #define FirmWare  "1.0-0.8.6-C"
   #endif
 #endif
 
