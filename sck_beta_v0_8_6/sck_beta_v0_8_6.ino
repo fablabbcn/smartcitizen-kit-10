@@ -28,7 +28,6 @@
 */
 
 #include <Wire.h>
-#include "Constants.h"
 
 /* 
 
@@ -45,6 +44,8 @@ GLOBAL FIRMWARE CONFIGURATION FLAGS
 #define autoUpdateWiFly true
 #define ADXLEnabled     false
 #define DataRaw         true
+
+#include "Constants.h"
 
 /* 
 
