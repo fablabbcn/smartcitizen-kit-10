@@ -39,7 +39,7 @@ GLOBAL FIRMWARE CONFIGURATION FLAGS
 #define wiflyEnabled    true
 #define wiflySleep      true
 #define sensorEnabled   true
-#define debuggEnabled   true
+#define debuggEnabled   false
 #define MICSEnabled     true
 #define autoUpdateWiFly true
 #define ADXLEnabled     false
