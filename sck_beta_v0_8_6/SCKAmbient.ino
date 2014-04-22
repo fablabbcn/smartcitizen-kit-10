@@ -226,7 +226,7 @@ SENSOR Functions
         Serial.print(" mV, ");
         Serial.print(Rs);
         Serial.println(" Ohm");
-      #endif;  
+      #endif  
      return Rs;
    }
    
