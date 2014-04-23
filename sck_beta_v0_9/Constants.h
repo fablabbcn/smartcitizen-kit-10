@@ -1,19 +1,40 @@
+/*
+
+  Constants.h
+  Defines ATMEGA32U4 pins and other SENSORS and COMUNICATIONS static parameters.
+
+*/
+
 #define debugEnabled   true
 #define decouplerComp   true
 
-#define APMODE  0
-#define NORMAL  1
-#define WPA    2
+#if F_CPU == 8000000 
+    #define FirmWare  "1.1-0.9.0-A"
+#else
+    #define FirmWare  "1.0-0.9.0-A"
+#endif
 
-#define OPEN  "0"
-#define WEP   "1"
-#define WPA   "2"
+/* 
+
+WIFI AND SERVER STATICS - WiFly, Http server parameters.
+
+*/
+// WiFly Auth Modes
+#define OPEN   "0"
+#define WEP    "1"
+#define WPA    "2"
 #define MIXED  "3"
-#define WPA2  "4"
-#define WEP64 "8"
+#define WPA2   "4"
+#define WEP64  "8"
 
-#define EXT_ANT "1" // antena externa
-#define INT_ANT "0" // antena interna
+#define EXT_ANT "1" // External Antenna
+#define INT_ANT "0" // Internal Antenna
+
+/* 
+
+WIFLY Firmware Setting
+
+*/
 
 #define networks 0
 #if (networks > 0)
@@ -25,7 +46,7 @@ static char* wifiEncript[networks] = {
   WPA2         , WPA2          , WPA2               };
 static char* antennaExt[networks]  = { 
   INT_ANT      , INT_ANT       , INT_ANT            };
-#endif              
+#endif      
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
 
@@ -33,55 +54,60 @@ static char* antennaExt[networks]  = {
 #define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
-#if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-A"
-#else
-    #define FirmWare  "1.0-0.9.0-A"
-#endif
+/* 
 
-#define AWAKE  4 //Despertar WIFI
-#define PANEL A8 //Entrada panel
-#define BAT   A7 //Entrada bateria
+ARDUINO ports definitions - GPIOS and ADCs 
 
-#define IO0 5  //MICS5525_HEATHER
-#define IO1 13 //MICS2710_HEATHER
-#define IO2 9  //MICS2710_ALTAIMPEDANCIA
-#define IO3 10  //MICS2710_ALTAIMPEDANCIA
-#define FACTORY 7  //factory RESET/AP RN131
-#define CONTROL 12  //Control Mode
+*/
 
-#define S0 A4 //MICS_5525
-#define S1 A5 //MICS_2710
-#define S2 A2 //SENS_5525
-#define S3 A3 //SENS_2710
-#define S4 A0 //MICRO
-#define S5 A1 //LDR
+#define AWAKE  4      // WIFLY AWAKE
+#define PANEL A8      // PANEL LEVEL
+#define BAT   A7      // BAT LEVEL 
+
+#define IO0 5         // MICS5525_HEATHER
+#define IO1 13        // MICS2710_HEATHER
+#define IO2 9         // MICS2710_HIGH_IMPEDANCE
+#define IO3 10        // MICS2710_HIGH_IMPEDANCE
+#define FACTORY 7     // WIFLY - Factory RESET/AP RN131
+#define CONTROL 12    // WIFLY - CONTROL
+
+#define S0 A4         //MICS_5525
+#define S1 A5         //MICS_2710
+#define S2 A2         //SENS_5525
+#define S3 A3         //SENS_2710
+#define S4 A0         //MICRO
+#define S5 A1         //LDR
+
+
+/* 
+
+SENSOR READINGS - Defaults
+
+*/
 
 #define DEFAULT_TIME_UPDATE  60     //Tiempo entre actualizacion y actualizacion
 #define DEFAULT_MIN_UPDATES  1      //Minimo numero de actualizaciones antes de postear
-
 #define POST_MAX             20       //Maximo numero de posteos a la vez
 
-//Direcciones I2C
-#define RTC_ADDRESS          0x68    // Direcion de la RTC
-#define E2PROM               0x50    // Direcion de la EEPROM
+
+/* 
+
+i2c ADDRESSES 
+
+*/
+#define RTC_ADDRESS          0x68    // Direction of the RTC
+#define E2PROM               0x50    // Direction of the EEPROM
 
 #if F_CPU == 8000000 
-  #define MCP1               0x2E    // Direcion del mcp1 Potenciometros que controlan los MICS
-  #define MCP2               0x2F    // Direcion del mcp2 Potenciometros que controlan la ganancia del microfono
-  #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
-  #define bh1730             0x29    // Direcion del sensor de luz
-  #define Temperature        0x40    // Direcion del sht21    
+  #define MCP1               0x2E    // Direction of the mcp1 Potenciometers that control the MICS
+  #define MCP2               0x2F    // Direction of the mcp2 Potenciometers that control the microfone pickup
+  #define bh1730             0x29    // Direction of the light sensor
+  #define Temperature        0x40    // Direction of the sht21    
   #define ADXL 0x53    //ADXL345 device address
 #else
-  #define MCP1               0x2F    // Direcion del mcp1 MICS
-  #define MCP2               0x2E    // Direcion del mcp2 REGULADORES
+  #define MCP1               0x2F    // Direction of the mcp1 MICS
+  #define MCP2               0x2E    // Direction of the mcp2 REGULATORS
 #endif
-
-#define buffer_length        32
-static char buffer[buffer_length];
-
-#define RES 256   //Resolucion de los potenciometros digitales
 
 #if F_CPU == 8000000 
   #define R1  12    //Kohm
@@ -92,37 +118,57 @@ static char buffer[buffer_length];
 #define P1  100   //Kohm 
 
 
-//Espacio reservado para los parametros de configuracion del SCK  
-#define EE_ADDR_TIME_VERSION                        0   //32BYTES 
-#define EE_ADDR_TIME_UPDATE                         32  //16BYTES Tiempo entre actualizacion y actualizacion de los sensores en segundos
-#define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Numero de actualizaciones antes de postear
-#define EE_ADDR_NUMBER_READ_MEASURE                 52  //4BYTES  Numero de actualizaciones antes de postear
-#define EE_ADDR_NUMBER_WRITE_MEASURE                56  //4BYTES  Numero de actualizaciones antes de postear
-#define EE_ADDR_NUMBER_NETS                         60  //4BYTE Numero de redes en memoria
-#define EE_ADDR_APIKEY                              64  //32BYTES Apikey del dispositivo
-#define EE_ADDR_MAC                                 100  //32BYTES Apikey del dispositivo
+/* 
 
-//Espacio reservado para los SSID y PASS
+Internal EEPROM Memory Addresses
+
+*/ 
+
+// SCK Configuration Parameters 
+#define EE_ADDR_TIME_VERSION                        0   //32BYTES 
+#define EE_ADDR_TIME_UPDATE                         32  //16BYTES Time between update and update of the sensors in seconds
+#define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Number of updates before posting
+#define EE_ADDR_NUMBER_READ_MEASURE                 52  //4BYTES  Number of updates before posting
+#define EE_ADDR_NUMBER_WRITE_MEASURE                56  //4BYTES  Number of updates before posting
+#define EE_ADDR_NUMBER_NETS                         60  //4BYTE Number of networks in the memory 
+#define EE_ADDR_APIKEY                              64  //32BYTES Apikey of the device
+#define EE_ADDR_MAC                                 100  //32BYTES MAC of the device
+
+// SCK WIFI SETTINGS Parameters
 #define DEFAULT_ADDR_SSID                                150  //160 BYTES
 #define DEFAULT_ADDR_PASS                                310  //160 BYTES
 #define DEFAULT_ADDR_AUTH                                470  //160 BYTES 
 #define DEFAULT_ADDR_ANTENNA                             630  //160 BYTES
 
-//Espacio reservado para los datos no posteados a la web
+
+/* 
+
+External EEPROM Memory Addresses
+
+*/ 
+
+// SCK DATA SPACE (Sensor readings can be stored here to do batch updates)
 #define DEFAULT_ADDR_MEASURES                            0
+
+
+/* 
+
+MICS PARAMETERS - Gas Sensor Addresses and Defaults
+
+*/
 
 #define MICS_5525 0x00
 #define MICS_2710 0x01
 
-#define RES 256   //Resolucion de los potenciometros digitales
+#define RES 256   // Digital pot. resolution
 #define P1  100   //Resistencia potenciometro digitales 100Kohm 
 
-#define  Rc0  10. //Ohm  Resistencia medica de corriente en el sensor MICS_5525/MICS_5524
+#define  Rc0  10.       //Ohm.  Average current resistance for sensor MICS_5525/MICS_5524
 
 #if F_CPU == 8000000 
-  #define  Rc1  39. //Ohm Resistencia medica de corriente en el sensor MICS_2714
+  #define  Rc1  39.     //Ohm.  Average current resistance for sensor MICS_2714
 #else
-  #define  Rc1  10. //Ohm Resistencia medica de corriente en el sensor MICS_2710
+  #define  Rc1  10.     //Ohm.  Average current resistance for sensor MICS_2710
 #endif
 
 #if F_CPU == 8000000 
@@ -135,6 +181,13 @@ static char buffer[buffer_length];
 
 #define reference 2560.
 
+
+/* 
+
+BATTERY PARAMETERS - Battery sensing calibration parameters
+
+*/
+
 #if F_CPU == 8000000 
   #define  VAL_MAX_BATTERY                             4200
   #define  VAL_MIN_BATTERY                             3000
@@ -146,8 +199,15 @@ static char buffer[buffer_length];
 
 #define DHTLIB_INVALID_VALUE    -999
 
-#define  SENSORS 9  //Numero de sensores en la placa
+#define APMODE  0
+#define NORMAL  1
 
+#define  SENSORS 9  //Numbers of sensors in the board
+
+#define buffer_length        32
+static char buffer[buffer_length];
+
+// Basic Server Posts to the SmartCitizen Platform - EndPoint: http://data.smartcitizen.me/add 
 static char* WEB[8]={
                   "data.smartcitizen.me",
                   "PUT /add HTTP/1.1 \n", 
@@ -157,14 +217,16 @@ static char* WEB[8]={
                   "X-SmartCitizenApiKey: ", 
                   "X-SmartCitizenVersion: ",  
                   "X-SmartCitizenData: "};
-                  
+  
+// Time server request -  EndPoint: http://data.smartcitizen.me/datetime                 
 static char* WEBTIME[3]={                  
                   /*Servidor de tiempo*/
                   "GET /datetime HTTP/1.1 \n",
                   "Host: data.smartcitizen.me \n",
                   "User-Agent: SmartCitizen \n\n"  
                   };
-                  
+
+// Data JSON structure                  
 static char* SERVER[11]={
                   "{\"temp\":\"",
                   "\",\"hum\":\"", 

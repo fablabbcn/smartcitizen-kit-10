@@ -1,10 +1,10 @@
-//
-//  AccumulatorFilter.h
-//  AccumulatorFilter
-//
-//  Created by Oriol Ferrer Mesià on 09/06/13.
-//
-//
+/*
+
+  AccumulatorFilter.h
+  AccumulatorFilter
+  Created by Oriol Ferrer Mesià on 09/06/13.
+
+*/
 
 #ifndef AccumulatorFilter_AccumulatorFilter_h
 #define AccumulatorFilter_AccumulatorFilter_h

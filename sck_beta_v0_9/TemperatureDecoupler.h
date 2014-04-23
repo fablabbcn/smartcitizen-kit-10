@@ -1,10 +1,9 @@
-//
-//  TemperatureDecoupler.h
-//  SmartCitizen
-//
-//  Created by Oriol Ferrer Mesià on 03/06/13.
-//
-//
+/*
+  TemperatureDecoupler.h
+  SmartCitizen
+
+  Created by Oriol Ferrer Mesià on 03/06/13.
+*/
 
 #ifndef SmartCitizen_TemperatureDecoupler_h
 #define SmartCitizen_TemperatureDecoupler_h

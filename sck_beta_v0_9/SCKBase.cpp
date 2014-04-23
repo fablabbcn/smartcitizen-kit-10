@@ -1,3 +1,17 @@
+/*
+
+  SCKBase.cpp
+  Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
+
+  - Modules supported:
+
+    - WIFI (Microchip RN131 (WiFly))
+    - RTC (DS1339U and DS1307Z)
+    - EEPROM (24LC256)
+    - POWER MANAGEMENT IC's
+
+*/
+
 #include "Constants.h"
 #include "SCKBase.h"
 #include <Wire.h>
@@ -14,7 +28,7 @@ void SCKBase::begin() {
   Serial1.begin(9600);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
-  pinMode(IO2, OUTPUT); //MICS2710_ALTAIMPEDANCIA
+  pinMode(IO2, OUTPUT); //MICS2710_HIGH_IMPEDANCE
   pinMode(AWAKE, OUTPUT);
   pinMode(MOSI, OUTPUT);
   pinMode(SCK, OUTPUT);
@@ -28,7 +42,7 @@ void SCKBase::config(){
   if (!compareData(__TIME__, readData(EE_ADDR_TIME_VERSION, 0, INTERNAL)))
   {
     digitalWrite(AWAKE, HIGH); 
-    for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  //Borrado de la memoria
+    for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  // Memory erasing
     writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, INTERNAL);
     writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, INTERNAL);
     writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, INTERNAL);
@@ -100,7 +114,7 @@ boolean SCKBase::compareData(char* text, char* text1)
   return true;
 }
 
-float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
+float kr= ((float)P1*1000)/RES;     //  Resistance conversion Constant for the digital pot.
 
 void SCKBase::writeMCP(byte deviceaddress, byte address, int data ) {
   if (data>RES) data=RES;
@@ -131,18 +145,18 @@ int SCKBase::readMCP(int deviceaddress, uint16_t address ) {
 }
 
 #if F_CPU == 8000000 
-  #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
+  #define MCP3               0x2D    // Direction of the mcp3 Ajust the battary charge
 float SCKBase::readCharge() {
   float resistor = kr*readMCP(MCP3, 0x00)/1000;    
   float current = 1000./(2+((resistor * 10)/(resistor + 10)));
-#if debugBASE
-  Serial.print("Resistor : ");
-  Serial.print(resistor);
-  Serial.print(" kOhm, ");  
-  Serial.print("Current : ");
-  Serial.print(current);
-  Serial.println(" mA");  
-#endif
+  #if debugBASE
+    Serial.print("Resistor : ");
+    Serial.print(resistor);
+    Serial.print(" kOhm, ");  
+    Serial.print("Current : ");
+    Serial.print(current);
+    Serial.println(" mA");  
+  #endif
   return(current);
 }
 
@@ -209,7 +223,6 @@ void SCKBase::writeData(uint32_t eeaddress, uint16_t pos, char* text, uint8_t lo
     {
       for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++) writeEEPROM(i, 0x00);
       for (uint16_t i = eeaddressfree; text[i - eeaddressfree]!= 0x00; i++) writeEEPROM(i, text[i - eeaddressfree]);
-//      if (eeaddress == DEFAULT_ADDR_MEASURES) writeData(EE_ADDR_NUMBER_MEASURES, pos,INTERNAL);
     }
   else
     {
@@ -365,11 +378,11 @@ boolean SCKBase::RTCtime(char *time) {
 uint16_t SCKBase::getPanel(float Vref){
 #if F_CPU == 8000000 
   uint16_t value = 11*average(PANEL)*Vref/1023.;
-  if (value > 500) value = value + 120; //Tension del diodo de proteccion
+  if (value > 500) value = value + 120; //Voltage protection diode
   else value = 0;
 #else
   uint16_t value = 3*average(PANEL)*Vref/1023.;
-  if (value > 500) value = value + 750; //Tension del diodo de proteccion
+  if (value > 500) value = value + 750; //Voltage protection diode
   else value = 0;
 #endif
 #if debugBASE
@@ -542,7 +555,7 @@ boolean SCKBase::connect()
     {    
       sendCommand(F("set wlan join 1")); // Disable AP mode
       sendCommand(F("set ip dhcp 1")); // Enable DHCP server
-      sendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
+      sendCommand(F("set ip proto 10")); //TCP mode and HTML mode
       sendCommand(F(DEFAULT_WIFLY_FTP_UPDATE)); //ftp server update
       sendCommand(F("set ftp mode 1"));
       char* auth;

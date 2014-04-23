@@ -1,3 +1,17 @@
+/*
+
+  SCKBase.h
+  Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
+
+  - Modules supported:
+
+    - WIFI (Microchip RN131 (WiFly))
+    - RTC (DS1339U and DS1307Z)
+    - EEPROM (24LC256)
+    - POWER MANAGEMENT IC's
+
+*/
+
 #ifndef __SCKBASE_H__
 #define __SCKBASE_H__
 

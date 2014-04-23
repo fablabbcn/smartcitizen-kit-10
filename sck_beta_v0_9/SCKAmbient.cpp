@@ -1,9 +1,37 @@
+/*
+
+  SCKAmbient.cpp
+  Supports the sensor reading and calibration functions.
+
+  - Sensors supported (sensors use on board custom peripherials):
+
+    - TEMP / HUM (DHT22 and HPP828E031)
+    - NOISE
+    - LIGHT (LDR and BH1730FVC)
+    - CO (MICS5525 and MICS4514)
+    - NO2 (MiCS2710 and MICS4514)
+
+*/
+
+
 #include "Constants.h"
 #include "SCKAmbient.h"
 #include "SCKBase.h"
 #include "SCKServer.h"
 #include <Wire.h>
 #include <EEPROM.h>
+
+/* 
+
+SENSOR Contants and Defaults
+
+*/
+
+#if ((decouplerComp)&&(F_CPU > 8000000 ))
+  #include "TemperatureDecoupler.h"
+  TemperatureDecoupler decoupler; // Compensate the bat .charger generated heat affecting temp values
+#endif
+
 
 #define USBEnabled      true 
 #define autoUpdateWiFly true
@@ -24,17 +52,15 @@ SCKAmbient ambient_;
   float    Vcc = 5000.; //mV 
 #endif
 
-//Valores por defecto de la resistencia en vacio de los MICS
+// MICS (Gas Sensors) Ro Default Value (Ohm)
 float RoCO  = 750000;
 float RoNO2 = 2200;
 
-#if ((decouplerComp)&&(F_CPU > 8000000 ))
-  #include "TemperatureDecoupler.h"
-  TemperatureDecoupler decoupler; //use this object to compensate for charger generated heat affecting temp values
-#endif
-                    
+
+// MICS (Gas Sensors) RS Value (Ohm)                    
 float RsCO = 0;
 float RsNO2 = 0;
+
 
 #if F_CPU == 8000000 
   uint32_t lastHumidity;
@@ -56,41 +82,47 @@ void SCKAmbient::begin() {
   #if F_CPU == 8000000 
     base_.writeCharge(350);
   
-    writeVH(MICS_5525, 2700); //VH_MICS5525 Inicial
-    digitalWrite(IO0, HIGH); //VH_MICS5525
+    writeVH(MICS_5525, 2700);    // MICS5525_START
+    digitalWrite(IO0, HIGH);        // MICS5525
   
-    writeVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-    digitalWrite(IO1, HIGH); //VH_MICS2710
-    digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+    writeVH(MICS_2710, 1700);    // MICS2710_START
+    digitalWrite(IO1, HIGH);        // MICS2710_HEATHER
+    digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
   
     pinMode(IO3, OUTPUT);
-    digitalWrite(IO3, HIGH); //Alimentacion de los MICS
+    digitalWrite(IO3, HIGH);        // MICS POWER LINE 
     writeADXL(0x2D, 0x08);
     //  WriteADXL(0x31, 0x00); //2g
     //  WriteADXL(0x31, 0x01); //4g
     writeADXL(0x31, 0x02); //8g
     //  WriteADXL(0x31, 0x03); //16g
   #else
-    writeVH(MICS_5525, 2400); //VH_MICS5525 Inicial
-    digitalWrite(IO0, HIGH); //VH_MICS5525
+    writeVH(MICS_5525, 2400);    // MICS5525_START
+    digitalWrite(IO0, HIGH);        // MICS5525
   
-    writeVH(MICS_2710, 1700); //VH_MICS5525 Inicial
-    digitalWrite(IO1, HIGH); //VH_MICS2710
-    digitalWrite(IO2, LOW); //RADJ_MICS2710 PIN ALTA IMPEDANCIA
+    writeVH(MICS_2710, 1700);    // MICS2710_START
+    digitalWrite(IO1, HIGH);        // MICS2710
+    digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
   #endif
   
-    writeRL(MICS_5525, 100000); //Inicializacion de la carga del MICS5525
-    writeRL(MICS_2710, 100000); //Inicializacion de la carga del MICS2710
+    writeRL(MICS_5525, 100000);  // START LOADING MICS5525
+    writeRL(MICS_2710, 100000);  // START LOADING MICS2710
 }
 
 boolean terminal_mode = false;
 boolean usb_mode      = false;
 byte      server_mode    = NORMAL;
-uint32_t  TimeUpdate     = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
-uint32_t  NumUpdates     = 0;  //Numero de actualizaciones antes de postear
+uint32_t  TimeUpdate   = 0;  // Sensor Readings time interval in sec.
+uint32_t  NumUpdates   = 0;  // Min. number of sensor readings before publishing
 uint32_t  nets           = 0;
 boolean sleep         = true; 
 uint32_t timetransmit = 0; 
+
+/* 
+
+GLOBAL SETUP
+
+*/
 
 void SCKAmbient::ini()
   {
@@ -98,15 +130,15 @@ void SCKAmbient::ini()
     /*init WiFly*/
     digitalWrite(AWAKE, HIGH); 
     server_mode = NORMAL;  //Normal mode
-    TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL); //Tiempo entre transmision y transmision en segundos
-    NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Numero de actualizaciones antes de postear a la web
+    TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    //Time between transmissions in sec.
+    NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Number of readings before batch update
     nets = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
     if (TimeUpdate*NumUpdates < 60) sleep = false;
     else sleep = true; 
     if (nets==0)
     {
       sleep = false;  
-      server_mode = APMODE; //Modo AP
+      server_mode = APMODE; //AP mode
       base_.repair();
       base_.APmode(base_.id());
     #if debugEnabled
@@ -160,7 +192,14 @@ void SCKAmbient::ini()
     wait_moment = false;
   }  
   
-  float k= (RES*(float)R1/100)/1000;  //Constante de conversion a tension de los reguladores 
+  float k= (RES*(float)R1/100)/1000; //  Voltatge Constant for the Voltage reg.
+  
+  
+  /* 
+
+    SENSOR Functions
+
+  */   
   
   void SCKAmbient::writeVH(byte device, long voltage ) {
     int data=0;
@@ -195,7 +234,7 @@ void SCKAmbient::ini()
     return(voltage);
   }
   
-  float kr1= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
+  float kr1= ((float)P1*1000)/RES;    //  Resistance conversion Constant for the digital pot.
   
   void SCKAmbient::writeRL(byte device, long resistor) {
     int data=0x00;
@@ -210,9 +249,9 @@ void SCKAmbient::ini()
   float SCKAmbient::readRL(byte device)
   {
     #if F_CPU == 8000000 
-      return (kr1*base_.readMCP(MCP1, device + 6)); //Devuelve en Ohms
+      return (kr1*base_.readMCP(MCP1, device + 6)); // Returns Resistance (Ohms)
     #else
-      return (kr1*base_.readMCP(MCP1, device));  //Devuelve en Ohms
+      return (kr1*base_.readMCP(MCP1, device));     // Returns Resistance (Ohms)
     #endif 
   }
 
@@ -224,7 +263,7 @@ void SCKAmbient::ini()
   
   float SCKAmbient::readRGAIN(byte device)
   {
-      return (kr1*base_.readMCP(MCP2, device));  //Devuelve en Ohms
+      return (kr1*base_.readMCP(MCP2, device));    // Returns Resistance (Ohms)
   }
 
   void SCKAmbient::writeGAIN(long value)
@@ -275,18 +314,18 @@ void SCKAmbient::ini()
 
     writeVH(device, Vh);
       #if debugAmbient
-        if (device == MICS_2710) Serial.print("MICS2710 corriente: ");
-        else Serial.print("MICS5525 corriente: ");
+        if (device == MICS_2710) Serial.print("MICS2710 current: ");
+        else Serial.print("MICS5525 current: ");
         Serial.print(current_measure);
         Serial.println(" mA");
-        if (device == MICS_2710) Serial.print("MICS2710 correccion VH: ");
-        else  Serial.print("MICS5525 correccion VH: ");
+        if (device == MICS_2710) Serial.print("MICS2710 correction VH: ");
+        else  Serial.print("MICS5525 correction VH: ");
         Serial.print(readVH(device));
         Serial.println(" mV");
         Vc = (float)average(Sensor)*Vcc/1023; //mV 
         current_measure = Vc/Rc; //mA 
-        if (device == MICS_2710) Serial.print("MICS2710 corriente corregida: ");
-        else Serial.print("MICS5525 corriente corregida: ");
+        if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
+        else Serial.print("MICS5525 current adjusted: ");
         Serial.print(current_measure);
         Serial.println(" mA");
         Serial.println("Heating...");
@@ -310,7 +349,7 @@ void SCKAmbient::ini()
         Serial.print(" mV, ");
         Serial.print(Rs);
         Serial.println(" Ohm");
-      #endif;  
+      #endif
      return Rs;
    }
    
@@ -319,7 +358,7 @@ void SCKAmbient::ini()
       float Rs = readRs(device);
       float RL = readRL(device); //Ohm
       
-      /*Correccion de impedancia de carga*/
+      // Charging impedance correction
       if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
       {
         if (Rs < 2000) writeRL(device, 2000);
@@ -332,7 +371,7 @@ void SCKAmbient::ini()
   
   void SCKAmbient::getMICS(){          
        
-        /*Correccion de la tension del Heather*/
+        // Charging tension heaters
         heat(MICS_5525, 32); //Corriente en mA
         heat(MICS_2710, 26); //Corriente en mA
         
@@ -359,33 +398,33 @@ void SCKAmbient::ini()
   
    void SCKAmbient::getSHT21()
    {
-        lastTemperature = readSHT21(0xE3); // Datos en RAW para conversion por plataforma
-        lastHumidity    = readSHT21(0xE5); // Datos en RAW para conversion por plataforma
+        lastTemperature = readSHT21(0xE3);  // RAW DATA for calibration in platform
+        lastHumidity    = readSHT21(0xE5);  // RAW DATA for calibration in platform
       #if debugAmbient
         Serial.print("SHT21:  ");
-        Serial.print("Temperatura: ");
+        Serial.print("Temperature: ");
         Serial.print(lastTemperature/10.);
-        Serial.print(" C, Humedad: ");
+        Serial.print(" C, Humidity: ");
         Serial.print(lastHumidity/10.);
         Serial.println(" %");    
       #endif
     }
     
     void SCKAmbient::writeADXL(byte address, byte val) {
-       Wire.beginTransmission(ADXL); //start transmission to device 
-       Wire.write(address);        // write register address
-       Wire.write(val);        // write value to write
-       Wire.endTransmission(); //end transmission
+       Wire.beginTransmission(ADXL);    // Start transmission to device 
+       Wire.write(address);             // Write register address
+       Wire.write(val);                 // Write value to write
+       Wire.endTransmission();          // End transmission
     }
     
     //reads num bytes starting from address register on device in to buff array
     void SCKAmbient::readADXL(byte address, int num, byte buff[]) {
-      Wire.beginTransmission(ADXL); //start transmission to device 
-      Wire.write(address);        //writes address to read from
-      Wire.endTransmission(); //end transmission
+      Wire.beginTransmission(ADXL);     //start transmission to device 
+      Wire.write(address);              //writes address to read from
+      Wire.endTransmission();           //end transmission
       
-      Wire.beginTransmission(ADXL); //start transmission to device
-      Wire.requestFrom(ADXL, num);    // request 6 bytes from device
+      Wire.beginTransmission(ADXL);     //start transmission to device
+      Wire.requestFrom(ADXL, num);      // request 6 bytes from device
       
       int i = 0;
       unsigned long time = millis();
@@ -397,12 +436,12 @@ void SCKAmbient::ini()
           break;
         }
       }
-      while(Wire.available())    //device may write less than requested (abnormal)
+      while(Wire.available())            //device may write less than requested (abnormal)
       { 
-        buff[i] = Wire.read(); // read a byte
+        buff[i] = Wire.read();           // read a byte
         i++;
       }
-      Wire.endTransmission(); //end transmission
+      Wire.endTransmission();            //end transmission
     }
     
     void SCKAmbient::averageADXL()
@@ -435,14 +474,14 @@ void SCKAmbient::ini()
       accel_z = (int)(accel_z / lecturas);
       
       #if debugAmbient
-        Serial.print("eje_x= ");
+        Serial.print("x_axis= ");
         Serial.print(accel_x);
         Serial.print(", ");
-        Serial.print("eje_y= ");
+        Serial.print("y_axis= ");
         Serial.print(accel_y);
         Serial.print(", ");
-        Serial.print("eje_z= ");
-        Serial.println(accel_z);  
+        Serial.print("z_axis= ");
+        Serial.println(accel_z); 
       #endif
     }
  #else
@@ -452,7 +491,7 @@ void SCKAmbient::ini()
     
     boolean SCKAmbient::getDHT22()
     {
-            // READ VALUES
+            // Read Values
             int rv = DhtRead(IO3);
             if (rv != true)
             {
@@ -461,7 +500,7 @@ void SCKAmbient::ini()
                   return rv;
             }
     
-            // CONVERT AND STORE
+            // Convert and Store
             lastHumidity    = word(bits[0], bits[1]);
     
             if (bits[2] & 0x80) // negative temperature
@@ -474,7 +513,7 @@ void SCKAmbient::ini()
                 lastTemperature = word(bits[2], bits[3]);
             }
     
-            // TEST CHECKSUM
+            // Test Checksum
             uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
             if (bits[4] != sum) return false;
             if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
@@ -483,14 +522,14 @@ void SCKAmbient::ini()
     
     boolean SCKAmbient::DhtRead(uint8_t pin)
     {
-            // INIT BUFFERVAR TO RECEIVE DATA
+            // init Buffer to receive data
             uint8_t cnt = 7;
             uint8_t idx = 0;
     
-            // EMPTY BUFFER
+            // empty the buffer
             for (int i=0; i< 5; i++) bits[i] = 0;
     
-            // REQUEST SAMPLE
+            // request the sensor
             pinMode(pin, OUTPUT);
             digitalWrite(pin, LOW);
             delay(20);
@@ -498,7 +537,7 @@ void SCKAmbient::ini()
             delayMicroseconds(40);
             pinMode(pin, INPUT);
     
-            // GET ACKNOWLEDGE or TIMEOUT
+            // get ACK or timeout
             unsigned int loopCnt = TIMEOUT;
             while(digitalRead(pin) == LOW)
                     if (loopCnt-- == 0) return false;
@@ -507,7 +546,7 @@ void SCKAmbient::ini()
             while(digitalRead(pin) == HIGH)
                     if (loopCnt-- == 0) return false;
     
-            // READ THE OUTPUT - 40 BITS => 5 BYTES
+            // read Ouput - 40 bits => 5 bytes
             for (int i=0; i<40; i++)
             {
                     loopCnt = TIMEOUT;
@@ -690,21 +729,21 @@ boolean SCKAmbient::debug_state()
 
 void SCKAmbient::execute()
   {
-    if (terminal_mode) // Telnet  (#data + *OPEN* detectado )
+    if (terminal_mode)  // Telnet  (#data + *OPEN* detectado )
     {
       sleep = false;
       digitalWrite(AWAKE, HIGH);
-      server_.json_update(0, value, time);
+      server_.json_update(0, value, time, true);
       usb_mode = false;
       terminal_mode = false;
     }
     if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*1000)
     {  
       timetransmit = millis();
-      TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL); //Tiempo entre transmision y transmision en segundos
-      NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Numero de actualizaciones antes de postear a la web
+      TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
+      NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
       updateSensors(server_mode); 
-      if (!debugON) // command mode false
+      if (!debugON)                                                  // CMD Mode False
       {
         if (server_mode) server_.send(sleep, &wait_moment, value, time);
         #if USBEnabled

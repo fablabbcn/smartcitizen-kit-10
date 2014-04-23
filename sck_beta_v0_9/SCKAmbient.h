@@ -1,3 +1,25 @@
+/*
+
+  SCKAmbient.h
+  Supports the sensor reading and calibration functions.
+
+  - Sensors supported (sensors use on board custom peripherials):
+
+    - TEMP / HUM (DHT22 and HPP828E031)
+    - NOISE
+    - LIGHT (LDR and BH1730FVC)
+    - CO (MICS5525 and MICS4514)
+    - NO2 (MiCS2710 and MICS4514)
+
+*/
+
+
+/* 
+
+SENSOR Contants and Defaults
+
+*/
+
 #ifndef __SCKAMBIENT_H__
 #define __SCKAMBIENT_H__
 
