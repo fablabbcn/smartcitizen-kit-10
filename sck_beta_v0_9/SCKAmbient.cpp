@@ -83,14 +83,14 @@ void SCKAmbient::begin() {
     base_.writeCharge(350);
   
     writeVH(MICS_5525, 2700);    // MICS5525_START
-    digitalWrite(IO0, HIGH);        // MICS5525
+    digitalWrite(IO0, HIGH);     // MICS5525
   
     writeVH(MICS_2710, 1700);    // MICS2710_START
-    digitalWrite(IO1, HIGH);        // MICS2710_HEATHER
-    digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
+    digitalWrite(IO1, HIGH);     // MICS2710_HEATHER
+    digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
   
     pinMode(IO3, OUTPUT);
-    digitalWrite(IO3, HIGH);        // MICS POWER LINE 
+    digitalWrite(IO3, HIGH);     // MICS POWER LINE 
     writeADXL(0x2D, 0x08);
     //  WriteADXL(0x31, 0x00); //2g
     //  WriteADXL(0x31, 0x01); //4g
@@ -98,11 +98,11 @@ void SCKAmbient::begin() {
     //  WriteADXL(0x31, 0x03); //16g
   #else
     writeVH(MICS_5525, 2400);    // MICS5525_START
-    digitalWrite(IO0, HIGH);        // MICS5525
+    digitalWrite(IO0, HIGH);     // MICS5525
   
     writeVH(MICS_2710, 1700);    // MICS2710_START
-    digitalWrite(IO1, HIGH);        // MICS2710
-    digitalWrite(IO2, LOW);         // MICS2710_HIGH_IMPEDANCE
+    digitalWrite(IO1, HIGH);     // MICS2710
+    digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
   #endif
   
     writeRL(MICS_5525, 100000);  // START LOADING MICS5525
@@ -192,7 +192,7 @@ void SCKAmbient::ini()
     wait_moment = false;
   }  
   
-  float k= (RES*(float)R1/100)/1000; //  Voltatge Constant for the Voltage reg.
+  float k= (RES*(float)R1/100)/1000; //Voltatge Constant for the Voltage reg.
   
   
   /* 

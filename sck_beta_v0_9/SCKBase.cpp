@@ -286,8 +286,7 @@ boolean SCKBase::checkRTC() {
 }
 
 boolean SCKBase::RTCadjust(char *time) {    
-  byte rtc[6] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00                                      };
+  byte rtc[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   byte count = 0x00;
   byte data_count=0;
   while (time[count]!=0x00)

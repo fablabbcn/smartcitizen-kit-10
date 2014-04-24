@@ -85,9 +85,9 @@ SENSOR READINGS - Defaults
 
 */
 
-#define DEFAULT_TIME_UPDATE  60     //Tiempo entre actualizacion y actualizacion
-#define DEFAULT_MIN_UPDATES  1      //Minimo numero de actualizaciones antes de postear
-#define POST_MAX             20       //Maximo numero de posteos a la vez
+#define DEFAULT_TIME_UPDATE  60     //Time between update and update
+#define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
+#define POST_MAX             20     //Max number of postings at a time
 
 
 /* 
@@ -161,7 +161,7 @@ MICS PARAMETERS - Gas Sensor Addresses and Defaults
 #define MICS_2710 0x01
 
 #define RES 256   // Digital pot. resolution
-#define P1  100   //Resistencia potenciometro digitales 100Kohm 
+#define P1  100   //Digital potentiometer resistance 100Kohm
 
 #define  Rc0  10.       //Ohm.  Average current resistance for sensor MICS_5525/MICS_5524
 
