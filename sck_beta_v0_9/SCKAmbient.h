@@ -34,6 +34,7 @@ public:
   void execute();
   void writeGAIN(long value);
   float readGAIN(); 
+  void GasSensor(boolean active);
   void getMICS(); 
   unsigned long getCO();
   unsigned long getNO2();

@@ -10,6 +10,7 @@
     - LIGHT (LDR and BH1730FVC)
     - CO (MICS5525 and MICS4514)
     - NO2 (MiCS2710 and MICS4514)
+    - ADXL345 (Only on some models)
 
 */
 
@@ -81,7 +82,8 @@ void SCKAmbient::begin() {
   base_.config();
   #if F_CPU == 8000000 
     base_.writeCharge(350);
-  
+  #endif
+  #if F_CPU == 8000000   
     writeVH(MICS_5525, 2700);    // MICS5525_START
     digitalWrite(IO0, HIGH);     // MICS5525
   
@@ -107,16 +109,8 @@ void SCKAmbient::begin() {
   
     writeRL(MICS_5525, 100000);  // START LOADING MICS5525
     writeRL(MICS_2710, 100000);  // START LOADING MICS2710
-}
 
-boolean terminal_mode = false;
-boolean usb_mode      = false;
-byte      server_mode    = NORMAL;
-uint32_t  TimeUpdate   = 0;  // Sensor Readings time interval in sec.
-uint32_t  NumUpdates   = 0;  // Min. number of sensor readings before publishing
-uint32_t  nets           = 0;
-boolean sleep         = true; 
-uint32_t timetransmit = 0; 
+}
 
 /* 
 
@@ -124,12 +118,22 @@ GLOBAL SETUP
 
 */
 
+boolean terminal_mode = false;
+boolean usb_mode      = false;
+byte      sensor_mode    = NORMAL;
+uint32_t  TimeUpdate   = 0;  // Sensor Readings time interval in sec.
+uint32_t  NumUpdates   = 0;  // Min. number of sensor readings before publishing
+uint32_t  nets           = 0;
+boolean sleep         = true; 
+uint32_t timetransmit = 0; 
+uint32_t timeMICS = 0; 
+
 void SCKAmbient::ini()
   {
     debugON = false;
     /*init WiFly*/
     digitalWrite(AWAKE, HIGH); 
-    server_mode = NORMAL;  //Normal mode
+    sensor_mode = sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL);  //Normal mode
     TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    //Time between transmissions in sec.
     NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Number of readings before batch update
     nets = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
@@ -138,9 +142,9 @@ void SCKAmbient::ini()
     if (nets==0)
     {
       sleep = false;  
-      server_mode = APMODE; //AP mode
-      base_.repair();
-      base_.APmode(base_.id());
+      sensor_mode = OFFLINE;    //Offline mode, no networks un memory
+      base_.repair();           //Repairs wifi if corruption
+      base_.APmode(base_.id()); //Starts as acces point
     #if debugEnabled
         if (!debugON) Serial.println(F("AP initialized!"));
     #endif 
@@ -190,17 +194,17 @@ void SCKAmbient::ini()
     }   
     timetransmit = millis();
     wait_moment = false;
+    timeMICS = millis();
   }  
   
   float k= (RES*(float)R1/100)/1000; //Voltatge Constant for the Voltage reg.
-  
+ 
   
   /* 
 
     SENSOR Functions
 
-  */   
-  
+  */     
   void SCKAmbient::writeVH(byte device, long voltage ) {
     int data=0;
     
@@ -367,6 +371,36 @@ void SCKAmbient::ini()
         Rs = readRs(device);
       }
        return Rs;
+  }
+  
+  void SCKAmbient::GasSensor(boolean active)
+  {
+    if (active)
+      {
+        #if F_CPU == 8000000   
+          digitalWrite(IO0, HIGH);     // MICS5525
+          digitalWrite(IO1, HIGH);     // MICS2710_HEATHER
+          digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
+          digitalWrite(IO3, HIGH);     // MICS POWER LINE 
+        #else
+          digitalWrite(IO0, HIGH);     // MICS5525
+          digitalWrite(IO1, HIGH);     // MICS2710
+          digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
+        #endif
+      }
+    else 
+      {
+        #if F_CPU == 8000000   
+          digitalWrite(IO0, LOW);     // MICS5525
+          digitalWrite(IO1, LOW);     // MICS2710_HEATHER
+          digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
+          digitalWrite(IO3, LOW);     // MICS POWER LINE 
+        #else
+          digitalWrite(IO0, LOW);     // MICS5525
+          digitalWrite(IO1, HIGH);     // MICS2710
+          digitalWrite(IO2, LOW);      // MICS2710_HIGH_IMPEDANCE
+        #endif
+      }
   }
   
   void SCKAmbient::getMICS(){          
@@ -672,7 +706,7 @@ void SCKAmbient::ini()
       return lastHumidity;
     } 
   #endif
-  
+    
   void SCKAmbient::updateSensors(byte mode) 
    {   
       boolean ok_read = false; 
@@ -711,15 +745,34 @@ void SCKAmbient::ini()
         value[2] = getLight(); //mV
         value[3] = base_.getBattery(Vcc); //%
         value[4] = base_.getPanel(Vcc);  // %
-        getMICS();
-        value[5] = getCO(); //ppm
-        value[6] = getNO2(); //ppm
+        
+        if (((millis()-timeMICS)<=6*minute)||(mode!=ECONOMIC))  //6 minutes
+        {  
+          getMICS();
+          value[5] = getCO(); //ppm
+          value[6] = getNO2(); //ppm
+        }
+        else if((millis()-timeMICS)>=60*minute) 
+              {
+                GasSensor(true);
+                timeMICS = millis();
+              }
+        else
+        {
+          GasSensor(false);
+        }
+        
         value[7] = getNoise(); //mV     
-        if (mode == APMODE)
+        if (mode == NOWIFI)
              {
                value[8] = 0;  //Wifi Nets
                base_.RTCtime(time);
              } 
+        else if (mode == OFFLINE)
+          {
+            value[8] = base_.scan();  //Wifi Nets
+            base_.RTCtime(time);
+          }
    }
   
 boolean SCKAmbient::debug_state()
@@ -737,15 +790,15 @@ void SCKAmbient::execute()
       usb_mode = false;
       terminal_mode = false;
     }
-    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*1000)
+    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second)
     {  
       timetransmit = millis();
       TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
       NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
-      updateSensors(server_mode); 
+      updateSensors(sensor_mode); 
       if (!debugON)                                                  // CMD Mode False
       {
-        if (server_mode) server_.send(sleep, &wait_moment, value, time);
+        if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
         #if USBEnabled
               txDebug();
         #endif
@@ -851,6 +904,7 @@ boolean serial_bridge = false;
 boolean eeprom_write_ok      = false;
 boolean text_write           = true;
 unsigned int address_eeprom  = 0;
+int temp_mode = NORMAL;
 
 void SCKAmbient::serialRequests()
   {
@@ -862,7 +916,7 @@ void SCKAmbient::serialRequests()
         digitalWrite(AWAKE, HIGH);
         digitalWrite(FACTORY, HIGH);
         sleep = false;  
-        server_mode = APMODE; //Modo AP
+        sensor_mode = OFFLINE; //Offline mode or acces point mode
       }
       else digitalWrite(AWAKE, LOW);
     #endif
@@ -871,10 +925,11 @@ void SCKAmbient::serialRequests()
         byte inByte = Serial.read();
         if (addData(inByte)) 
           {
-            if (base_.checkText("###", buffer_int)) { debugON= true;} //Serial.println(F("AOK"));} //Terminal SCK ON
+            if (base_.checkText("###", buffer_int)) { debugON= true; temp_mode = sensor_mode; sensor_mode = OFFLINE; } //Serial.println(F("AOK"));} //Terminal SCK ON
             else if (base_.checkText("exit", buffer_int)) {
               Serial.println(F("EXIT"));
               serial_bridge = false;
+              sensor_mode = temp_mode;
               debugON= false;
             }
             else if (base_.checkText("$$$", buffer_int))  //Terminal WIFI ON
@@ -882,6 +937,8 @@ void SCKAmbient::serialRequests()
               digitalWrite(AWAKE, HIGH); 
               delayMicroseconds(100);
               digitalWrite(AWAKE, LOW);
+              temp_mode = sensor_mode;
+              sensor_mode = NOWIFI;
               if (!wait_moment) serial_bridge = true;
               else Serial.println(F("Please, wait wifly sleep"));
               debugON= true;
@@ -894,6 +951,7 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS);
             else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH);
             else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA);
+            else if (base_.checkText("get mode sensor\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL));
             else if (base_.checkText("get time update\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
             else if (base_.checkText("get number updates\r", buffer_int))     Serial.println(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
             else if (base_.checkText("get apikey\r", buffer_int))             Serial.println(base_.readData(EE_ADDR_APIKEY, 0, INTERNAL));
@@ -901,7 +959,7 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("set wlan ssid ", buffer_int))
             {
                 addNetWork(DEFAULT_ADDR_SSID, buffer_int);
-                server_mode = NORMAL; 
+                sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL); 
                 if (TimeUpdate < 60) sleep = false;
                 else sleep = true; 
             }
@@ -910,6 +968,7 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("set wlan ext_antenna ", buffer_int))  addNetWork(DEFAULT_ADDR_ANTENNA, buffer_int);
             else if (base_.checkText("set wlan auth ", buffer_int)) addNetWork(DEFAULT_ADDR_AUTH, buffer_int);
             else if (base_.checkText("clear nets\r", buffer_int)) base_.writeData(EE_ADDR_NUMBER_NETS, 0x0000, INTERNAL);
+            else if (base_.checkText("set mode sensor ", buffer_int)) base_.writeData(EE_ADDR_SENSOR_MODE, atol(buffer_int), INTERNAL);
             else if (base_.checkText("set time update ", buffer_int)) base_.writeData(EE_ADDR_TIME_UPDATE, atol(buffer_int), INTERNAL);
             else if (base_.checkText("set number updates ", buffer_int)) base_.writeData(EE_ADDR_NUMBER_UPDATES, atol(buffer_int), INTERNAL);
             else if (base_.checkText("set apikey ", buffer_int)){

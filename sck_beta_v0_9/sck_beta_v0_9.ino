@@ -13,7 +13,7 @@
 
   Structure:
     
-    sck_beta_v0_8_6.ino - Core Runtime.
+    sck_beta_v0_9.ino - Core Runtime.
 
     SCKAmbient.h    - Supports the sensor reading and calibration functions.
     SCKBase.h       - Supports the data management functions (WiFi,  RTClock and EEPROM storage)

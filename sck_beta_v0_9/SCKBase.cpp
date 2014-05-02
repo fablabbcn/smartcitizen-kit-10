@@ -44,6 +44,7 @@ void SCKBase::config(){
     digitalWrite(AWAKE, HIGH); 
     for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  // Memory erasing
     writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, INTERNAL);
+    writeData(EE_ADDR_SENSOR_MODE, DEFAULT_MODE_SENSOR, INTERNAL);
     writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, INTERNAL);
     writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, INTERNAL);
     writeData(EE_ADDR_MAC, 0, MAC(), INTERNAL);

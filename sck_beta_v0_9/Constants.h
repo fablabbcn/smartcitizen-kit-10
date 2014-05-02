@@ -88,6 +88,7 @@ SENSOR READINGS - Defaults
 #define DEFAULT_TIME_UPDATE  60     //Time between update and update
 #define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
 #define POST_MAX             20     //Max number of postings at a time
+#define DEFAULT_MODE_SENSOR  ECONOMIC     //Type sensors capture
 
 
 /* 
@@ -126,12 +127,13 @@ Internal EEPROM Memory Addresses
 
 // SCK Configuration Parameters 
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
-#define EE_ADDR_TIME_UPDATE                         32  //16BYTES Time between update and update of the sensors in seconds
-#define EE_ADDR_NUMBER_UPDATES                      48  //4BYTES  Number of updates before posting
-#define EE_ADDR_NUMBER_READ_MEASURE                 52  //4BYTES  Number of updates before posting
-#define EE_ADDR_NUMBER_WRITE_MEASURE                56  //4BYTES  Number of updates before posting
-#define EE_ADDR_NUMBER_NETS                         60  //4BYTE Number of networks in the memory 
-#define EE_ADDR_APIKEY                              64  //32BYTES Apikey of the device
+#define EE_ADDR_TIME_UPDATE                         32  //4BYTES Time between update and update of the sensors in seconds
+#define EE_ADDR_SENSOR_MODE                         36  //4BYTES Type sensors capture
+#define EE_ADDR_NUMBER_UPDATES                      40  //4BYTES Number of updates before posting
+#define EE_ADDR_NUMBER_READ_MEASURE                 44  //4BYTES Number of updates before posting
+#define EE_ADDR_NUMBER_WRITE_MEASURE                48  //4BYTES Number of updates before posting
+#define EE_ADDR_NUMBER_NETS                         52  //4BYTES Number of networks in the memory 
+#define EE_ADDR_APIKEY                              56  //32BYTES Apikey of the device
 #define EE_ADDR_MAC                                 100  //32BYTES MAC of the device
 
 // SCK WIFI SETTINGS Parameters
@@ -180,7 +182,8 @@ MICS PARAMETERS - Gas Sensor Addresses and Defaults
 #endif
 
 #define reference 2560.
-
+#define second 1000
+#define minute 60000
 
 /* 
 
@@ -199,8 +202,10 @@ BATTERY PARAMETERS - Battery sensing calibration parameters
 
 #define DHTLIB_INVALID_VALUE    -999
 
-#define APMODE  0
-#define NORMAL  1
+#define OFFLINE   0  //No connect to server
+#define NOWIFI    1  //No connect arduino to wifi module
+#define NORMAL    2  //Nomal mode o real time
+#define ECONOMIC  3  //Economic mode, sensor gas active one time for hour
 
 #define  SENSORS 9  //Numbers of sensors in the board
 
