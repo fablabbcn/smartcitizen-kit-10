@@ -713,7 +713,6 @@ void SCKAmbient::ini()
       byte    retry   = 0;
       
       #if F_CPU == 8000000 
-        getVcc();
         getSHT21();
         ok_read = true;
       #else
@@ -726,6 +725,25 @@ void SCKAmbient::ini()
         }
         base_.timer1Initialize(); 
       #endif
+        if (((millis()-timeMICS)<=6*minute)||(mode!=ECONOMIC))  //6 minutes
+        {  
+          #if F_CPU == 8000000 
+            getVcc();
+          #endif
+          getMICS();
+          value[5] = getCO(); //ppm
+          value[6] = getNO2(); //ppm
+        }
+        else if((millis()-timeMICS)>=60*minute) 
+              {
+                GasSensor(true);
+                timeMICS = millis();
+              }
+        else
+        {
+          GasSensor(false);
+        }
+        
         if (ok_read )  
         {
           #if ((decouplerComp)&&(F_CPU > 8000000 ))
@@ -745,23 +763,6 @@ void SCKAmbient::ini()
         value[2] = getLight(); //mV
         value[3] = base_.getBattery(Vcc); //%
         value[4] = base_.getPanel(Vcc);  // %
-        
-        if (((millis()-timeMICS)<=6*minute)||(mode!=ECONOMIC))  //6 minutes
-        {  
-          getMICS();
-          value[5] = getCO(); //ppm
-          value[6] = getNO2(); //ppm
-        }
-        else if((millis()-timeMICS)>=60*minute) 
-              {
-                GasSensor(true);
-                timeMICS = millis();
-              }
-        else
-        {
-          GasSensor(false);
-        }
-        
         value[7] = getNoise(); //mV     
         if (mode == NOWIFI)
              {
