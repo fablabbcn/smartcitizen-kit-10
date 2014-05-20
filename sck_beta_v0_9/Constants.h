@@ -6,7 +6,7 @@
 */
 
 #define debugEnabled   true
-#define decouplerComp   true
+#define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
     #define FirmWare  "1.1-0.9.0-A"
@@ -88,7 +88,7 @@ SENSOR READINGS - Defaults
 #define DEFAULT_TIME_UPDATE  60     //Time between update and update
 #define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
 #define POST_MAX             20     //Max number of postings at a time
-#define DEFAULT_MODE_SENSOR  ECONOMIC     //Type sensors capture
+#define DEFAULT_MODE_SENSOR  NORMAL     //Type sensors capture (OFFLINE, NOWIFI, NORMAL, ECONOMIC)
 
 
 /* 
