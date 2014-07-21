@@ -15,6 +15,8 @@ Smart Citizen Kit
 
 ### Quick start
 
+* Visit the project main documentation. [docs.smartcitizen.me](https://docs.smartcitizen.me)
+
 * Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
 
 ### Loading Firmware
@@ -27,7 +29,9 @@ Smart Citizen Kit
 
 ### Versions
 
-The current firmware version in use is `0.8.6`.
+The current firmware version in use is `0.9.0`.
+
+We currently support the SD card version on as a diferent firmware `SDCARD`, currently `0.8.6 SDCARD`.
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
 
@@ -36,8 +40,15 @@ You can see the release history [here](https://github.com/fablabbcn/Smart-Citize
 * Setup commands reference in [sck-commands.md](https://github.com/fablabbcn/Smart-Citizen-Kit/blob/master/sck-commands.md)
 
 * Basic documentation for creating your own Sensor Boards [here](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Making-a-Shield)
-<<<<<<< HEAD
 
-### Support
+### Support and issues
 
 * Forum [forum.smartcitizen.me](http://forum.smartcitizen.me)
+
+### Contributions
+
+* We are working on improving the firmware documentation for developers but still we encourage you to Fork the project and do a Pull request with your contributions.
+
+
+
+
