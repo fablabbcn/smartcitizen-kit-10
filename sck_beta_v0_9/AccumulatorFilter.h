@@ -25,6 +25,7 @@ public:
 	}
 
 	void goUp(){
+		//Serial.println( "goUP!");
 		if (val <= GHETTO_VAL){
 			val = GHETTO_VAL;
 		}
@@ -32,6 +33,7 @@ public:
 	}
 
 	void goDown(){
+		//Serial.println( "goDown!");
 		if (val >= 1.0f - GHETTO_VAL){
 			val = 1.0f - GHETTO_VAL;
 		}
