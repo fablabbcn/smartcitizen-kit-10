@@ -1,3 +1,8 @@
+#include "SCKlibs.h"
+#include <Wire.h>
+#include <EEPROM.h>
+
+
 #define WIFLY_LATEST_VERSION 441
 #define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
@@ -37,9 +42,33 @@ char* antenna  = INT_ANT; //EXT_ANT
 #define buffer_length        32
 static char buffer[buffer_length];
 
-void sckBegin() {
+boolean sck::checkEEPROM() {
+  boolean ok = true;
+  for (int i=0; i<32000; i++)
+    {
+      writeEEPROM(i, 'x');
+      Serial.print(".");
+      if ((i%100) == 0) 
+        {
+          Serial.println();
+          Serial.print(i/100);
+        }
+      if (readEEPROM(i)!= 'x') 
+        {
+          ok = false;
+          break;
+        }
+    }
+  Serial.println();
+  return ok;
+}  
+#define TWI_FREQ 400000L //Frecuencia bus I2C
+
+void sck::begin() {
   Serial.begin(9600);
   Serial1.begin(9600);
+  Wire.begin();
+  TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
   if (EEPROM.read(0)>=2) EEPROM.write(0, 0);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
@@ -52,9 +81,9 @@ void sckBegin() {
   digitalWrite(AWAKE, HIGH); 
 //  digitalWrite(FACTORY, LOW); 
   digitalWrite(FACTORY, HIGH); 
-}  
+}
 
- boolean sckFindInResponse(const char *toMatch,
+ boolean sck::findInResponse(const char *toMatch,
                                     unsigned int timeOut = 1000) {
   int byteRead;
 
@@ -88,7 +117,7 @@ void sckBegin() {
   return true;
 }
 
-void sckRecovery()
+void sck::recovery()
 {
   if (EEPROM.read(0) == 0)
     {
@@ -120,7 +149,7 @@ void sckRecovery()
   else EEPROM.write(0,2);
 }
 
-void sckSkipRemainderOfResponse(unsigned int timeOut) {
+void sck::skipRemainderOfResponse(unsigned int timeOut) {
   unsigned long time = millis();
   while (((millis()-time)<timeOut))
   {
@@ -133,7 +162,7 @@ void sckSkipRemainderOfResponse(unsigned int timeOut) {
   }
 }
 
-boolean sckSendCommand(const __FlashStringHelper *command,
+boolean sck::sendCommand(const __FlashStringHelper *command,
                                  boolean isMultipartCommand = false,
                                  const char *expectedResponse = "AOK") {
   Serial1.print(command);
@@ -145,15 +174,14 @@ boolean sckSendCommand(const __FlashStringHelper *command,
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
     //        DHCP messages, and/or ERR etc)
-    if (!sckFindInResponse(expectedResponse, 3000)) {
+    if (!findInResponse(expectedResponse, 3000)) {
       return false;
     }
-    //sckFindInResponse(expectedResponse);
   }
   return true;
 }
 
-boolean sckSendCommand(const char *command,
+boolean sck::sendCommand(const char *command,
                                  boolean isMultipartCommand = false,
                                  const char *expectedResponse = "AOK") {
   Serial1.print(command);
@@ -165,7 +193,7 @@ boolean sckSendCommand(const char *command,
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
     //        DHCP messages, and/or ERR etc)
-    if (!sckFindInResponse(expectedResponse, 3000)) {
+    if (!findInResponse(expectedResponse, 3000)) {
       return false;
     }
     //findInResponse(expectedResponse);
@@ -177,7 +205,7 @@ boolean sckSendCommand(const char *command,
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
 
-boolean sckEnterCommandMode() {
+boolean sck::enterCommandMode() {
     for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
      {
       delay(COMMAND_MODE_GUARD_TIME);
@@ -185,7 +213,7 @@ boolean sckEnterCommandMode() {
       delay(COMMAND_MODE_GUARD_TIME);
       Serial1.println();
       Serial1.println();
-      if (sckFindInResponse("\r\n<", 1000))
+      if (findInResponse("\r\n<", 1000))
       {
         return true;
       }
@@ -193,24 +221,18 @@ boolean sckEnterCommandMode() {
     return false;
 }
 
-
-boolean sckSleep() {
-      sckEnterCommandMode();
-      sckSendCommand(F("sleep"));
-}
-
-boolean sckReset() {
-      //sckEnterCommandMode();
-      sckSendCommand(F("factory R"), false, "Set Factory Defaults"); // Store settings
-      sckSendCommand(F("save"), false, "Storing in config"); // Store settings
+boolean sck::reset() {
+      //enterCommandMode();
+      sendCommand(F("factory R"), false, "Set Factory Defaults"); // Store settings
+      sendCommand(F("save"), false, "Storing in config"); // Store settings
       delay(1000);
-      sckSendCommand(F("reboot"), false, "*READY*");
+      sendCommand(F("reboot"), false, "*READY*");
 }
 
-boolean sckExitCommandMode() {
+boolean sck::exitCommandMode() {
     for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
      {
-      if (sckSendCommand(F("exit"), false, "EXIT")) 
+      if (sendCommand(F("exit"), false, "EXIT")) 
       {
       return true;
       }
@@ -218,28 +240,28 @@ boolean sckExitCommandMode() {
     return false;
 }
 
-boolean sckConnect()
+boolean sck::connect()
   {
-    if (!sckReady())
+    if (!ready())
     {
-      if(sckEnterCommandMode())
+      if(enterCommandMode())
         {    
-            sckSendCommand(F("set wlan join 1")); // Disable AP mode
-            sckSendCommand(F("set ip dhcp 1")); // Enable DHCP server
-            sckSendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
-            sckSendCommand(F("set wlan auth "), true);
-            sckSendCommand(wifiEncript);
+            sendCommand(F("set wlan join 1")); // Disable AP mode
+            sendCommand(F("set ip dhcp 1")); // Enable DHCP server
+            sendCommand(F("set ip proto 10")); //Modo TCP y modo HTML
+            sendCommand(F("set wlan auth "), true);
+            sendCommand(wifiEncript);
             boolean mode = true;
             if ((wifiEncript==WEP)||(wifiEncript==WEP64)) mode=false;
-            sckSendCommand(F("set wlan ssid "), true);
-            sckSendCommand(mySSID);
-            if (mode) sckSendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
-            else sckSendCommand(F("set wlan key "), true);
-            sckSendCommand(myPassword);
-            sckSendCommand(F("set wlan ext_antenna "), true);
-            sckSendCommand(antenna);
-            sckSendCommand(F("save"), false, "Storing in config"); // Store settings
-            sckSendCommand(F("reboot"), false, "*READY*");
+            sendCommand(F("set wlan ssid "), true);
+            sendCommand(mySSID);
+            if (mode) sendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
+            else sendCommand(F("set wlan key "), true);
+            sendCommand(myPassword);
+            sendCommand(F("set wlan ext_antenna "), true);
+            sendCommand(antenna);
+            sendCommand(F("save"), false, "Storing in config"); // Store settings
+            sendCommand(F("reboot"), false, "*READY*");
             return true;
         }
       else return false;     
@@ -249,18 +271,18 @@ boolean sckConnect()
 
 uint32_t baud[7]={2400, 4800, 9600, 19200, 38400, 57600, 115200};
 
-boolean sckRepair()
+boolean sck::repair()
 {
   boolean repair = false;
-  if(!sckEnterCommandMode())
+  if(!enterCommandMode())
     {
       for (int i=6; ((i>=0)&&(!repair)); i--)
       {
 //        Serial1.begin(baud[i]);
 //        Serial.println(baud[i]);
-        if(sckEnterCommandMode()) 
+        if(enterCommandMode()) 
         {
-          sckReset();
+          reset();
           repair = true;
         }
         Serial1.begin(9600);
@@ -270,19 +292,19 @@ boolean sckRepair()
   return repair;
 }
 
-boolean sckReady()
+boolean sck::ready()
 {
-  if(!sckEnterCommandMode())
+  if(!enterCommandMode())
     {
-      sckRepair();
+      repair();
     }
-  if (sckEnterCommandMode())
+  if (enterCommandMode())
     {
       Serial1.println(F("join"));
-      if (sckFindInResponse("Associated!", 8000)) 
+      if (findInResponse("Associated!", 8000)) 
       {
-        sckSkipRemainderOfResponse(3000);
-        sckExitCommandMode();
+        skipRemainderOfResponse(3000);
+        exitCommandMode();
         return(true);
       }
    } 
@@ -313,7 +335,7 @@ char* itoa(int32_t number)
   }
   
 
-char* getWiFlyVersion(unsigned long timeOut) {
+char* sck::getWiFlyVersion(unsigned long timeOut) {
      Serial1.println();
      Serial1.println();
      char newChar = '<';
@@ -333,7 +355,7 @@ char* getWiFlyVersion(unsigned long timeOut) {
           else if (newChar=='>') break;
         }
       }
-      sckSkipRemainderOfResponse(1000);
+      skipRemainderOfResponse(1000);
       
       if (newChar=='>') 
         {
@@ -343,7 +365,7 @@ char* getWiFlyVersion(unsigned long timeOut) {
       else return "0";   
 }
 
-int checkWiFlyVersion(char *text) {
+int sck::checkWiFlyVersion(char *text) {
    if (text[0]=='0')
      {
        Serial.println(F("Error reading version."));
@@ -360,18 +382,18 @@ int checkWiFlyVersion(char *text) {
    return 1;
 }
 
-boolean webAppRepair() {
-  if (sckEnterCommandMode())
+boolean sck::webAppRepair() {
+  if (enterCommandMode())
     {
       Serial1.println(F("boot image 2"));
-      if (sckFindInResponse("= OK", 8000)) 
+      if (findInResponse("= OK", 8000)) 
       {
-        sckSkipRemainderOfResponse(3000);
+        skipRemainderOfResponse(3000);
         Serial1.println(F("save"));
-        sckSkipRemainderOfResponse(3000);
+        skipRemainderOfResponse(3000);
         Serial1.println(F("reboot"));
-        sckSkipRemainderOfResponse(3000);
-        sckEnterCommandMode();
+        skipRemainderOfResponse(3000);
+        enterCommandMode();
         Serial.print("Firmware version: "); 
         char *Version = getWiFlyVersion(1000);
         Serial.println(Version);
@@ -382,4 +404,150 @@ boolean webAppRepair() {
    } 
   else return(false);
 }
+
+#define E2PROM               0x50    // Direcion de la EEPROM
+
+void sck::writeEEPROM(uint16_t eeaddress, uint8_t data) {
+  uint8_t retry = 0;
+  while ((readEEPROM(eeaddress)!=data)&&(retry<10))
+  {  
+    Wire.beginTransmission(E2PROM);
+    Wire.write((byte)(eeaddress >> 8));   // MSB
+    Wire.write((byte)(eeaddress & 0xFF)); // LSB
+    Wire.write(data);
+    Wire.endTransmission();
+    delay(6);
+    retry++;
+  }
+}
+
+byte sck::readEEPROM(uint16_t eeaddress) {
+  byte rdata = 0xFF;
+  Wire.beginTransmission(E2PROM);
+  Wire.write((byte)(eeaddress >> 8));   // MSB
+  Wire.write((byte)(eeaddress & 0xFF)); // LSB
+  Wire.endTransmission();
+  Wire.requestFrom(E2PROM,1);
+  while (!Wire.available()); 
+  rdata = Wire.read();
+  return rdata;
+}
+
+#define RTC_ADDRESS          0x68    // Direcion de la RTC
+
+boolean sck::checkRTC() {
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write(0x00); //Address
+  Wire.endTransmission();
+  delay(4);
+  Wire.requestFrom(RTC_ADDRESS,1);
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return false;
+  Wire.read();
+  return true;
+}
+
+float average(int anaPin) {
+  int lecturas = 100;
+  long total = 0;
+  float average = 0;
+  for(int i=0; i<lecturas; i++)
+  {
+    //delay(1);
+    total = total + analogRead(anaPin);
+  }
+  average = (float)total / lecturas;  
+  return(average);
+}
+
+#if F_CPU == 8000000 
+  #define  VAL_MAX_BATTERY                             4200
+  #define  VAL_MIN_BATTERY                             3000
+  #define  Vref                                        3300
+#else
+  #define  VAL_MAX_BATTERY                             4050
+  #define  VAL_MIN_BATTERY                             3000
+  #define  Vref                                        5000
+#endif
+
+
+uint16_t sck::getPanel(){
+#if F_CPU == 8000000 
+  uint16_t value = 11*average(PANEL)*Vref/1023.;
+  if (value > 500) value = value + 120; //Tension del diodo de proteccion
+  else value = 0;
+#else
+  uint16_t value = 3*average(PANEL)*Vref/1023.;
+  if (value > 500) value = value + 750; //Tension del diodo de proteccion
+  else value = 0;
+#endif
+  return value;
+}
+
+float sck::getBattery() {
+  uint16_t temp = average(BAT);
+#if F_CPU == 8000000 
+  float voltage = Vref*temp/1023.;
+  voltage = voltage + (voltage/180)*100;
+#else
+  float voltage = Vref*temp/1023.;
+#endif
+  temp = map(voltage, VAL_MIN_BATTERY, VAL_MAX_BATTERY, 0, 1000);
+  if (temp>1000) temp=1000;
+  if (temp<0) temp=0;
+  return temp/10.; 
+}
+
+#define RES 256   //Resolucion de los potenciometros digitales
+
+#if F_CPU == 8000000 
+  #define R1  12    //Kohm
+#else
+  #define R1  82    //Kohm
+#endif
+
+#define P1  100   //Kohm 
+
+float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de potenciometrosen ohmios
+
+void writeMCP(byte deviceaddress, byte address, int data ) {
+  if (data>RES) data=RES;
+  Wire.beginTransmission(deviceaddress);
+  address=(address<<4)|bitRead(data, 8) ;
+  Wire.write(address);
+  Wire.write(lowByte(data));
+  Wire.endTransmission();
+  delay(4);
+}
+
+int readMCP(int deviceaddress, uint16_t address ) {
+  byte rdata = 0xFF;
+  int  data = 0x0000;
+  Wire.beginTransmission(deviceaddress);
+  address=(address<<4)|B00001100;
+  Wire.write(address);
+  Wire.endTransmission();
+  Wire.requestFrom(deviceaddress,2);
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return 0x00;
+  rdata = Wire.read(); 
+  data=rdata<<8;
+  while (!Wire.available()); 
+  rdata = Wire.read(); 
+  data=data|rdata;
+  return data;
+}
+
+#if F_CPU == 8000000 
+  #define MCP3               0x2D    // Direcion del mcp3 Ajuste carga bateria
+float sck::readCharge() {
+  float resistor = kr*readMCP(MCP3, 0x00)/1000;    
+  float current = 1000./(2+((resistor * 10)/(resistor + 10)));
+  return(current);
+}
+#else
+float SCKBase::readCharge() {
+  return(500);
+}
+#endif
 
