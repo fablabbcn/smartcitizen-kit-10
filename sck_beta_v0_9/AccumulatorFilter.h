@@ -58,7 +58,7 @@ public:
 
 	void goDown(){
 		//Serial.println( "goDown!");
-		if (val >= 1.0f - GHETTO_VAL){
+		if (val > 1.0f - GHETTO_VAL) {
 			val = 1.0f - GHETTO_VAL;
 		}
 		val /= (1.0f + upSpeed * 2.0f * (1.0f - val) );
