@@ -31,10 +31,13 @@
 #define AccumulatorFilter_AccumulatorFilter_h
 
 #define GHETTO_VAL	0.02f
-class AccumulatorFilter{
+
+class AccumulatorFilter {
+private:
+	float upSpeed;
+	float val;
 
 public:
-
 	AccumulatorFilter(){
 		val = GHETTO_VAL;
 		upSpeed = 0.5f;
@@ -68,9 +71,6 @@ public:
 	float getSpeed(){
 		return upSpeed;
 	}
-
-	float upSpeed;
-	float val;
 };
 
 #endif
