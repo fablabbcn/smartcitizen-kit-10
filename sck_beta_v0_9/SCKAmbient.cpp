@@ -180,22 +180,27 @@ void SCKAmbient::ini()
           int report = base_.checkWiFly();
           #if debugEnabled
             if (!debugON)
-              {
-                  if (report == 1) Serial.println(F("Wifly Updated."));
-                  else if (report == 2) Serial.println(F("Update Fail."));
-                  else if (report == 0) Serial.println(F("WiFly up to date."));
-                  else if (report == -1) Serial.println(F("Error reading the wifi version."));
+            {
+              char *msg;  
+              switch (report) {
+                case -1: msg = (char*)F("Error reading the WiFly version."); break;
+                case 0:  msg = (char*)F("WiFly up to date."); break;
+                case 1:  msg = (char*)F("WiFly updated."); break;
+                case 2:  msg = (char*)F("Update failed!"); break;
               }
+              Serial.println(msg);
+            }
           #endif
         #endif
-        byte retry = 0;
+
         if (base_.checkRTC())
         {
           if (server_.time(time))
           {
-            while (!base_.RTCadjust(time)&&(retry<5)) retry++;
+            byte retry = 0;
+            while (!base_.RTCadjust(time) && (retry<5)) retry++;
             #if debugEnabled
-                    if (!debugON) Serial.println(F("Updating RTC..."));
+            if (!debugON) Serial.println(F("Updating RTC..."));
             #endif
           }
           #if debugEnabled
@@ -203,7 +208,8 @@ void SCKAmbient::ini()
           #endif
         }
       }
-    }  
+    }
+
     if(sleep)
     {
       base_.sleep();
@@ -217,7 +223,7 @@ void SCKAmbient::ini()
     timeMICS = millis();
   }  
   
-  float k= (RES*(float)R1/100)/1000; //Voltatge Constant for the Voltage reg.
+  float k= (RES*(float)R1/100)/1000; // Voltage for the voltage register
  
   
   /* 
@@ -226,17 +232,16 @@ void SCKAmbient::ini()
 
   */     
   void SCKAmbient::writeVH(byte device, long voltage ) {
-    int data=0;
-    
     #if F_CPU == 8000000 
-      int temp = (int)(((voltage/0.41)-1000)*k);
+      int data = (int)(((voltage/0.41)-1000)*k);
     #else
-      int temp = (int)(((voltage/1.2)-1000)*k);
+      int data = (int)(((voltage/1.2)-1000)*k);
     #endif
-  
-    if (temp>RES) data = RES;
-    else if (temp<0) data=0;
-    else data = temp;
+    
+    if (data > RES) data = RES;
+    else
+      if (data < 0) data = 0;
+    
     #if F_CPU == 8000000 
       base_.writeMCP(MCP1, device, data);
     #else
@@ -261,8 +266,7 @@ void SCKAmbient::ini()
   float kr1= ((float)P1*1000)/RES;    //  Resistance conversion Constant for the digital pot.
   
   void SCKAmbient::writeRL(byte device, long resistor) {
-    int data=0x00;
-    data = (int)(resistor/kr1);
+    int data = (int)(resistor/kr1);
     #if F_CPU == 8000000 
       base_.writeMCP(MCP1, device + 6, data);
     #else
@@ -280,39 +284,38 @@ void SCKAmbient::ini()
   }
 
   void SCKAmbient::writeRGAIN(byte device, long resistor) {
-    int data=0x00;
-    data = (int)(resistor/kr1);
-    base_.writeMCP(MCP2, device, data);
+    base_.writeMCP(MCP2, device, (int)(resistor/kr1));
   }
   
   float SCKAmbient::readRGAIN(byte device)
   {
-      return (kr1*base_.readMCP(MCP2, device));    // Returns Resistance (Ohms)
+      return kr1*base_.readMCP(MCP2, device);    // Returns Resistance (Ohms)
   }
 
   void SCKAmbient::writeGAIN(long value)
   {
-    if (value == 100)
-    {
-      writeRGAIN(0x00, 10000);
-      writeRGAIN(0x01, 10000);
+    long resistance1, resistance2;
+    switch (value) {
+      case 100:
+        resistance1 = resistance2 = 10000;
+        break;
+      case 1000:
+        resistance1 = 10000;
+        resistance2 = 100000;
+        break;
+      case 10000:
+        resistance1 = resistance2 = 100000;
+        break;
     }
-    else if (value == 1000)
-    {
-      writeRGAIN(0x00, 10000);
-      writeRGAIN(0x01, 100000);
-    }
-    else if (value == 10000)
-          {
-             writeRGAIN(0x00, 100000);
-             writeRGAIN(0x01, 100000);
-          }
+    
+    writeRGAIN(0x00, resistance1);
+    writeRGAIN(0x01, resistance2);
     delay(100);
   }
 
   float SCKAmbient::readGAIN()
   {
-    return (readRGAIN(0x00)/1000)*(readRGAIN(0x01)/1000);
+    return (readRGAIN(0x00)/1000.0)*(readRGAIN(0x01)/1000.0);
   }    
 
   void SCKAmbient::getVcc()
@@ -327,7 +330,7 @@ void SCKAmbient::ini()
   
   void SCKAmbient::heat(byte device, int current)
   {
-    float Rc=Rc0;
+    float Rc = Rc0;
     byte Sensor = S2;
     if (device == MICS_2710) { Rc=Rc1; Sensor = S3;}
 
@@ -379,18 +382,17 @@ void SCKAmbient::ini()
    
   float SCKAmbient::readMICS(byte device)
   {
-      float Rs = readRs(device);
-      float RL = readRL(device); //Ohm
+    float Rs = readRs(device);
+    float RL = readRL(device); //Ohm
       
-      // Charging impedance correction
-      if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
-      {
-        if (Rs < 2000) writeRL(device, 2000);
-        else writeRL(device, Rs);
-        delay(100);
-        Rs = readRs(device);
-      }
-       return Rs;
+    // Charging impedance correction
+    if ((Rs <= (RL - 1000))||(Rs >= (RL + 1000)))
+    {
+      writeRL(device, Rs < 2000 ? 2000 : Rs);
+      delay(100);
+      Rs = readRs(device);
+    }
+    return Rs;
   }
   
   void SCKAmbient::GasSensor(boolean active)
@@ -424,26 +426,26 @@ void SCKAmbient::ini()
   }
   
   void SCKAmbient::getMICS(){          
-       
-        // Charging tension heaters
-        heat(MICS_5525, 32); //Corriente en mA
-        heat(MICS_2710, 26); //Corriente en mA
+    // Charging tension heaters
+    heat(MICS_5525, 32); // mA
+    heat(MICS_2710, 26); // mA
         
-        RsCO = readMICS(MICS_5525);
-        RsNO2 = readMICS(MICS_2710);
-         
+    RsCO = readMICS(MICS_5525);
+    RsNO2 = readMICS(MICS_2710);         
   }
 
  #if F_CPU == 8000000
-   uint16_t SCKAmbient::readSHT21(uint8_t type){
-      uint16_t DATA = 0;
+ uint16_t SCKAmbient::readSHT21(uint8_t type){
       Wire.beginTransmission(Temperature);
       Wire.write(type);
       Wire.endTransmission();
+      
       Wire.requestFrom(Temperature,2);
+      
       unsigned long time = millis();
       while (!Wire.available()) if ((millis() - time)>500) return 0x00;
-      DATA = Wire.read()<<8; 
+      
+      uint16_t DATA = Wire.read()<<8; 
       while (!Wire.available()); 
       DATA = (DATA|Wire.read()); 
       DATA &= ~0x0003; 
@@ -504,28 +506,32 @@ void SCKAmbient::ini()
       int temp_x=0;
       int temp_y=0;
       int temp_z=0;
-      int lecturas=10;
+      int reads=10;
+
       byte buffADXL[6] ;    //6 bytes buffer for saving data read from the device
       accel_x=0;
       accel_y=0;
       accel_z=0;
       
-      for(int i=0; i<lecturas; i++)
+      for(int i=0; i<reads; i++)
       {
         readADXL(0x32, 6, buffADXL); //read the acceleration data from the ADXL345
         temp_x = (((int)buffADXL[1]) << 8) | buffADXL[0]; 
         temp_x = map(temp_x,-lim,lim,0,1023);  
+
         temp_y = (((int)buffADXL[3])<< 8) | buffADXL[2];
         temp_y = map(temp_y,-lim,lim,0,1023); 
+
         temp_z = (((int)buffADXL[5]) << 8) | buffADXL[4];
         temp_z = map(temp_z,-lim,lim,0,1023); 
+
         accel_x = (int)(temp_x + accel_x);
         accel_y = (int)(temp_y + accel_y);
         accel_z = (int)(temp_z + accel_z);
       }
-      accel_x = (int)(accel_x / lecturas);
-      accel_y = (int)(accel_y / lecturas);
-      accel_z = (int)(accel_z / lecturas);
+      accel_x = (int)(accel_x / reads);
+      accel_y = (int)(accel_y / reads);
+      accel_z = (int)(accel_z / reads);
       
       #if debugAmbient
         Serial.print("x_axis= ");
@@ -570,7 +576,7 @@ void SCKAmbient::ini()
             // Test Checksum
             uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
             if (bits[4] != sum) return false;
-            if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
+            if ((lastTemperature == 0)&&(lastHumidity == 0)) return false;
             return true;
     }
     
@@ -630,7 +636,7 @@ void SCKAmbient::ini()
     #if F_CPU == 8000000 
       uint8_t TIME0  = 0xDA;
       uint8_t GAIN0 = 0x00;
-      uint8_t DATA [8] = {0x03, TIME0, 0x00 ,0x00, 0x00, 0xFF, 0xFF ,GAIN0} ;
+      uint8_t DATA [8] = {0x03, TIME0, 0x00 ,0x00, 0x00, 0xFF, 0xFF ,GAIN0};
       
       uint16_t DATA0 = 0;
       uint16_t DATA1 = 0;
@@ -649,7 +655,9 @@ void SCKAmbient::ini()
       DATA1 = Wire.read();
       DATA1=DATA1|(Wire.read()<<8);
         
-      uint8_t Gain = 0x00; 
+      uint8_t Gain = 0x00;
+      
+      // [Miguel]: why are we looking at the value of GAIN0 if we fix GAIN0=0x00? (!!)
       if (GAIN0 == 0x00) Gain = 1;
       else if (GAIN0 == 0x01) Gain = 2;
       else if (GAIN0 == 0x02) Gain = 64;
@@ -677,7 +685,9 @@ void SCKAmbient::ini()
     #else
       int temp = map(base_.average(S5), 0, 1023, 0, 1000);
       if (temp>1000) temp=1000;
-      if (temp<0) temp=0;
+      else
+        if (temp<0) temp=0;
+
       return temp;
     #endif
   }
@@ -691,36 +701,41 @@ void SCKAmbient::ini()
      delay(100);
     #endif
     float mVRaw = (float)((base_.average(S4))/1023.)*Vcc;
-    float dB = 0;
     return mVRaw;  
   }
   
+  // Getter
   unsigned long SCKAmbient::getCO()
   {
     return RsCO;
   }  
   
+  // Getter
   unsigned long SCKAmbient::getNO2()
   {
     return RsNO2;
   } 
   
   #if F_CPU == 8000000 
+    // Getter
     uint32_t SCKAmbient::getTemperature()
     {
       return lastTemperature;
     }  
     
+    // Getter
     uint32_t SCKAmbient::getHumidity()
     {
       return lastHumidity;
     } 
   #else
+    // Getter
     int SCKAmbient::getTemperature()
     {
       return lastTemperature;
     }  
     
+    // Getter
     int SCKAmbient::getHumidity()
     {
       return lastHumidity;
@@ -730,13 +745,13 @@ void SCKAmbient::ini()
   void SCKAmbient::updateSensors(byte mode) 
    {   
       boolean ok_read = false; 
-      byte    retry   = 0;
       
       #if F_CPU == 8000000 
         getSHT21();
         ok_read = true;
       #else
         base_.timer1Stop();
+        byte    retry   = 0;
         while ((!ok_read)&&(retry<5))
         {
           ok_read = getDHT22();
@@ -795,7 +810,8 @@ void SCKAmbient::ini()
             base_.RTCtime(time);
           }
    }
-  
+
+// Getter
 boolean SCKAmbient::debug_state()
   {
     return debugON;
@@ -894,13 +910,14 @@ boolean SCKAmbient::addData(byte inByte)
 boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
     {
       int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
-      if (nets_temp>0){
+      if (nets_temp>0) {
         for (int i = 0; i<nets_temp; i++)
           {
             Serial.print(base_.readData(address_eeprom, i, INTERNAL));
             if (i<(nets_temp - 1)) Serial.print(' ');
           }
-        Serial.println();}
+        Serial.println();
+      }
     }  
 
 void SCKAmbient::addNetWork(unsigned int address_eeprom, char* text)
@@ -909,13 +926,12 @@ void SCKAmbient::addNetWork(unsigned int address_eeprom, char* text)
       int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
       if (address_eeprom < DEFAULT_ADDR_PASS)
         {
-          nets_temp = nets_temp + 1;
+          nets_temp++;
           if (nets_temp<=5) base_.writeData(EE_ADDR_NUMBER_NETS, nets_temp , INTERNAL); 
         }
       if (nets_temp<=5)
         {
-          if (nets_temp == 0) pos = 0;
-          else pos = nets_temp - 1;
+          pos = (nets_temp == 0 ? 0 : nets_temp - 1);
           base_.writeData(address_eeprom, pos, text, INTERNAL);
         }
     } 
