@@ -1,5 +1,23 @@
 /*
+ *
+ * This file is part of the SCK v0.9 - SmartCitizen
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ */
 
+/*
   SCKBase.h
   Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
 
@@ -9,7 +27,6 @@
     - RTC (DS1339U and DS1307Z)
     - EEPROM (24LC256)
     - POWER MANAGEMENT IC's
-
 */
 
 #ifndef __SCKBASE_H__

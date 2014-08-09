@@ -1,4 +1,24 @@
 /*
+ *
+ * This file is part of the SCK v0.9 - SmartCitizen
+ *
+ * This file may be licensed under the terms of of the
+ * GNU General Public License Version 2 (the ``GPL'').
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the GPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the GPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/gpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ */
+
+
+/*
 
   SCKAmbient.cpp
   Supports the sensor reading and calibration functions.
@@ -36,7 +56,7 @@ SENSOR Contants and Defaults
 
 #define USBEnabled      true 
 #define autoUpdateWiFly true
-#define debugAmbient    false
+#define debugAmbient    true
 
 SCKBase base_;
 SCKServer server_;
@@ -311,8 +331,8 @@ void SCKAmbient::ini()
     byte Sensor = S2;
     if (device == MICS_2710) { Rc=Rc1; Sensor = S3;}
 
-    float Vc = (float)base_.average(Sensor)*Vcc/1023; //mV 
-    float current_measure = Vc/Rc; //mA 
+    float Vc = (float)base_.average(Sensor)*Vcc/1023; //mV
+    float current_measure = Vc/Rc; //mA
     float Rh = (readVH(device)- Vc)/current_measure;
     float Vh = (Rh + Rc)*current;
 
@@ -326,7 +346,7 @@ void SCKAmbient::ini()
         else  Serial.print("MICS5525 correction VH: ");
         Serial.print(readVH(device));
         Serial.println(" mV");
-        Vc = (float)average(Sensor)*Vcc/1023; //mV 
+        Vc = (float)base_.average(Sensor)*Vcc/1023; //mV
         current_measure = Vc/Rc; //mA 
         if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
         else Serial.print("MICS5525 current adjusted: ");
@@ -975,6 +995,7 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("set apikey ", buffer_int)){
               eeprom_write_ok = true;
               address_eeprom = EE_ADDR_APIKEY;
+              base_.writeData(EE_ADDR_APIKEY, 0, buffer_int, INTERNAL);
             } 
           }
         if (serial_bridge) Serial1.write(inByte); 

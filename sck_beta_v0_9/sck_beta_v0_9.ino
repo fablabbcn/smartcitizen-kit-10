@@ -23,7 +23,7 @@
     AccumulatorFilter.h     - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
     TemperatureDecoupler.h  - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
 
-  Check REAMDE.md for more information.
+  Check README.md for more information.
     
 */
 
