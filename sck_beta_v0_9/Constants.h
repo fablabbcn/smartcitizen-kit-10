@@ -49,8 +49,11 @@ WIFI AND SERVER STATICS - WiFly, Http server parameters.
 #define WPA2   "4"
 #define WEP64  "8"
 
-#define EXT_ANT "1" // External Antenna
-#define INT_ANT "0" // Internal Antenna
+// External Antenna
+#define EXT_ANT "1"
+
+// Internal Antenna
+#define INT_ANT "0"
 
 /* 
 
