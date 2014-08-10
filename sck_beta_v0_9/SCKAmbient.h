@@ -96,5 +96,14 @@ private:
   boolean addData(byte inByte);
   boolean printNetWorks(unsigned int address_eeprom);
   void addNetWork(unsigned int address_eeprom, char* text);
+  
+  // Miguel
+  static void i2c_transaction(int device, int data, int num);
+  static void i2c_transaction(int device, int data);
+  static void i2c_transaction_reg_val(int device, int address, int val);
+  
+  static boolean wait_wire_available(int timeout_ms);
+  
+  static boolean wait_pin_change(int pin, int current_value);
 };
 #endif
