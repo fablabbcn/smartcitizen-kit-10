@@ -93,6 +93,8 @@ public:
     void timer1Initialize();
     void timer1Stop();
 private:
-    
 };
+
+static SCKBase base_;
+
 #endif

@@ -35,6 +35,7 @@ public:
    void addFIFO(long *value, char *time);
    void readFIFO();
 private:
-
 };
+
+static SCKServer server_;
 #endif

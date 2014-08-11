@@ -106,4 +106,7 @@ private:
   
   static boolean wait_pin_change(int pin, int current_value);
 };
+
+static SCKAmbient ambient_;
+
 #endif

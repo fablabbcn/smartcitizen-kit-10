@@ -31,15 +31,13 @@
 #include <EEPROM.h>
 #include "SCKAmbient.h"
 
-SCKAmbient ambient;
-  
 void setup() {
-  ambient.begin();
-  ambient.ini();
+  ambient_.begin();
+  ambient_.ini();
 }
 
 void loop() {  
-  ambient.execute();
+  ambient_.execute();
 }
 
 

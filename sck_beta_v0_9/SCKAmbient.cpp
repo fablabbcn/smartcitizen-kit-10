@@ -58,11 +58,6 @@ TemperatureDecoupler decoupler; // Compensate the bat .charger generated heat af
 #define autoUpdateWiFly true
 #define debugAmbient    true
 
-SCKBase base_;
-SCKServer server_;
-SCKAmbient ambient_;
-
-
 long value[SENSORS];
 char time[TIME_BUFFER_SIZE];
 boolean wait_moment;
