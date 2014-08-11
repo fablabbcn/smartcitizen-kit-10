@@ -4,9 +4,9 @@ The Smart Citizen Kit can be managed over a basic serial protocol. You just need
 
 #### How to use it.
 
-* Connect to your kit using a any serial utility
+* Connect to your kit using a any serial utility, any baud-rate should work but `115200` is recommendable.
 * Send the starting commands.
-* Notice all the commands except the starting commands requiere `CR` or `\r` carriagre return at the end.
+* Notice all the commands except the starting commands require a carriage return at the end: `CR` or `\r`  .
 * Call any command you want, change XXX with the corresponding value.
 
 ### Basic SCK setup commands
@@ -16,9 +16,9 @@ This commands are commands to talk directly to the RN-XV WiFly Module own interf
 * `$$$`							Wake up the module and enter WiFly commands mode
 * `set wlan ssid XXX\r`        Add a new SSID to memory
 * `set wlan phrase XXX\r`      Add a new phrase to memory
-* `set wlan key XXX\r`         Add a new key to memmory
+* `set wlan key XXX\r`         Add a new key to memory
 * `set wlan auth XXX\r`        Add an authentication method into memory
-* `set wlan ext_antenna XXX\r` Add an antenna type into memmory
+* `set wlan ext_antenna XXX\r` Add an antenna type into memory
 * `exit\r`                     Go back to normal operational mode
 
 ### Special SCK commands
