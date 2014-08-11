@@ -83,6 +83,56 @@ void SCKBase::config(){
   timer1Initialize();
 }
 
+// Miguel
+void SCKBase::i2c_transaction(int device, int val, int num) {
+  Wire.beginTransmission(device);
+  Wire.write(val);
+  Wire.endTransmission();
+
+  if (num >= 0)
+    Wire.requestFrom(device, num);
+}
+//
+void SCKBase::i2c_transaction_reg_val(int device, int reg, int val) {
+  Wire.beginTransmission(device);
+  Wire.write(reg);
+  Wire.write(val);
+  Wire.endTransmission();
+}
+//
+void SCKBase::i2c_transaction(int device, int val) {
+  SCKBase::i2c_transaction(device, val, -1);
+}
+
+// Miguel
+boolean SCKBase::wait_wire_available(int timeout_ms) {
+  unsigned long now = millis();
+
+  int count = 0;
+  
+  while (!Wire.available()) {
+    if (count++ % 10 == 0)
+      delay(1);
+
+    if (timeout_ms >=0 && millis() - now > timeout_ms)
+      return false;
+  }
+    
+  return true;
+}
+
+// Miguel
+boolean SCKBase::wait_pin_change(int pin, int current_value) {
+  unsigned int loopCnt = TIMEOUT;
+
+  while (digitalRead(pin) == current_value)
+    if (loopCnt-- == 0) return false;
+    
+  return true;
+}
+
+
+
 float SCKBase::average(int anaPin) {
   int lecturas = 100;
   long total = 0;

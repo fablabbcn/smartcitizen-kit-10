@@ -445,49 +445,15 @@ void SCKAmbient::getMICS(){
 }
 
 
-// Miguel
-void SCKAmbient::i2c_transaction(int device, int val, int num) {
-  Wire.beginTransmission(device);
-  Wire.write(val);
-  Wire.endTransmission();
-
-  if (num >= 0)
-    Wire.requestFrom(device, num);
-}
-//
-void SCKAmbient::i2c_transaction_reg_val(int device, int reg, int val) {
-  Wire.beginTransmission(device);
-  Wire.write(reg);
-  Wire.write(val);
-  Wire.endTransmission();
-}
-//
-void SCKAmbient::i2c_transaction(int device, int val) {
-  SCKAmbient::i2c_transaction(device, val, -1);
-}
-
-// Miguel
-boolean SCKAmbient::wait_wire_available(int timeout_ms) {
-  unsigned long now = millis();
-
-  while (!Wire.available())
-    if (millis() - now > timeout_ms)
-      return false;
-    
-  return true;
-}
-
-
-
 #if F_CPU == 8000000
 uint16_t SCKAmbient::readSHT21(uint8_t type) {
-  SCKAmbient::i2c_transaction(Temperature, type, 2);      
+  SCKBase::i2c_transaction(Temperature, type, 2);      
 
-  if (!SCKAmbient::wait_wire_available(500))
+  if (!SCKBase::wait_wire_available(500))
     return 0x00;
 
   uint16_t DATA = Wire.read()<<8; 
-  while (!Wire.available()); 
+  SCKBase::wait_wire_available(-1);
   DATA = (DATA|Wire.read()); 
   DATA &= ~0x0003; 
   return DATA;
@@ -509,12 +475,12 @@ void SCKAmbient::getSHT21()
 
 // [ToDo]: remove this function and call i2c directly
 void SCKAmbient::writeADXL(byte address, byte val) {
-  SCKAmbient::i2c_transaction_reg_val(ADXL, address, val);
+  SCKBase::i2c_transaction_reg_val(ADXL, address, val);
 }
 
 //reads num bytes starting from address register on device in to buff array
 void SCKAmbient::readADXL(byte address, int num, byte buff[]) {
-  SCKAmbient::i2c_transaction(ADXL, address);
+  SCKBase::i2c_transaction(ADXL, address);
 
   Wire.beginTransmission(ADXL);     //start transmission to device
   Wire.requestFrom(ADXL, num);      // request 6 bytes from device
@@ -524,7 +490,7 @@ void SCKAmbient::readADXL(byte address, int num, byte buff[]) {
   for (int i=0; i<num; i++)
     buff[i]=0x00;
     
-  SCKAmbient::wait_wire_available(500);
+  SCKBase::wait_wire_available(500);
   
   while(Wire.available() && i < num) //device may write less than requested (abnormal)
   { 
@@ -582,8 +548,6 @@ void SCKAmbient::averageADXL()
 #else
 uint8_t bits[5];  // buffer to receive data
 
-#define TIMEOUT 10000
-
 boolean SCKAmbient::getDHT22()
 {
   // Read Values
@@ -612,16 +576,6 @@ boolean SCKAmbient::getDHT22()
   uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
   if (bits[4] != sum) return false;
   if ((lastTemperature == 0) && (lastHumidity == 0)) return false;
-  return true;
-}
-
-// Miguel
-boolean SCKAmbient::wait_pin_change(int pin, int current_value) {
-  unsigned int loopCnt = TIMEOUT;
-
-  while (digitalRead(pin) == current_value)
-    if (loopCnt-- == 0) return false;
-    
   return true;
 }
 
@@ -686,7 +640,7 @@ uint16_t SCKAmbient::getLight(){
 
   delay(100);
   
-  SCKAmbient::i2c_transaction(bh1730, 0x94, 4);
+  SCKBase::i2c_transaction(bh1730, 0x94, 4);
   DATA0 = Wire.read();
   DATA0=DATA0|(Wire.read()<<8);
   DATA1 = Wire.read();

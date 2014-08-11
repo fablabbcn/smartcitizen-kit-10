@@ -34,6 +34,8 @@
 
 #include <Arduino.h>
 
+#define TIMEOUT 10000
+
 class SCKBase {
 public:
     void begin();
@@ -87,6 +89,15 @@ public:
     int getWiFlyVersion();
     boolean update();
     void repair();
+    
+    /* i2c and pin communication */
+    static void i2c_transaction(int device, int data, int num);
+    static void i2c_transaction(int device, int data);
+    static void i2c_transaction_reg_val(int device, int address, int val);
+    static boolean wait_wire_available(int timeout_ms);
+    //      
+    static boolean wait_pin_change(int pin, int current_value);
+    
     
     /*Timer commands*/
     void timer1SetPeriod(long microseconds);
