@@ -26,6 +26,7 @@ This commands are commands to talk directly to the Wi-Fi module (RN-XV WiFly) ow
 This commands are commands to talk talk to the SCK configuration interface.
 
 * `###`							Wake up the module and enter SCK commands mode
+* `get mac\r`                  Get the MAC address of the kit
 * `get time update\r`          Retrieve the sensor update interval
 * `set time update XXX\r`    	Update the sensor update interval
 * `get number updates\r`    	Retrieve the max number of bulk updates allowed
