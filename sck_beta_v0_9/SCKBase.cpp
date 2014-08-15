@@ -367,19 +367,12 @@ boolean SCKBase::RTCadjust(char *time) {
   }  
   if (data_count == 5)
   {
+    byte data[8] = {0, rtc[5], rtc[4], rtc[3], 0x00, rtc[2], rtc[1], rtc[0]};
+    i2c_write_many(RTC_ADDRESS, data, 8);
+    
 #if F_CPU == 8000000 
-    // ************ SEGUIR
-    byte data[8] = {0, rtc[5], rtc[4], rtc[3], 0x00, rtc[2], rtc[1], rtc[0]};
-    i2c_write_many(RTC_ADDRESS, data, 8);
-    
     delay(4);
-    
-    i2c_transaction_reg_val(RTC_ADDRESS, 0x0E, 0x00);
-#else
-    byte data[8] = {0, rtc[5], rtc[4], rtc[3], 0x00, rtc[2], rtc[1], rtc[0]};
-    i2c_write_many(RTC_ADDRESS, data, 8);
-
-    return true;
+     i2c_transaction_reg_val(RTC_ADDRESS, 0x0E, 0x00);
 #endif
     return true;
   }
