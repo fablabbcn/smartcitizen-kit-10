@@ -22,7 +22,7 @@ The data stored requires some conversions as specified on the table:
 | 4   | Panel        | mV    |  Not required                               |                                             
 | 5   | CO      	  | kOhm  |  Not required                               |                                            
 | 6   | NO2          | kOhm  |  Not required                               |                               
-| 7   | Noise        | mV    |  Apply the conversion table: [CSV](https://gist.github.com/pral2a/d767cc45874361fd38bf) 
+| 7   | Noise        | dB    |  Apply the conversion table from mV to dB: [CSV](https://gist.github.com/pral2a/d767cc45874361fd38bf) 
 | 8   | Date         | DD:MM:YY |  Not required                            |                             
 | 9   | Time         | hh:mm:ss |  Not required                            |                            
 
