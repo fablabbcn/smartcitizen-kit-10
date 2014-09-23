@@ -1,7 +1,7 @@
 SD data format
 ==============
 
-When using the **SD firmware** on the SCK data is stored as **CSV** (comma separated) file.
+When using the **SD firmware** on the SCK, data is stored as **CSV** (comma separated) file on the SD card.
 
 This is an example of the output file:
 
