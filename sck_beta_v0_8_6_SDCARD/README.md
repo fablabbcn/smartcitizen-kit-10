@@ -3,7 +3,7 @@ SD data format
 
 When using the **SD firmware** on the SCK, data is stored as **CSV** (comma separated) file on the SD card.
 
-This is an example of the output file:
+This is an example of the output file once opened on a spreadsheet application:
 
 | ID | Temp    | ID| Hum     | ID| Light   | ID| Bat   | ID| Panel| ID| CO     | ID| NO2  | ID| Noise| Date       | Time    | 
 |----|---------|---|---------|---|---------|---|-------|---|------|---|--------|---|------|---|------|------------|---------|
