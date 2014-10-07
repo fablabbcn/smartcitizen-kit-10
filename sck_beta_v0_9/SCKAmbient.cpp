@@ -837,24 +837,31 @@ void SCKAmbient::txDebug() {
 }
 
 
+#define buffer_length2  2*buffer_length
 
-static char buffer_int[buffer_length];
+static char buffer_int[buffer_length2];
 byte count_char = 0;
 
-boolean SCKAmbient::addData(byte inByte)
+int SCKAmbient::addData(byte inByte)
   {
-    if (inByte == '\r')  
+    if (count_char>(buffer_length2))
+      {
+        for (int i=0; i<buffer_length2; i++) buffer_int[i] = 0x00;
+        count_char = 0;
+        return -1;
+      }
+    else if (inByte == '\r')  
       {
          buffer_int[count_char] = inByte;
          buffer_int[count_char + 1] = 0x00;
          count_char = 0;
-         return true;
+         return 1;
       }
     else if((inByte != '\n')&&(inByte != '#')&&(inByte != '$'))
       {
         buffer_int[count_char] = inByte;
         count_char = count_char + 1;
-        return false;
+        return 0;
       }
     else if ((inByte == '#')||(inByte == '$'))
       {
@@ -864,10 +871,10 @@ boolean SCKAmbient::addData(byte inByte)
           {
             buffer_int[count_char] = 0x00;
             count_char = 0;
-            return true;
+            return 1;
           }
       } 
-    return false;
+    return 0;
   }
 
     
@@ -924,7 +931,8 @@ void SCKAmbient::serialRequests()
       if (Serial.available())
       {
         byte inByte = Serial.read();
-        if (addData(inByte)) 
+        int check_data = addData(inByte);
+        if (check_data==1) 
           {
             if (base_.checkText("###", buffer_int)) { debugON= true; temp_mode = sensor_mode; sensor_mode = OFFLINE; } //Serial.println(F("AOK"));} //Terminal SCK ON
             else if (base_.checkText("exit", buffer_int)) {
@@ -977,6 +985,7 @@ void SCKAmbient::serialRequests()
               address_eeprom = EE_ADDR_APIKEY;
             } 
           }
+        else if (check_data == -1) Serial.println("Invalid command.");
         if (serial_bridge) Serial1.write(inByte); 
       }
       else if (serial_bridge)
