@@ -761,6 +761,7 @@ int SCKBase::checkWiFly() {
       if(update()); //Wifly Updated.
       else state = 2; //Update Fail.
       reset();
+      return state;
      }   
     else return 0; //WiFly up to date.
   }
