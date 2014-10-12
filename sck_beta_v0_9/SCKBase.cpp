@@ -757,9 +757,8 @@ int SCKBase::checkWiFly() {
   {
     if (ver < WIFLY_LATEST_VERSION)
      {
-      byte state = 1;
-      if(update()); //Wifly Updated.
-      else state = 2; //Update Fail.
+      if(update()) return 1; //Wifly Updated.
+      else return 2; //Update Fail.
       reset();
      }   
     else return 0; //WiFly up to date.
