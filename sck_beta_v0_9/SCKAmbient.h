@@ -73,7 +73,7 @@ private:
   void updateSensors(byte mode);
   uint16_t readSHT21(uint8_t type);
   boolean DhtRead(uint8_t pin);
-  boolean addData(byte inByte);
+  int addData(byte inByte);
   boolean printNetWorks(unsigned int address_eeprom);
   void addNetWork(unsigned int address_eeprom, char* text);
 };
