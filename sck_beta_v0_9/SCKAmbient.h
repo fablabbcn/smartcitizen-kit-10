@@ -280,7 +280,6 @@ private:
    **/  
   boolean addData(byte inByte);
   
-  
   /**
    * @brief Debug function to print the WiFi networks
    * @param inByte : address of the EEPROM where the number of networks is stored
