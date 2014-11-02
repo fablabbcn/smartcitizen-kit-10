@@ -29,6 +29,16 @@
 
 #define NUM_TESTS 6
 
+/*
+ * The following classes are concrete derived classes from
+ * SCKTestBase and they implement the read_sensor() virtual method.
+ * 
+ * Therefore, there for each sensor there is a different derived class.
+*/
+
+/**
+ * @brief Test class for the light level sensor
+ **/
 class LightTest: public SCKTestBase {
 public:
   LightTest(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -38,6 +48,9 @@ public:
   }
 };
 
+/**
+ * @brief Test class for the noise level sensor
+ **/
 class NoiseTest: public SCKTestBase {
 public:
   NoiseTest(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -47,6 +60,9 @@ public:
   }
 };
 
+/**
+ * @brief Test class for the CO gas level sensor
+ **/
 class COTest: public SCKTestBase {
 public:
   COTest(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -57,6 +73,9 @@ public:
   }
 };
 
+/**
+ * @brief Test class for the NO2 level sensor
+ **/
 class NO2Test: public SCKTestBase {
 public:
   NO2Test(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -67,6 +86,9 @@ public:
   }
 };
 
+/**
+ * @brief Test class for the temperature level sensor
+ **/
 class TemperatureTest: public SCKTestBase {
 public:
   TemperatureTest(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -77,6 +99,9 @@ public:
   }
 };
 
+/**
+ * @brief Test class for the humidity level sensor
+ **/
 class HumidityTest: public SCKTestBase {
 public:
   HumidityTest(const char *name, bool can_be_zero) : SCKTestBase(name, can_be_zero) {};
@@ -87,10 +112,18 @@ public:
   }
 };
 
-//
+/*
+ * The following class is simple a wrapper to run all tests
+*/
 
+/**
+ * @brief Wrapper class to run all tests
+ **/
 class SCKTestSuite {
 public:
+  /**
+   * @brief Runs all tests
+   **/
   void run_all_tests();
 private:
 };

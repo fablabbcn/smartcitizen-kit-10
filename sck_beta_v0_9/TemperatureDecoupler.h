@@ -32,12 +32,21 @@
 class TemperatureDecoupler{
 
   public:
-  
+
+    /**
+     * @brief Initialization of the battery tracker
+     *
+     **/  
 	void setup(){
 		_prevBattery = 0;
 		filter.setup(0.3);
 	}
 
+    /**
+     * @brief Updates the battery status and charge level
+     * 
+     * @param battery : battery level
+     **/  
 	void update( uint16_t battery ){
 
 		//Serial.println( "# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #" );
@@ -80,6 +89,10 @@ class TemperatureDecoupler{
 		lastChargingState = charging;
 	}
 
+    /**
+     * @brief Gets the compensation value to should be subtracted from the temperature sensor
+     * 
+     **/  
 	short int getCompensation(){
 		return (short int) (filter.getVal() * BATTERY_HEATUP_MAX);
 	}

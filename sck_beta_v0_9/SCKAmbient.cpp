@@ -896,7 +896,7 @@ boolean SCKAmbient::addData(byte inByte)
 }
 
 
-boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
+void SCKAmbient::printNetWorks(unsigned int address_eeprom)
 {
   int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
   if (nets_temp>0) {

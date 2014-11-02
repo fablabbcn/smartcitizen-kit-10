@@ -38,16 +38,27 @@ private:
 	float val;
 
 public:
+	/**
+	 * @brief Constructor
+	 **/
 	AccumulatorFilter(){
 		val = GHETTO_VAL;
 		upSpeed = 0.5f;
 	}
 
+	/**
+	 * @brief Sets the upSpeed velocity
+	 *
+	 * @param upSpeed_ : upSpeed velocity
+	 **/
 	void setup(float upSpeed_){
 		val = 0.0f;
 		upSpeed = upSpeed_;
 	}
 
+	/**
+	 * @brief Go up
+	 **/
 	void goUp(){
 		//Serial.println( "goUP!");
 		if (val <= GHETTO_VAL){
@@ -56,6 +67,9 @@ public:
 		val *= (1.0f + upSpeed * 2.0f * (1.0f - val) );
 	}
 
+	/**
+	 * @brief Go down
+	 **/
 	void goDown(){
 		//Serial.println( "goDown!");
 		if (val > 1.0f - GHETTO_VAL) {
@@ -64,10 +78,16 @@ public:
 		val /= (1.0f + upSpeed * 2.0f * (1.0f - val) );
 	}
 
+	/**
+	 * @brief Getter: obtain value
+	 **/
 	float getVal(){
 		return val;
 	}
 
+	/**
+	 * @brief Getter: obtain speed
+	 **/
 	float getSpeed(){
 		return upSpeed;
 	}
