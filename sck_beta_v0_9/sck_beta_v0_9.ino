@@ -30,14 +30,31 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include "SCKAmbient.h"
+#include "Constants.h"
+#include "SCKTestSuite.h"
 
 void setup() {
   ambient_.begin();
-  ambient_.ini();
+  
+  #ifndef TESTMODE
+    ambient_.ini();
+  #endif
+  
+  #ifdef TESTMODE
+    SCKTestSuite test_suite;
+    
+    while (true) {
+      test_suite.run_all_tests();
+      Serial.println("\n*** Repeating test suite in 30s...\n");
+      delay(30*1000);
+    }
+  #endif
 }
 
-void loop() {  
-  ambient_.execute();
+void loop() {
+  #ifndef TESTMODE
+    ambient_.execute();
+  #endif
 }
 
 

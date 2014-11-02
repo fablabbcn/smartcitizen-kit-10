@@ -152,9 +152,9 @@ void SCKAmbient::ini()
   TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    //Time between transmissions in sec.
   NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Number of readings before batch update
   nets = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
-  
+
   sleep = (TimeUpdate*NumUpdates >= 60);
-  
+
   if (nets==0)
   {
     sleep = false;
@@ -486,12 +486,12 @@ void SCKAmbient::readADXL(byte address, int num, byte buff[]) {
   Wire.requestFrom(ADXL, num);      // request 6 bytes from device
 
   int i = 0;
-  
+
   for (int i=0; i<num; i++)
     buff[i]=0x00;
-    
+
   SCKBase::wait_wire_available(500);
-  
+
   while(Wire.available() && i < num) //device may write less than requested (abnormal)
   { 
     buff[i] = Wire.read();           // read a byte
@@ -599,7 +599,7 @@ boolean SCKAmbient::DhtRead(uint8_t pin)
   // get ACK or timeout
   if (!SCKAmbient::wait_pin_change(pin, LOW)) return false;
   if (!SCKAmbient::wait_pin_change(pin, HIGH)) return false;
-  
+
   // read Ouput - 40 bits => 5 bytes
   for (int i=0; i<40; i++)
   {
@@ -639,7 +639,7 @@ uint16_t SCKAmbient::getLight(){
   Wire.endTransmission();
 
   delay(100);
-  
+
   SCKBase::i2c_transaction(bh1730, 0x94, 4);
   DATA0 = Wire.read();
   DATA0=DATA0|(Wire.read()<<8);
