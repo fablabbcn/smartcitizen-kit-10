@@ -278,7 +278,7 @@ private:
    * @param inByte : byte to add
    * @return True if end of line
    **/  
-  boolean addData(byte inByte);
+  int addData(byte inByte);
   
   /**
    * @brief Debug function to print the WiFi networks

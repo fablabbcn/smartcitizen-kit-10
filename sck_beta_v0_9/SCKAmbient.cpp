@@ -900,21 +900,7 @@ int SCKAmbient::addData(byte inByte)
           }
       } 
     return 0;
-  }
-  else if ((inByte == '#')||(inByte == '$'))
-  {
-    buffer_int[count_char] = inByte;
-    count_char = count_char + 1;
-    if (count_char == 3) 
-    {
-      buffer_int[count_char] = 0x00;
-      count_char = 0;
-      return true;
-    }
-  } 
-  return false;
 }
-
 
 void SCKAmbient::printNetWorks(unsigned int address_eeprom)
 {
