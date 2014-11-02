@@ -41,13 +41,17 @@ void setup() {
   #endif
   
   #ifdef TESTMODE
+  #if F_CPU == 8000000
     SCKTestSuite test_suite;
     
     while (true) {
       test_suite.run_all_tests();
       Serial.println("\n*** Repeating test suite in 30s...\n");
-      delay(30*1000);
+      delay(30*1000); // ms
     }
+  #else
+    Serial.println("***TEST MODE NOT AVAILABLE FOR THIS CPU");
+  #endif
   #endif
 }
 
