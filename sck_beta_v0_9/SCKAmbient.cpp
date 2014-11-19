@@ -326,7 +326,7 @@ void SCKAmbient::ini()
         else  Serial.print("MICS5525 correction VH: ");
         Serial.print(readVH(device));
         Serial.println(" mV");
-        Vc = (float)average(Sensor)*Vcc/1023; //mV 
+        Vc = (float)base_.average(Sensor)*Vcc/1023; //mV 
         current_measure = Vc/Rc; //mA 
         if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
         else Serial.print("MICS5525 current adjusted: ");
