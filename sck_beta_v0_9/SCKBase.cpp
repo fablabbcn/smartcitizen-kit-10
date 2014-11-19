@@ -553,6 +553,7 @@ boolean SCKBase::connect()
     if (readData(EE_ADDR_NUMBER_NETS, INTERNAL)<1) return false;
     if(enterCommandMode())
     {    
+      sendCommand(F("set comm remote 0")); // FFR Hide Hello message
       sendCommand(F("set wlan join 1")); // Disable AP mode
       sendCommand(F("set ip dhcp 1")); // Enable DHCP server
       sendCommand(F("set ip proto 10")); //TCP mode and HTML mode
