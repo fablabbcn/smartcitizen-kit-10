@@ -550,33 +550,33 @@ uint8_t bits[5];  // buffer to receive data
 
 boolean SCKAmbient::getDHT22()
 {
-  // Read Values
-  int rv = DhtRead(IO3);
-  if (!rv)
-  {
-    lastHumidity    = DHTLIB_INVALID_VALUE;  // invalid value, or is NaN prefered?
-    lastTemperature = DHTLIB_INVALID_VALUE;  // invalid value
-    return rv;
-  }
+		// Read Values
+		int rv = DhtRead(IO3);
+		if (rv != true)
+		{
+			  lastHumidity    = DHTLIB_INVALID_VALUE;  // invalid value, or is NaN prefered?
+			  lastTemperature = DHTLIB_INVALID_VALUE;  // invalid value
+			  return rv;
+		}
 
-  // Convert and Store
-  lastHumidity    = word(bits[0], bits[1]);
+		// Convert and Store
+		lastHumidity    = word(bits[0], bits[1]);
 
-  if (bits[2] & 0x80) // negative temperature
-  {
-    lastTemperature = word(bits[2]&0x7F, bits[3]);
-    lastTemperature *= -1.0;
-  }
-  else
-  {
-    lastTemperature = word(bits[2], bits[3]);
-  }
+		if (bits[2] & 0x80) // negative temperature
+		{
+			lastTemperature = word(bits[2]&0x7F, bits[3]);
+			lastTemperature *= -1.0;
+		}
+		else
+		{
+			lastTemperature = word(bits[2], bits[3]);
+		}
 
-  // Test Checksum
-  uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
-  if (bits[4] != sum) return false;
-  if ((lastTemperature == 0) && (lastHumidity == 0)) return false;
-  return true;
+		// Test Checksum
+		uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];
+		if (bits[4] != sum) return false;
+		if ((lastTemperature == 0)&&(lastHumidity == 0))return false;
+		return true;
 }
 
 boolean SCKAmbient::DhtRead(uint8_t pin)
