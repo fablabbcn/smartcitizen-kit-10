@@ -151,6 +151,8 @@ I2C ADDRESSES
   #define MCP1               0x2E
   // Address of the mcp2  that controls the microfone pickup:
   #define MCP2               0x2F
+    // Address of the mcp3 Ajust the battery charge:
+  #define MCP3             0x2D
   // Address of the light sensor:
   #define bh1730             0x29
  // Address of the sht21:
