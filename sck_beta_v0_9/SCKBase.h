@@ -50,7 +50,6 @@ public:
     boolean compareData(char* text, char* text1);
     void writeMCP(byte deviceaddress, byte address, int data );
     int readMCP(int deviceaddress, uint16_t address );
-    float readCharge();
     void writeCharge(int current);
     //
     void writeEEPROM(uint16_t eeaddress, uint8_t data);

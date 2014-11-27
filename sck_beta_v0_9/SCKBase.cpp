@@ -222,21 +222,6 @@ int SCKBase::readMCP(int deviceaddress, uint16_t address ) {
 }
 
 #if F_CPU == 8000000 
-  #define MCP3               0x2D    // Direction of the mcp3 Ajust the battary charge
-float SCKBase::readCharge() {
-  float resistor = kr*readMCP(MCP3, 0x00)/1000;    
-  float current = 1000./(2+((resistor * 10)/(resistor + 10)));
-  #if debugBASE
-    Serial.print("Resistor : ");
-    Serial.print(resistor);
-    Serial.print(" kOhm, ");  
-    Serial.print("Current : ");
-    Serial.print(current);
-    Serial.println(" mA");  
-  #endif
-  return(current);
-}
-
 void SCKBase::writeCharge(int current) {
   if (current < 100) current = 100;
   else if (current > 500) current = 500;
