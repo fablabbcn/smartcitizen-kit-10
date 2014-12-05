@@ -15,7 +15,7 @@ Smart Citizen Kit
 
 ### Quick start
 
-* Visit the project main documentation. [docs.smartcitizen.me](https://docs.smartcitizen.me)
+* Visit the project main documentation. [docs.smartcitizen.me](http://docs.smartcitizen.me)
 
 * Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
 
