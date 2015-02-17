@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <SPI.h>
-#include <SD.h>
+//#include <SD.h>
+#include <SdFat.h>
 #include <EEPROM.h>
 #include "Constants.h"
 
@@ -13,9 +14,10 @@ uint32_t timetransmit = 0;
 uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
 uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
 
-File myFile;
-long SENSORvalue[8];
+SdFat sd;
+SdFile myFile;
 
+long SENSORvalue[8];
 
 void setup() {
   sckBegin();
@@ -24,7 +26,7 @@ void setup() {
   #if debuggEnabled
     Serial.print(F("Initializing SD card..."));
   #endif 
-    if (!SD.begin(11)) {
+    if (!sd.begin(SS, SPI_FULL_SPEED)) {
   #if debuggEnabled
       Serial.println(F("initialization failed!"));
   #endif 
@@ -33,11 +35,11 @@ void setup() {
   #if debuggEnabled
     Serial.println(F("initialization done."));   
   #endif 
-    if (!SD.exists("post.csv")) {
+    if (!sd.exists("post.csv")) {
   #if debuggEnabled
       Serial.println(F("Creating post.csv..."));
   #endif 
-      myFile = SD.open("post.csv", FILE_WRITE);
+      myFile.open("post.csv", FILE_WRITE);
       myFile.close();
     }  
 }

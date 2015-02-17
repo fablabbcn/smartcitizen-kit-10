@@ -1,7 +1,7 @@
 void txSD() {
-  myFile = SD.open("post.csv", FILE_WRITE);
+  
   // if the file opened okay, write to it:
-  if (myFile) {
+  if (myFile.open("post.csv", FILE_WRITE)) {
   #if debuggEnabled
       Serial.println(F("Writing...")); 
   #endif 
