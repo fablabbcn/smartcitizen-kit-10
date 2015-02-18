@@ -1,5 +1,5 @@
 void txSD() {
-  
+  Serial.println("*** txSD ***");
   // if the file opened okay, write to it:
   if (myFile.open("post.csv", FILE_WRITE)) {
   #if debuggEnabled
@@ -13,10 +13,10 @@ void txSD() {
       else if (i<8) dec = 100;
       else dec = 1;
 
-      myFile.print(i);
-      myFile.print(" ");
+      //myFile.print(i);
+      //myFile.print(" ");
       myFile.print(SENSORvalue[i]/dec);
-      myFile.print(" ");
+      myFile.print(",");
     }
     myFile.print(sckRTCtime());
     myFile.println();
@@ -38,7 +38,7 @@ char* SENSOR[10]={
   "Nitrogen Dioxide: ",
   "Noise: ",
   "Wifi Spots: ",
-  "UTC: " 
+  "UTC: "
 };
 
 char* UNITS[10]={
@@ -95,6 +95,7 @@ void updateSensorsSD() {
 }
 
 void txDebugSD() {
+  Serial.println("*** txDebugSD ***");
   float dec = 0;
   for(int i=0; i<8; i++) 
   {
@@ -111,5 +112,25 @@ void txDebugSD() {
   Serial.println(F("*******************"));     
 }
 
+void txHeader() { 
+  Serial.println("*** txHeader ***");
+  // if the file opened okay, write to it:
+  if (myFile.open("post.csv", FILE_WRITE)) {
+  #if debuggEnabled
+      Serial.println(F("Writing...")); 
+  #endif 
+    for (int i=0; i<8; i++)
+    {
+      myFile.print(SENSOR[i]);
+      myFile.print(", ");
+    }
+    myFile.print(SENSOR[9]);
+    // close the file:
+    myFile.close();
+    #if debuggEnabled
+        Serial.println(F("Closing...")); 
+    #endif 
+  }
+}
 
 
