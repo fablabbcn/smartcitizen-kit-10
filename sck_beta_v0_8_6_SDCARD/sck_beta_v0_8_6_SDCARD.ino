@@ -20,7 +20,7 @@ boolean csvInit = false;
 
 void setup() {
   
-  delay(10000);
+  delay(5000);
   
   sckBegin();
   sckConfig();

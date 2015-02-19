@@ -29,16 +29,16 @@ void txSD() {
 }
 
 char* SENSOR[10]={
-  "Temperature: ",
-  "Humidity: ",
-  "Light: ",
-  "Battery: ",
-  "Solar Panel: ",
-  "Carbon Monxide: ",
-  "Nitrogen Dioxide: ",
-  "Noise: ",
-  "Wifi Spots: ",
-  "UTC: "
+  "Temperature",
+  "Humidity",
+  "Light",
+  "Battery",
+  "Solar Panel",
+  "Carbon Monxide",
+  "Nitrogen Dioxide",
+  "Noise",
+  "Wifi Spots",
+  "UTC"
 };
 
 char* UNITS[10]={
@@ -103,7 +103,8 @@ void txDebugSD() {
     else if (i<7) dec = 1000;
     else if (i<8) dec = 100;
     else dec = 1;
-    Serial.print(SENSOR[i]); 
+    Serial.print(SENSOR[i]);
+    Serial.print(": "); 
     Serial.print((SENSORvalue[i])/dec); 
     Serial.println(UNITS[i]);
   }
@@ -125,6 +126,7 @@ void txHeader() {
       myFile.print(", ");
     }
     myFile.print(SENSOR[9]);
+    myFile.println();
     // close the file:
     myFile.close();
     #if debuggEnabled
