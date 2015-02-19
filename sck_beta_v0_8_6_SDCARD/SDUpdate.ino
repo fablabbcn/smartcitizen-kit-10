@@ -109,6 +109,7 @@ void txDebugSD() {
     Serial.println(UNITS[i]);
   }
   Serial.print(SENSOR[9]);
+  Serial.print(": "); 
   Serial.println(sckRTCtime());
   Serial.println(F("*******************"));     
 }
@@ -123,6 +124,9 @@ void txHeader() {
     for (int i=0; i<8; i++)
     {
       myFile.print(SENSOR[i]);
+      myFile.print(" (");
+      myFile.print(UNITS[i]);
+      myFile.print(") ");
       myFile.print(", ");
     }
     myFile.print(SENSOR[9]);
