@@ -5,13 +5,14 @@ When using the **SD firmware** on the SCK, data is stored as **CSV** (comma sepa
 
 This is an example of the output file once opened on a spreadsheet application:
 
-| ID | Temp    | ID| Hum     | ID| Light   | ID| Bat   | ID| Panel| ID| CO     | ID| NO2  | ID| Noise| Date       | Time    | 
-|----|---------|---|---------|---|---------|---|-------|---|------|---|--------|---|------|---|------|------------|---------|
-| 0  | 2821.20 | 1 | 4072.00 | 2 | 4413.10 | 3 | 96.40 | 4 | 0.00 | 5 | 94.67  | 6 | 0.65 | 7 | 5.23 | 2000-01-01 | 00:00:02 |
-| 0  | 2784.40 | 1 | 4236.80 | 2 | 5936.70 | 3 | 96.10 | 4 | 0.00 | 5 | 278.27 | 6 | 1.05 | 7 | 2.39 | 2000-01-01 | 00:00:02 |
+| Temperature | Humidity| Light   | Battery | Solar Panel | CO     | NO2  | Noise| UTC			  	    | 
+|-------------|---------|---------|---------|-------------|--------|------|------|----------------------|
+| 2821.20     | 4072.00 | 4413.10 | 96.40   | 0.00        | 94.67  | 0.65 | 5.23 | 2000-01-01  00:00:02 |
+| 2784.40     | 4236.80 | 5936.70 | 96.10   | 0.00        | 278.27 | 1.05 | 2.39 | 2000-01-01  00:00:02 |
 
 
-The data stored requires some conversions as specified on the table:
+The data stored requires some conversions as specified on the table, if you set DataRaw to false in Constants.h file
+the conversions will be done into the firmware.
 
 | ID  | Sensor       | Units | Conversion Formula                                 
 |-----|--------------|-------|---------------------------------------------|
