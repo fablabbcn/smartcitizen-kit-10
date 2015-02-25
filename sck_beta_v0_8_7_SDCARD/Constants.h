@@ -1,6 +1,6 @@
 #define debuggSCK     false
 #define decouplerComp true
-#define DataRaw       true
+#define DataRaw       false
 
 #define AWAKE  4 //Despertar WIFI
 #define PANEL A8 //Entrada panel
@@ -20,7 +20,7 @@
 #define S4 A0 //MICRO
 #define S5 A1 //LDR
 
-#define DEFAULT_TIME_UPDATE  "60"     //Tiempo entre actualizacion y actualizacion
+#define DEFAULT_TIME_UPDATE  "30"     //Tiempo entre actualizacion y actualizacion
 #define DEFAULT_MIN_UPDATES  "1"      //Minimo numero de actualizaciones antes de postear
 
 #define POST_MAX             20       //Maximo numero de posteos a la vez
