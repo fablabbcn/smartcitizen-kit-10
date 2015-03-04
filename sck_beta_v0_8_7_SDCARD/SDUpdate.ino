@@ -1,7 +1,7 @@
 void txSD() {
-  myFile = SD.open("post.csv", FILE_WRITE);
+  Serial.println("*** txSD ***");
   // if the file opened okay, write to it:
-  if (myFile) {
+  if (myFile.open("post.csv", FILE_WRITE)) {
   #if debuggEnabled
       Serial.println(F("Writing...")); 
   #endif 
@@ -13,10 +13,10 @@ void txSD() {
       else if (i<8) dec = 100;
       else dec = 1;
 
-      myFile.print(i);
-      myFile.print(" ");
+      //myFile.print(i);
+      //myFile.print(" ");
       myFile.print(SENSORvalue[i]/dec);
-      myFile.print(" ");
+      myFile.print(",");
     }
     myFile.print(sckRTCtime());
     myFile.println();
@@ -29,16 +29,16 @@ void txSD() {
 }
 
 char* SENSOR[10]={
-  "Temperature: ",
-  "Humidity: ",
-  "Light: ",
-  "Battery: ",
-  "Solar Panel: ",
-  "Carbon Monxide: ",
-  "Nitrogen Dioxide: ",
-  "Noise: ",
-  "Wifi Spots: ",
-  "UTC: " 
+  "Temperature",
+  "Humidity",
+  "Light",
+  "Battery",
+  "Solar Panel",
+  "Carbon Monxide",
+  "Nitrogen Dioxide",
+  "Noise",
+  "Wifi Spots",
+  "UTC"
 };
 
 char* UNITS[10]={
@@ -95,6 +95,7 @@ void updateSensorsSD() {
 }
 
 void txDebugSD() {
+  Serial.println("*** txDebugSD ***");
   float dec = 0;
   for(int i=0; i<8; i++) 
   {
@@ -102,14 +103,40 @@ void txDebugSD() {
     else if (i<7) dec = 1000;
     else if (i<8) dec = 100;
     else dec = 1;
-    Serial.print(SENSOR[i]); 
+    Serial.print(SENSOR[i]);
+    Serial.print(": "); 
     Serial.print((SENSORvalue[i])/dec); 
     Serial.println(UNITS[i]);
   }
   Serial.print(SENSOR[9]);
+  Serial.print(": "); 
   Serial.println(sckRTCtime());
   Serial.println(F("*******************"));     
 }
 
+void txHeader() { 
+  Serial.println("*** txHeader ***");
+  // if the file opened okay, write to it:
+  if (myFile.open("post.csv", FILE_WRITE)) {
+  #if debuggEnabled
+      Serial.println(F("Writing...")); 
+  #endif 
+    for (int i=0; i<8; i++)
+    {
+      myFile.print(SENSOR[i]);
+      myFile.print(" (");
+      myFile.print(UNITS[i]);
+      myFile.print(") ");
+      myFile.print(", ");
+    }
+    myFile.print(SENSOR[9]);
+    myFile.println();
+    // close the file:
+    myFile.close();
+    #if debuggEnabled
+        Serial.println(F("Closing...")); 
+    #endif 
+  }
+}
 
 

@@ -15,7 +15,7 @@ Smart Citizen Kit
 
 ### Quick start
 
-* Visit the project main documentation. [docs.smartcitizen.me](https://docs.smartcitizen.me)
+* Visit the project main documentation. [docs.smartcitizen.me](http://docs.smartcitizen.me)
 
 * Visit the project [wiki](https://github.com/fablabbcn/Smart-Citizen-Kit/wiki)
 
@@ -31,7 +31,7 @@ Smart Citizen Kit
 
 The current firmware version in use is `0.9.0`.
 
-We currently support the SD card version on as a diferent firmware `SDCARD`, currently `0.8.6 SDCARD`.
+We currently support the SD card version on as a diferent firmware `SDCARD`, currently `0.8.7 SDCARD`.
 
 You can see the release history [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases)
 

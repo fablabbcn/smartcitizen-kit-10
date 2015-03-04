@@ -235,9 +235,11 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
       #if DataRaw
         lastTemperature = sckReadSHT21(0xE3); // Datos en RAW para conversion por plataforma
         lastHumidity    = sckReadSHT21(0xE5); // Datos en RAW para conversion por plataforma
-      #else
-        lastTemperature = (-46.85 + 175.72 / 65536.0 * (float)(sckReadSHT21(0xE3)))*10;  // formula original
-        lastHumidity    = (-6.0 + 125.0 / 65536.0 * (float)(sckReadSHT21(0xE5)))*10;     // formula orginal      
+      #else 
+        //T = -53 + 175.72 / 65536.0 * ( Traw * 10 )
+        lastTemperature = (-50 + 175.72 / 65536.0 * ( sckReadSHT21(0xE3))) * 10 ;
+        //H = 7 + 125.0 / 65536.0 * ( Hraw * 10 )
+        lastHumidity = (4 + 125.0 / 65536.0 * ( sckReadSHT21(0xE5))) * 10 ; 
       #endif
       
       #if debuggSCK
@@ -482,7 +484,24 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     
     #if F_CPU == 8000000 
       #if DataRaw==false
-        dB = 0.0222*mVRaw + 58.006; 
+        //dB = 0.0222*mVRaw + 58.006; 
+        //aplicar aqui conversion
+        if(mVRaw<=5){
+          dB = (5+44*mVRaw)/5;
+        }else if(mVRaw<=15){
+          dB = (195 + 8*mVRaw)/5;
+        }else if(mVRaw<=40){
+          dB = (1220 + 4*mVRaw)/20;
+        }else if(mVRaw <= 300){
+          //y=69.242283950617+0.038618827160494x
+          dB = (69.242283950617 + 0.038618827160494*mVRaw);
+        }else if(mVRaw <= 950){
+          //y=76.744423542059+0.013363343187315x
+          dB = (76.744423542059+0.013363343187315*mVRaw);
+        } else {
+          //y=80.167357356927+0.0085240259833374x
+          dB = (80.167357356927+0.0085240259833374*mVRaw);
+        }
       #endif
     #else
       #if DataRaw==false
