@@ -1,0 +1,1810 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="about:blank" />
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="cache-control" content="public" />
+
+<title>WiFly Module Configuration</title>
+
+<style type="text/css">
+
+.tabberlive .tabbertabhide {
+ display:none;
+}
+.tabber {}
+.tabberlive {
+}
+ul.tabbernav
+{
+ margin:0;
+ margin-left: 10px;
+ padding: 3px 0;
+ border-bottom: none;
+ font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+ font-size: 20px;
+}
+ul.tabbernav li
+{
+ list-style: none;
+ margin: 0;
+ display: inline;
+}
+ul.tabbernav li a
+{
+ padding: 3px 0.5em;
+ margin-left: 3px;
+ background: #08202A;
+ text-decoration: none;
+}
+ul.tabbernav li a:link { color: #66d5f0; }
+ul.tabbernav li a:hover
+{
+ color: #FFF;
+ background: #00131E;
+}
+ul.tabbernav li.tabberactive a
+{
+ background-color: #00131E;
+ border-bottom-color: #00131E;
+}
+ul.tabbernav li.tabberactive a:hover
+{
+ background: white;
+}
+.tabberlive .tabbertab {
+ padding:5px;
+ background-color: #00131E;
+}
+
+.tabberlive .tabbertab h2 {
+ display:none;
+}
+.tabberlive .tabbertab h3 {
+ display:none;
+}
+
+
+.non-display-tab {
+    display:none;
+}
+
+
+</style>
+
+<style type="text/css">
+
+#apResultsList>ul {
+    margin: 0;
+    padding: 2px;
+    list-style:none;
+    width: 97%;
+    border:1px solid #000000;
+    border-radius: 4px;
+}
+
+#apResultsList>ul>li {
+    display:block;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    list-style:none;
+    height:24px;
+    width: 100%;
+
+    /* Decorative CSS */
+    background-color:#08202A;
+
+    /* CSS3 Transition Effect */
+    transition: height 0.3s ease-in-out;
+    -moz-transition: height 0.3s ease-in-out;
+    -webkit-transition: height 0.3s ease-in-out;
+    -o-transition: height 0.3s ease-in-out;
+
+}
+
+/* Rounded corners for the first link of the menu/submenus */
+#apResultsList > ul li:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+/* Rounded corners for the last link of the menu/submenus */
+#apResultsList > ul li:last-child{
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+
+
+#apResultsList>ul>li>h3 {
+    display:block;
+    margin: 0;
+    padding:1px 0px 4px 4px;
+    height:22px;
+
+    /* Decorative CSS */
+    border-top: 1px dotted #898989;
+    font-family:  Helvetica, Arial, sans-serif;
+    color: #66d5f0;
+    text-decoration: none;
+    text-shadow: 0 1px 0 #fff;
+    font-size: 13px;
+    font-weight: normal;
+
+    /* Background & effects */
+    background: #fafafa;
+
+}
+
+/* Rounded corners for the first link of the menu/submenus */
+#apResultsList > ul li:first-child>h3 {
+    border-top: 0;
+}
+
+/* Rounded corners for the last link of the menu/submenus */
+#apResultsList > ul li:last-child>h3{
+    border-bottom: 0px;
+}
+
+
+#apResultsList.populatedApResultsList>ul>li:hover, #apResultsList>ul>li.ap-result-selected {
+    height: 220px;
+}
+
+#apResultsList.populatedApResultsList:hover>ul>li:hover>h3, #apResultsList>ul>li.ap-result-selected>h3 {
+    color: #000000;
+    border-radius: 4px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .3);
+    background: #1155ff;
+    background: -webkit-linear-gradient(bottom, #54cdf1, #1155ff);
+    background: -ms-linear-gradient(bottom, #54cdf1, #1155ff); 
+    background: -moz-linear-gradient(bottom, #54cdf1, #1155ff);
+    background: -o-linear-gradient(bottom, #54cdf1, #1155ff);
+}
+
+#apResultsList>ul>li>h3:hover {
+    cursor:pointer;
+}
+
+
+
+#apResultsList>ul>li>div {
+    margin: 1px 1px 10px 1px;
+    padding:2px;
+   
+    border-radius: 4px;
+    background: #dddddd;
+    background: -webkit-linear-gradient(top, #ffffff, #dddddd);
+    background: -ms-linear-gradient(top, #ffffff, #dddddd); 
+    background: -moz-linear-gradient(top, #ffffff, #dddddd);
+    background: -o-linear-gradient(top, #ffffff, #dddddd);
+    border: 1px solid #898989;
+    
+    font-family:  Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    text-shadow: 0 1px 0 #fff;
+    font-size: 16px;
+}
+
+
+</style>
+
+
+
+<style type="text/css">
+html{    background:#0A2F3D;
+}
+body{
+ margin:17px 0 15px 0;
+ padding:0;
+ text-align:center;
+ font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif
+}
+
+article,aside,figure,figure img,figcaption,hgroup,footer,header,nav,section,video,object,output{
+ display:block
+} 
+
+
+
+#container {
+    text-align:left;
+    margin:0 auto 10px auto;width:92%
+}
+
+.reboot-buttons {
+    margin:20px 14px 0 14px;
+ padding:0 0 20px 0;
+
+}
+
+.show_adv_chbox {
+    clear:both;float:right;
+}
+ 
+ 
+.info {
+ display:inline-block;clear:both;
+ margin:0 0 10px 0;
+ padding:0 1% 1.1em 1%;
+}
+
+.content-area {
+ margin:20px 14px 0 14px;
+ padding:0 0 20px 0;
+ position:relative
+}
+.content-area strong {font-weight:normal;font-size:30px;margin:0 0 5px 0;clear:left}
+.content-area div{font-size:20px;line-height:135%;color:#555}
+
+
+.tab-area {width:50%}
+.terminal-area { width:99%; }
+     
+.tab-area ul, .terminal-area ul{
+    width:99%;
+    margin:15px;padding:0;
+    list-style-type:none
+    }*
+
+
+     
+.section{
+    clear:both;padding:7px 0 0 0;
+    width:auto !important;
+    position:static
+ }
+.section strong{
+    font-size:140%;
+    color: #66d5f0;
+    margin-bottom: 15px;
+}
+.section div{
+    font-size:90%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+ }
+
+.section-spacer {
+    margin-bottom: 15px;
+}
+
+input.small,select.small{width:25%}input.medium,select.medium{width:50%}input.large,select.large{width:96%}
+input.inline{width:85%; display:inline}
+
+label.desc{width:auto !important;margin-bottom:4px;float:none}*
+label.desc{display:block !important; color:#fff}
+                                                                                   
+          
+.field {
+    position:relative;
+    margin-bottom: 10px
+}
+     
+          
+                                                                                    
+.instruct{
+ position:absolute;
+ top:0;left:0;z-index:1000;
+ width:90%;margin:20px 0 0 8px;
+ padding:8px 10px 10px 10px;
+ border:1px solid #565656;
+ background:#fefefe;
+ border-radius: 4px;
+ visibility:hidden;opacity:0;font-size:105%;
+ -webkit-transition:opacity 350ms ease-out;
+ -moz-transition:opacity 350ms ease-out;
+ -o-transition:opacity 350ms ease-out;
+ }
+.instruct small, .invalid small {
+ line-height:120%;
+ font-size:80%;
+ color:#444
+ }
+li.focused .instruct, li.field:hover .instruct{
+ left:100%;visibility:visible;opacity:1
+ }
+
+
+.invalid{
+ visibility:hidden;
+ position:absolute;
+ top:0;left:100%;z-index:1000;
+ width:90%;margin:20px 20px 15px 8px;
+ padding:8px 10px 10px 10px;
+ border:1px solid #FF0000;
+ background:#FFBBBB;
+ font-size:105%;
+ border-radius: 4px;
+ }  
+ 
+ .result{
+margin-top: -40px !important;
+ }    
+ 
+ .success_msg{
+ position:absolute;
+ top:0;left:100%;z-index:1000;
+ width:90%;margin:-60px 20px 15px 8px;
+ padding:8px 10px 10px 10px;
+ border:1px solid #000000;
+ background:#33FFCC;
+ font-size:105%;
+  border-radius: 4px;
+ } 
+
+.textwrapper
+{
+    margin:5px 0;
+    padding:3px;
+    border-width: 1px;
+    border-color: #000;
+    border-style:solid;
+    background-color: #ffffff;
+}
+
+textarea
+{
+    width:100%;
+    height:100%;
+}
+
+input[readonly] { color: #000; }
+
+
+textarea#setter { 
+    left: -99999px;
+    position: absolute;
+}
+           
+#terminal {
+    margin: 8px;
+    cursor: text;
+    height: 350px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+            
+#writer {
+    font: 10px "Lucida Console", Monaco, monospace;
+    color: #000;
+}
+            
+#getter {
+    margin: 5px;
+}
+    
+.module_link_frame {visibility: hidden; width:1px; height:1px}  
+
+
+#info_apps {
+    list-style-type: circle;
+    
+}
+
+        
+</style>
+
+
+
+<script type="text/javascript">
+// data structures
+    var TAB_IDS = {
+        NET_CONFIG: 0,
+        INFO: 1,
+        TERMINAL: 2,
+        MOD_CONFIG: 3
+    };
+    
+    var CMD_TYPES = {
+        NONE: 0,
+        SCAN: 1,
+        SAVE_NET_CFG: 2,
+        TEST_AP: 3,
+        REBOOT: 4,
+        SAVE_MOD_CFG: 5
+    };
+    
+    var app_info = {
+        logoLoaded: false,
+        ssid: ""
+    };
+
+    var cfg = {
+        tabber : null,
+        currentTab: TAB_IDS.NET_CONFIG,
+        enterTimer: null,
+        miscTimer: null,
+        updateTimer: null,
+        lastCmd: CMD_TYPES.NONE,
+        cmdResponses: 0,
+        cmdResends: 0,
+        waitingForResult: false
+    };
+    
+</script>
+
+
+<script type="text/javascript">
+// helper functions
+    function $(elid){
+        return document.getElementById(elid);
+    }
+    function dbgMsg(msg) {
+        //$('dbg').innerHTML = $('dbg').innerHTML + msg + "<br />";
+    }
+    function TRACE(msg) {
+        dbgMsg("TRACE: " + msg);
+    }
+// misc functions
+    function enterEvent() {
+        var setter = $('setter');
+        
+        if(document.createEvent) {
+            var evt = document.createEvent('UIEvents');
+            evt.initUIEvent('keypress', true, true, window, 0);
+            evt.keyCode = 13; // '\n'
+            evt.charCode = 13;
+            setter.dispatchEvent(evt);
+        } else {
+            var evt = document.createEventObject();
+            evt.keyCode = 13; // '\n'
+            setter.fireEvent( 'onkeypress', evt );
+        }
+        
+        clearInterval(cfg.enterTimer);
+        cfg.enterTimer = null;
+        
+        var terminal = $('terminal');
+        terminal.scrollTop = terminal.scrollHeight + terminal.scrollTop;
+    }
+    
+    function tabberLoad(argsObj){
+        var term = $('setter');
+        term.value = '';
+        
+        cfg.tabber = argsObj.tabber;
+        cfg.miscTimer = setInterval(loadLinkPage, 750);
+        setDHCPEnabled(true);
+    }
+    function loadLinkPage() {
+         clearInterval(cfg.miscTimer);
+         cfg.miscTimer = null;
+          $("module_link").src="link.html";
+         startUpdateTimer();
+    }
+    function setActiveTab(args) {
+         if(cfg.currentTab == args.index)
+            return;
+        cfg.currentTab = args.index;
+        //checkScanResults();
+    }
+    
+// timer functions
+    function stopUpdateTimer() {
+        TRACE("stopUpdateTimer");
+        if(cfg.updateTimer != null) {
+            clearInterval(cfg.updateTimer);
+        }   
+        cfg.updateTimer = null;     
+    }
+    function startUpdateTimer() {
+        TRACE("startUpdateTimer");
+        stopUpdateTimer();
+        cfg.updateTimer = setInterval(sendUpdate, 4000);
+    }
+    function sendUpdate() {
+        var form;
+        if((form = getSendForm()) != null) {
+            form.submit();
+            TRACE("sendUpdate SUCCESS");
+            return true;
+        }
+        TRACE("sendUpdate FAIL");
+        return false;
+    }
+    function getSendForm() {
+         TRACE("getSendForm");
+        try {
+            var iframe = window.frames[0];
+            doc = iframe.document;
+            return doc.getElementById('cmd_send_form');
+        } catch(err) {
+           
+            reloadLinkPage();
+        } 
+        return null;       
+    }
+    function reloadLinkPage() {
+        TRACE("reloadLinkPage");
+        if(cfg.miscTimer)
+                clearInterval(cfg.miscTimer);
+        cfg.miscTimer = setInterval(loadLinkPage, 750);
+    }
+    
+</script>
+
+<script type="text/javascript">
+
+    function processResponseData(responseStr) {
+        var terminalIgnore = false;
+        cfg.cmdResponses++;
+        if(responseStr != null) {
+            if(responseStr.indexOf("APP_INFO_START") != -1) {
+                populateAppInfo(responseStr);
+                terminalIgnore = true;
+            } 
+            if(responseStr.indexOf("SET_ACTIVE_TAB:") != -1) {
+                setCurrentTab(responseStr);
+                terminalIgnore = true;
+            }
+        }
+        
+       dbgMsg("response str: " + responseStr);
+
+        if(!terminalIgnore && cfg.currentTab == TAB_IDS.TERMINAL) {
+            populateTerminal(responseStr);
+        } else if((cfg.currentTab == TAB_IDS.NET_CONFIG) ||
+        (cfg.currentTab == TAB_IDS.MOD_CONFIG)) {
+            processConfigResponseData(responseStr);
+        } 
+            
+    }
+    
+    function setCurrentTab(str) {
+        var index = str.indexOf("SET_ACTIVE_TAB:");
+        
+        str = str.substring(index);
+        
+        if(str.indexOf('terminal') != -1) {
+            cfg.tabber.tabShow(TAB_IDS.TERMINAL);
+            cfg.currentTab = TAB_IDS.TERMINAL;
+        } else if(str.indexOf('netcfg') != -1) {
+            cfg.tabber.tabShow(TAB_IDS.NET_CONFIG);
+            cfg.currentTab = TAB_IDS.NET_CONFIG;
+            //checkScanResults();
+        } else if(str.indexOf('info') != -1) {
+            cfg.tabber.tabShow(TAB_IDS.INFO);
+            cfg.currentTab = TAB_IDS.INFO;
+        } else if(str.indexOf('modcfg') != -1) {
+            cfg.tabber.tabShow(TAB_IDS.MOD_CONFIG);
+            cfg.currentTab = TAB_IDS.MOD_CONFIG;
+        }        
+    }   
+    
+    function populateAppInfo(responseStr) {
+        var index = responseStr.indexOf("APP_INFO_START");
+        responseStr = responseStr.substring(index);   
+        
+        var lines = responseStr.split("~");
+      
+        populateInfoTab(lines);
+        populateNetConfigTab(lines);
+        populateModConfigTab(lines);
+        
+        showAdvancedTabs((parseInt(lines[13]) > 0));
+    }
+    
+    function populateInfoTab(lines) {
+        $('info_mac').value=lines[1];
+        var bat = parseFloat(parseInt(lines[2]));
+        $('info_bat').value= (bat / 1000000.0).toFixed(2) + 'V';
+        $('info_mod_type').value=lines[3];
+        
+        var apps = lines[4];
+        
+        apps = apps.split('|');
+        var list = $('info_apps');
+        list.innerHTML = '';
+        
+        for(var i = 0; i < apps.length; i++) {
+            if(apps[i] != null && apps[i].length > 0) {
+                var li = document.createElement("li");
+                li.innerHTML=apps[i];
+                list.insertBefore(li, list.firstChild);
+            }
+        }
+    }
+    
+    function populateNetConfigTab(lines) {
+        app_info.ssid = lines[5];
+        
+        $('net_ssid').value=lines[5];
+        setDHCPEnabled((lines[6]=='1'));
+        $('net_ip').value=lines[7];
+        $('net_gw').value=lines[8];
+        $('net_nm').value=lines[9];
+    }
+    
+    function populateModConfigTab(lines) {
+
+        $('mod_id').value=lines[10];
+        
+        var baud = parseInt(lines[11]);
+        var options = $('mod_uart_baud').options;
+        for(var i = 0; i < options.length; i++) {
+            if(options[i].value ==baud) {
+                options[i].selected = true;
+            }
+        }
+        var flow = parseInt(lines[12]);
+        var options = $('mod_uart_flow').options;
+        for(var i = 0; i < options.length; i++) {
+            if(options[i].value ==flow) {
+                options[i].selected = true;
+            }
+        }
+    }
+    
+    function showAdvancedTabs(show) {
+        var i = 0;
+        ul = document.getElementsByTagName("ul");
+        while (element = ul[i++]) {
+            if (element.className == "tabbernav") {
+                element.parentNode.removeChild(element);
+                break;
+            }
+        }
+        
+        if(show) {
+            $('show_advanced').checked = true
+            //$('tab-info').className = 'tabbertab';
+            $('tab-modcfg').className = 'tabbertab';
+            $('tab-terminal').className = 'tabbertab';
+        } else {
+            //$('tab-info').className = 'non-display-tab';
+            $('tab-modcfg').className = 'non-display-tab';
+            $('tab-terminal').className = 'non-display-tab';
+        }
+        tabberAutomatic(tabberOptions);
+    }
+
+    
+    function populateTerminal(responseStr) {
+        if(responseStr == null) return;
+        responseStr = responseStr.replace(/~/g, "<br />");
+        var setter = $('setter');
+        setter.value =  setter.value + responseStr;
+        if(cfg.enterTimer)
+            clearInterval(cfg.enterTimer);
+        cfg.enterTimer = setInterval(enterEvent, 10);
+    }
+    
+    
+    
+    function processConfigResponseData(str) {
+
+        if(str != null) {
+            if(str.indexOf("SAVE_NET_CONFIG:") != -1) {
+                processSaveNetConfigResult(str);
+            }
+            else if(str.indexOf("SAVE_MOD_CONFIG:") != -1) {
+                processSaveModConfigResult(str);
+            }
+            else if(str.indexOf("SCAN:Found") != -1) {
+                processScanInfo(str);
+            }
+            else if(str.indexOf("AP_TEST_RESULT:") != -1) {
+                processApTestResult(str);
+            } 
+        } 
+
+        if(cfg.waitingForResult && cfg.cmdResponses > 1) {
+            if(cfg.lastCmd == CMD_TYPES.SAVE_NET_CFG) {
+                processSaveNetConfigResult(null);
+            } else if(cfg.lastCmd == CMD_TYPES.SAVE_MOD_CFG) {
+                processSaveModConfigResult(null);
+            } else if(cfg.lastCmd == CMD_TYPES.SCAN) {
+                processScanInfo(null);
+            } else if(cfg.lastCmd == CMD_TYPES.TEST_AP) {
+                processApTestResult(null);
+            }
+        }  
+    }    
+    
+    function processApTestResult(str) {
+        var index;
+
+        if(str == null) {
+            if(cfg.cmdResends < 3) {
+                issueTestApCmd(true);
+            } else {
+                setWaitDialogErrorMsg("Timed-out while waiting for access point test result");
+                cfg.waitingForResult = false;
+            }
+        }
+        else if((index = str.indexOf("AP_TEST_RESULT:")) != -1) {
+            var msg = $('net_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            str = str.substring(index);
+            cfg.waitingForResult = false;
+            hideWaitDialog();
+            
+            
+            if(str.indexOf("NOT_FOUND") != -1) {
+                msg.className = "invalid result";
+                msg.innerHTML += "<small>Test FAILED!<br />Failed to find Access Point with specified SSID.</small>";
+            } else if(str.indexOf("AUTH") != -1) {
+                msg.className = "invalid result";
+                msg.innerHTML += "<small>Test FAILED!<br />Failed to authenticate with Access Point.</small>";
+            } else if(str.indexOf("TIMEOUT") != -1) {
+                msg.className = "invalid result";
+                msg.innerHTML += "<small>Test FAILED!<br />Timed out while trying to authenticate with Access Point.</small>";
+            } else if(str.indexOf("SUCCESS") != -1) {
+                msg.className = "success_msg";
+                msg.innerHTML = "<small>Test PASSED!<br />SSID and passphrase are valid.</small>";
+            }    
+        } 
+    }
+    function processSaveNetConfigResult(str) {
+        var index;
+ 
+         if(str == null) {
+            if(cfg.cmdResends < 3) {
+                issueSaveNetConfigCmd(true);
+            } else {
+                setWaitDialogErrorMsg("Timed-out while waiting for network configuration save result");
+                cfg.waitingForResult = false;
+            }
+        }       
+        else if((index = str.indexOf("SAVE_NET_CONFIG:")) != -1) {
+            var msg = $('net_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            str = str.substring(index);
+            cfg.waitingForResult = false;
+            hideWaitDialog();
+            
+            if(str.indexOf("FAILED") != -1) {
+                msg.className = "invalid result";
+                msg.innerHTML = "<small>FAILED to save!<br />There was an error saving your network configuration</small>";
+            } else if(str.indexOf("SUCCESS") != -1) {
+                msg.className = "success_msg";
+                msg.innerHTML = "<small>Configuration Saved!<br />Your network configuration parameters have been saved</small>";
+            }    
+        }              
+    }
+    function processSaveModConfigResult(str) {
+        var index;
+ 
+         if(str == null) {
+            if(cfg.cmdResends < 3) {
+                issueSaveModConfigCmd(true);
+            } else {
+                setWaitDialogErrorMsg("Timed-out while waiting for module configuration save result");
+                cfg.waitingForResult = false;
+            }
+        }       
+        else if((index = str.indexOf("SAVE_MOD_CONFIG:")) != -1) {
+            var msg = $('mod_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            str = str.substring(index);
+            cfg.waitingForResult = false;
+            hideWaitDialog();
+            
+            if(str.indexOf("FAILED") != -1) {
+                msg.className = "invalid result";
+                msg.innerHTML = "<small>FAILED to save!<br />There was an error saving your module configuration</small>";
+            } else if(str.indexOf("SUCCESS") != -1) {
+                msg.className = "success_msg";
+                msg.innerHTML = "<small>Configuration Saved!<br />Your module configuration parameters have been saved</small>";
+            }    
+        }              
+    }
+    function hideNetConfigCmdResultMsg() {
+        $('net_config_cmd_result').style.visibility = 'hidden';
+        $('mod_config_cmd_result').style.visibility = 'hidden';
+    }
+    
+    
+    function processScanInfo(str) {
+        var index;
+        
+        dbgMsg("TRACE: processScanInfo");
+        
+        if(str == null) {
+            if(cfg.cmdResends < 3) {
+                issueScanCmd(true);
+            } else {
+                setWaitDialogErrorMsg("Timed-out while waiting for list of available access points");
+                cfg.waitingForResult = false;
+            }
+        }         
+        else if((index = str.indexOf("SCAN:Found")) != -1)
+        {
+            str = str.substring(index);
+            var lines = str.split("~");
+            var l = lines[0].split(" ");
+            var count = parseInt(l[1]);
+    
+            if(count == 0 && cfg.cmdResends < 3) {
+                dbgMsg('foud 0');
+                issueScanCmd(true);
+                return;
+            }            
+            
+            cfg.waitingForResult = false;
+            hideWaitDialog();
+            
+            var i;
+            var list = $('net_ap_results');
+            
+            if(count == 0) {
+                list.innerHTML = '<h3>No Access Points Found!</h3>';
+                $('apResultsList').className = "";
+                return;
+            }
+            
+            $('apResultsList').className = "populatedApResultsList";
+            list.innerHTML = ''; // clear out existing items
+            
+            for(i = 1; i < lines.length; i++) {
+                if(lines[i].indexOf("SCAN:END") != -1) break;
+                addAPToList(list, lines[i]);
+            }                   
+        }
+    }  
+    
+    function addAPToList(list, apStr) {
+        var info = apStr.split(",");
+        
+        
+         var li = document.createElement("li");
+         li.id = "net_ssid-" + info[8];
+         li.innerHTML = "<h3>" + info[8] + "</h3>" +
+                            "<div>" +
+                                "<ul>" +
+                                    "<li>Channel: " + info[1] + "</li>" +
+                                    "<li>RSSI: " + info[2] + " dBm</li>" +
+                                    "<li>Security Mode: " + getSecurityModeStr(info[3]) + "</li>" +
+                                    "<li>Capabilities: " + getCapabilitiesStr(info[4]) + "</li>" +
+                                    "<li>WPA Config: " + getWPAConfigStr(info[5]) + "</li>" +
+                                    "<li>WPS Config: " + getWPSConfigStr(info[6]) + "</li>" +
+                                    "<li>MAC: " + info[7] + "</li>" +
+                                "</ul>" +
+                            "</div>";
+         
+        li.onclick = function(){updateSSIDTextInput(this, info[8]);};               
+        if(info[8] == app_info.ssid) {
+            li.className = 'ap-result-selected';                    
+        }
+        list.insertBefore(li, list.firstChild);
+    }   
+    function getSecurityModeStr(mode) {
+        var x = parseInt(mode);
+        var retval;
+        
+        switch(x) {
+            case 0: retval = "Open"; break;
+            case 1: retval = "WEP"; break;
+            case 2: retval = "WPA1"; break;
+            case 3: retval = "WPA Mixed"; break;
+            case 4: retval = "WPA2"; break;
+            case 5: retval = "DOT1x WEP"; break;
+            case 6: retval = "DOT1x WPA1"; break;
+            case 7: retval = "DOT1x WPA Mixed"; break;
+            case 8: retval = "DOT1x WPA2"; break;
+            case 9: retval = "DOT1x Open"; break;
+            default: retval = "Unknown"; break;
+        }
+        return retval;
+    }
+    function getCapabilitiesStr(mode) {
+        var x = parseInt(mode);
+        var retval = '';
+        
+        if(x & 0x2000) {
+            retval =  retval + "Short Preamble Allowed, ";
+        }
+        if(x & 0x0004) {
+            retval =  retval + "Short Timeslot, ";
+        }       
+        if(x & 0x0100) {
+            retval =  retval + "ESS, ";
+        } 
+        if(x & 0x0200) {
+            retval =  retval + "IBSS, ";
+        }         
+        if(x & 0x1000) {
+            retval =  retval + "WEP, ";
+        } 
+        
+        if(retval.length > 0)
+            retval = retval.substr(0, retval.length-2);
+             
+        return retval;
+    }   
+    function getWPAConfigStr(mode) {
+        var x = parseInt(mode);
+        var retval = '';
+        
+        if(x & 0x01) {
+            retval =  retval + "Ver1, ";
+        }
+        if(x & 0x02) {
+            retval =  retval + "Ver2, ";
+        }       
+        if(x & 0x04) {
+            retval =  retval + "Uni-TKIP, ";
+        } 
+        if(x & 0x08) {
+            retval =  retval + "Uni-AES CCMP, ";
+        }  
+        if(x & 0x10) {
+            retval =  retval + "Broad-TKIP, ";
+        }  
+        if(x & 0x20) {
+            retval =  retval + "Broad-AES CCMP, ";
+        }         
+        if(retval.length > 0)
+            retval = retval.substr(0, retval.length-2);       
+ 
+        return retval;
+    }    
+    function getWPSConfigStr(mode) {
+        var x = parseInt(mode);
+        var retval = '';
+        
+        if(x & 0x40) {
+            retval =  retval + "Supported, ";
+        }
+        if(x & 0x80) {
+            retval =  retval + "Push Button Supported, ";
+        }       
+        if(x & 0x20) {
+            retval =  retval + "Selectd Registrar, ";
+        } 
+        if(x & 0x02) {
+            retval =  retval + "Push Button Mode Active, ";
+        }  
+        
+        if(retval.length > 0)
+            retval = retval.substr(0, retval.length-2);       
+ 
+        return retval;
+    }
+    
+    function issueScanCmd(resend) {
+        dbgMsg("TRACE: issueScanCmd");
+        stopUpdateTimer();
+        if(!resend) {
+            displayWaitDialog("Finding available access points", true);
+            hideNetConfigCmdResultMsg();
+        }
+        if(!setWiflyCmd("scan", false) || !issueCmd(CMD_TYPES.SCAN, resend)) {
+            setWaitDialogErrorMsg("Eror issuing SCAN command.");
+        } 
+    }
+    
+    //function checkScanResults() {
+    //   if((cfg.currentTab == TAB_IDS.NET_CONFIG) && ( $('net_ap_results').getElementsByTagName("li").length == 1)) {
+    //       issueScanCmd(false);
+    //   }
+    //}
+    
+    function issueSaveNetConfigCmd(resend) {
+        
+        if(!validateNetConfig(true)) {
+            var msg = $('net_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            msg.className = "invalid result";
+            msg.innerHTML = "<small>Invalid Network Parameters!<br />Please ensure you have valid network parameters before saving.</small>";
+            return;
+        }
+        
+        var form;
+        if((form = getSendForm()) == null) {
+            setWaitDialogErrorMsg("Error issuing SAVE command.", true);
+            return;
+        }   
+                
+        stopUpdateTimer();      
+        
+        if(!resend) {
+            displayWaitDialog("Saving network configuration", true);
+            hideNetConfigCmdResultMsg();
+        }
+
+        form.innerHTML = "<input type=\"hidden\" name=\"update-net-config\" value=\"1\" />";
+        populateNetConfigCmdParams(form);
+
+        if(!issueCmd(CMD_TYPES.SAVE_NET_CFG, resend)) {
+            setWaitDialogErrorMsg("Error issuing SAVE command");
+        }
+    }
+    function issueSaveModConfigCmd(resend) {
+        
+        if(!validateModConfig()) {
+            var msg = $('mod_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            msg.className = "invalid result";
+            msg.innerHTML = "<small>Invalid Module Parameters!<br />Please ensure you have valid module parameters before saving.</small>";
+            return;
+        }
+        
+        var form;
+        if((form = getSendForm()) == null) {
+            setWaitDialogErrorMsg("Error issuing SAVE command.", true);
+            return;
+        }   
+                
+        stopUpdateTimer();      
+        
+        if(!resend) {
+            displayWaitDialog("Saving module configuration", true);
+            hideNetConfigCmdResultMsg();
+        }
+
+        form.innerHTML = "<input type=\"hidden\" name=\"update-mod-config\" value=\"1\" />";
+        form.innerHTML += "<input type=\"hidden\" name=\"dev_id\" value=\""+ $('mod_id').value + "\" />";
+        form.innerHTML += "<input type=\"hidden\" name=\"baud\" value=\""+ $('mod_uart_baud').value + "\" />";
+        form.innerHTML += "<input type=\"hidden\" name=\"flow\" value=\""+ $('mod_uart_flow').value + "\" />";
+
+        if(!issueCmd(CMD_TYPES.SAVE_MOD_CFG, resend)) {
+            setWaitDialogErrorMsg("Error issuing SAVE command");
+        }
+    }
+    
+    function issueTestApCmd(resend) {
+        
+        if(!validateNetConfig(false)) {
+            var msg = $('net_config_cmd_result');
+            msg.style.visibility = 'visible';
+            msg.innerHTML = "";
+            msg.className = "invalid result";
+            msg.innerHTML = "<small>Invalid AP Parameters!<br />Please ensure you have valid AP parameters before running test.</small>";
+            return;
+        }
+
+        var form;
+        if((form = getSendForm()) == null) {
+            setWaitDialogErrorMsg("Error issuing TEST AP command");
+            return;
+        } 
+        
+        stopUpdateTimer();
+        
+        if(!resend) {
+            displayWaitDialog("Testing access point configuration", true);
+            hideNetConfigCmdResultMsg();
+        }
+        
+        form.innerHTML = "<input type=\"hidden\" name=\"test-ap\" value=\"1\" />";
+        populateNetConfigCmdParams(form);
+        
+        if(!issueCmd(CMD_TYPES.TEST_AP, resend)) {
+            setWaitDialogErrorMsg("Error issuing TEST AP command");
+        }
+
+    }
+    
+    function populateNetConfigCmdParams(form) {
+        form.innerHTML += "<input type=\"hidden\" name=\"ssid\" value=\""+ $('net_ssid').value + "\" />";
+        if($('net_pass').value.length > 0)
+            form.innerHTML += "<input type=\"hidden\" name=\"pass\" value=\""+ $('net_pass').value + "\" />";
+        
+        if($('net_dhcp').checked) {
+            form.innerHTML += "<input type=\"hidden\" name=\"dhcp\" value=\"1\" />"; 
+        } else {
+            form.innerHTML += "<input type=\"hidden\" name=\"dhcp\" value=\"0\" />"; 
+            form.innerHTML += "<input type=\"hidden\" name=\"ip\" value=\""+ $('net_ip').value + "\" />";
+            form.innerHTML += "<input type=\"hidden\" name=\"gw\" value=\""+ $('net_gw').value + "\" />";
+            form.innerHTML += "<input type=\"hidden\" name=\"nm\" value=\""+ $('net_nm').value + "\" />";
+        }        
+    }
+    
+    function issueRebootCmd(resend) {
+        if(!confirm("Are you sure you want to Exit this Web Configuration App?")) {
+            return;
+        } 
+        hideNetConfigCmdResultMsg();
+        
+        var form;
+        if((form = getSendForm()) == null) {
+            setWaitDialogErrorMsg("Error issuing REBOOT command");
+            return;
+        }            
+        stopUpdateTimer();
+        displayWaitDialog("Exiting Web Configuration Application<br />The module must reboot to Web Config App to continue use of this page.", false);
+        
+        form.innerHTML = "<input type=\"hidden\" name=\"exit-web-config\" value=\"1\" />";
+        
+        if(!issueCmd(CMD_TYPES.REBOOT, resend)) {
+            setWaitDialogErrorMsg("Error issuing REBOOT command");
+        }
+    }
+    
+
+    function issueCmd(cmdId, resend) {
+        if(!resend || cfg.lastCmd != cmdId) {
+            cfg.cmdResends = 0;
+            cfg.lastCmd = cmdId;
+            cfg.waitingForResult = true;
+        } else {    
+            cfg.cmdResends++;        
+        }
+        cfg.cmdResponses = 0;
+          
+        if(sendUpdate()) {
+            startUpdateTimer();   
+            TRACE("issueCmd SUCCESS");  
+            return true;
+        } else {
+            TRACE("issueCmd FAIL");  
+            return false;  
+        }
+    }
+    
+    function setWiflyCmd(cmd, send) {
+        var form;
+        if((form = getSendForm()) != null) {
+            form.elements[0].value = cmd;
+            if(send) {
+                form.submit();
+            }
+            return true;
+        } 
+        return false;      
+    }
+    
+
+</script>
+
+<script type="text/javascript">
+
+    function hideErrorMsgs() {
+        var inputs = document.getElementsByTagName('input');
+        
+        for(var i = 0; i < inputs.length; i++) {
+            var errMsg = $(inputs[i].id + '_error');
+            
+            if(errMsg != null) {
+                errMsg.style.visibility = 'hidden';
+            }
+        }
+        
+    }
+    
+    function validateNetConfig(saving) {
+        var valid = true;
+        
+        if(!validateTextField($('net_ssid', 32))) {
+            valid = false;
+        }
+        if(!saving && !validateTextField($('net_pass', 32))) {
+            valid = false;
+        }
+        if(!$('net_dhcp').checked) {
+            if(!validateIP($('net_ip'))) {
+                valid = false;
+            }
+            if(!validateIP($('net_gw'))) {
+                valid = false;
+            }
+            if(!validateIP($('net_nm'))) {
+                valid = false;
+            }
+        }
+        
+        return valid;
+    }
+    
+    function validateModConfig() {
+        var valid = true;
+        
+        if(!validateTextField($('mod_id'), 16)) {
+            valid = false;
+        }
+        
+        return valid;
+    }
+    
+    
+    function updateSSIDTextInput(item, ssid) {
+        inputObj = $( 'net_ssid' ); 
+        inputObj.value = ssid;
+        
+        var results = $('net_ap_results').getElementsByTagName("li");
+        for(var i = 0; i < results.length; i++) {
+            results[i].className = "";
+        }
+        item.className = "ap-result-selected";
+        var errorMsg = $( 'net_ssid_error' ); 
+        errorMsg.style.visibility = 'hidden';
+        hideNetConfigCmdResultMsg();
+        return false;    
+    } 
+
+    function validateTextField(textInput, maxLen) {
+        var isValid = true
+        var val = textInput.value;
+        
+        var errorMsg = $( textInput.id + '_error' ); 
+        if(val.length == 0 || val.length > maxLen)
+        {
+            errorMsg.style.visibility = 'visible';
+            isValid = false;
+        }
+        else
+       {
+            errorMsg.style.visibility = 'hidden';
+        }  
+        
+        
+        return isValid;     
+    }
+    
+    function validateIP(textInput) {
+        isValid = true;
+        
+        //Remember, this function will validate only Class C IP.
+        //change to other IP Classes as you need
+        ipaddr = textInput.value.replace( /\s/g, "") //remove spaces for checking
+        var re = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/; //regex. check for digits and in
+                                              //all 4 quadrants of the IP
+        if (re.test(ipaddr)) {
+            //split into units with dots "."
+            var parts = ipaddr.split(".");
+            //if any part is greater than 255
+            for (var i=0; i<parts.length; i++) {
+                if (parseInt(parseFloat(parts[i])) > 255){
+                    isValid = false;
+                }
+            }
+        } else {
+            isValid = false;
+        }
+
+        var errorMsg = $( textInput.id + '_error' ); 
+        if(!isValid)
+        {
+            errorMsg.style.visibility = 'visible';
+        }
+        else
+        {
+            errorMsg.style.visibility = 'hidden';
+        }
+
+        
+        return isValid;
+    }
+
+    function setDHCPEnabled(checked) {
+        
+        if(checked) {
+            $('dhcp_params').style.display='none';
+            $('net_dhcp').checked = true;
+            hideErrorMsgs();     
+        } else {
+            $('dhcp_params').style.display='';
+            $('net_dhcp').checked = false;
+        }
+    }
+</script>
+
+
+<script type="text/javascript">
+
+    function nl2br(txt){
+        return txt.replace(/\n/g, "<br />");
+    }
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+    function writeit(from, e) {
+        var w = $("writer");
+        var tw = from.value;
+        w.innerHTML = nl2br(tw);
+    }
+    
+    function cmdInputCheckForEnter(from, e) {
+        e = e || window.event;
+        var keycode = e.keyCode || e.which;
+        if(keycode == 13) {
+            var cmd = $('cmd-input').value;
+            if(cmd.length > 0) {
+                setWiflyCmd(cmd, true);
+                if(!endsWith(cmd, '\n'))
+                    cmd = '<br /><b>' + cmd + '</b><br />';
+                
+                populateTerminal(cmd);
+                $('cmd-input').value = "";
+            }            
+        }
+    }
+    
+
+    
+    var dialogDisplayTimer;
+    var dialogTimerCounter;
+    var showingErrorMsg;
+    function displayWaitDialog(msg, timeout) {
+        var dark=$('__modular__popup__' );
+        var tabber = $("tabber-area");  
+
+        
+        if (!dark) {
+            var tbody = document.body;
+            var tnode = document.createElement('div');       // Create the layer.
+            tnode.style.position='fixed';                 // Position absolutely
+            tnode.style.overflow='auto';
+            tnode.style.display='none';                      // Start out Hidden
+            tnode.id='__modular__popup__' ;                    // Name it so we can find it later
+            tbody.appendChild(tnode);                        // Add it to the web page
+            dark=document.getElementById('__modular__popup__' );       // Get the object.
+        } else {
+            dark.innerHTML = "";
+        }
+
+        var txt = document.createElement('font');
+        txt.id = 'dialogMsg';
+        txt.style.color ='#FFFFFF';
+        txt.style.fontWeight = 600;
+        txt.style.fontSize = '28px';
+        txt.innerHTML = msg.replace(/\"/g,"\"").replace(/\'/g,"'").replace(/\\/g,">").replace(/\n/g,"<br/>") + '<br />';
+         
+        dark.style.border = "3px solid black";
+        dark.style.borderRadius = "8px";
+        dark.setAttribute('align','center');
+        dark.style.opacity=.9;    
+        dark.style.MozOpacity=.9; 
+        dark.style.filter="alpha(opacity=\"90\")";
+        dark.style.zIndex=100;
+        dark.style.backgroundColor='#99bbee';
+        dark.style.width= '80%';
+        dark.style.height= '25%';
+        dark.style.display='block';
+        dark.style.cursor = 'wait';
+        dark.appendChild(txt);
+        dark.style.left =  '10%';
+        dark.style.top  =  '20%';
+        dark.style.paddingTop = '30px';
+ 
+        tabber.style.opacity= .25;
+        
+        if(dialogDisplayTimer != null)
+            clearInterval(dialogDisplayTimer);
+        showingErrorMsg = false; 
+        if(timeout) {
+            dialogTimerCounter = 0;
+            dialogDisplayTimer = setInterval(dialogDisplayTimerCallback, 1000);
+        }
+            
+    }
+    
+    function setWaitDialogErrorMsg(msg) {
+        displayWaitDialog(msg, true);
+        dialogTimerCounter = 24;
+        showingErrorMsg = true;
+        var dark=$('__modular__popup__' );
+        dark.style.backgroundColor='#FFBBBB';
+        reloadLinkPage();
+    }
+    
+    function dialogDisplayTimerCallback() {
+        dialogTimerCounter++;
+        
+        if(dialogTimerCounter > 26) {
+            hideWaitDialog();
+        } else if(!showingErrorMsg) {
+            var msg = $('dialogMsg');
+            if(dialogTimerCounter == 24) {
+                msg.innerHTML = msg.innerHTML + '<br /><br />WARNING: Timed out while performing action';
+                var dark=$('__modular__popup__' );
+                dark.style.backgroundColor='#FFBBBB';
+            } else if(dialogTimerCounter < 25) {
+                msg.innerHTML = msg.innerHTML + '.';
+            }
+        }
+    }
+    
+    function hideWaitDialog() {
+       var dark=$('__modular__popup__' );
+       if(dark) {
+           var tabber = $("tabber-area"); 
+           dark.style.display='none';
+           dark.innerHTML = "";
+           tabber.style.opacity= 1.0;
+           clearInterval(dialogDisplayTimer);
+       }
+    }
+    
+
+</script>
+
+
+<script type="text/javascript">
+function tabberObj(argsObj)
+{var arg;this.div=null;this.classMain="tabber";
+this.classMainLive="tabberlive";
+this.classTab="tabbertab";
+this.classTabDefault="tabbertabdefault";
+this.classNav="tabbernav";
+this.classTabHide="tabbertabhide";
+this.classNavActive="tabberactive";
+this.titleElements=['h2','h3','h4','h5','h6'];
+this.titleElementsStripHTML=true;
+this.removeTitle=true;
+this.addLinkId=false;
+this.linkIdFormat='<tabberid>nav<tabnumberone>';
+for(arg in argsObj){this[arg]=argsObj[arg];}
+this.REclassMain=new RegExp('\\b'+this.classMain+'\\b','gi');this.REclassMainLive=new RegExp('\\b'+this.classMainLive+'\\b','gi');this.REclassTab=new RegExp('\\b'+this.classTab+'\\b','gi');this.REclassTabDefault=new RegExp('\\b'+this.classTabDefault+'\\b','gi');this.REclassTabHide=new RegExp('\\b'+this.classTabHide+'\\b','gi');this.tabs=new Array();if(this.div){this.init(this.div);this.div=null;}}
+tabberObj.prototype.init=function(e)
+{var
+childNodes,i,i2,t,defaultTab=0,DOM_ul,DOM_li,DOM_a,aId,headingElement;if(!document.getElementsByTagName){return false;}
+if(e.id){this.id=e.id;}
+this.tabs.length=0;childNodes=e.childNodes;for(i=0;i<childNodes.length;i++){if(childNodes[i].className&&childNodes[i].className.match(this.REclassTab)){t=new Object();t.div=childNodes[i];this.tabs[this.tabs.length]=t;if(childNodes[i].className.match(this.REclassTabDefault)){defaultTab=this.tabs.length-1;}}}
+DOM_ul=document.createElement("ul");DOM_ul.className=this.classNav;for(i=0;i<this.tabs.length;i++){t=this.tabs[i];t.headingText=t.div.title;if(this.removeTitle){t.div.title='';}
+if(!t.headingText){for(i2=0;i2<this.titleElements.length;i2++){headingElement=t.div.getElementsByTagName(this.titleElements[i2])[0];if(headingElement){t.headingText=headingElement.innerHTML;if(this.titleElementsStripHTML){t.headingText.replace(/<br>/gi," ");t.headingText=t.headingText.replace(/<[^>]+>/g,"");}
+break;}}}
+if(!t.headingText){t.headingText=i+1;}
+DOM_li=document.createElement("li");t.li=DOM_li;DOM_a=document.createElement("a");DOM_a.appendChild(document.createTextNode(t.headingText));DOM_a.href="javascript:void(null);";DOM_a.title=t.headingText;DOM_a.onclick=this.navClick;DOM_a.tabber=this;DOM_a.tabberIndex=i;if(this.addLinkId&&this.linkIdFormat){aId=this.linkIdFormat;aId=aId.replace(/<tabberid>/gi,this.id);aId=aId.replace(/<tabnumberzero>/gi,i);aId=aId.replace(/<tabnumberone>/gi,i+1);aId=aId.replace(/<tabtitle>/gi,t.headingText.replace(/[^a-zA-Z0-9\-]/gi,''));DOM_a.id=aId;}
+DOM_li.appendChild(DOM_a);DOM_ul.appendChild(DOM_li);}
+e.insertBefore(DOM_ul,e.firstChild);e.className=e.className.replace(this.REclassMain,this.classMainLive);this.tabShow(defaultTab);if(typeof this.onLoad=='function'){this.onLoad({tabber:this});}
+return this;};tabberObj.prototype.navClick=function(event)
+{var
+rVal,a,self,tabberIndex,onClickArgs;a=this;if(!a.tabber){return false;}
+self=a.tabber;tabberIndex=a.tabberIndex;a.blur();if(typeof self.onClick=='function'){onClickArgs={'tabber':self,'index':tabberIndex,'event':event};if(!event){onClickArgs.event=window.event;}
+rVal=self.onClick(onClickArgs);if(rVal===false){return false;}}
+self.tabShow(tabberIndex);return false;};tabberObj.prototype.tabHideAll=function()
+{var i;for(i=0;i<this.tabs.length;i++){this.tabHide(i);}};tabberObj.prototype.tabHide=function(tabberIndex)
+{var div;if(!this.tabs[tabberIndex]){return false;}
+div=this.tabs[tabberIndex].div;if(!div.className.match(this.REclassTabHide)){div.className+=' '+this.classTabHide;}
+this.navClearActive(tabberIndex);return this;};tabberObj.prototype.tabShow=function(tabberIndex)
+{var div;if(!this.tabs[tabberIndex]){return false;}
+this.tabHideAll();div=this.tabs[tabberIndex].div;div.className=div.className.replace(this.REclassTabHide,'');this.navSetActive(tabberIndex);if(typeof this.onTabDisplay=='function'){this.onTabDisplay({'tabber':this,'index':tabberIndex});}
+return this;};tabberObj.prototype.navSetActive=function(tabberIndex)
+{this.tabs[tabberIndex].li.className=this.classNavActive;return this;};tabberObj.prototype.navClearActive=function(tabberIndex)
+{this.tabs[tabberIndex].li.className='';return this;};function tabberAutomatic(tabberArgs)
+{var
+tempObj,divs,i;if(!tabberArgs){tabberArgs={};}
+tempObj=new tabberObj(tabberArgs);divs=document.getElementsByTagName("div");for(i=0;i<divs.length;i++){if(divs[i].className&&divs[i].className.match(tempObj.REclassMain)){tabberArgs.div=divs[i];divs[i].tabber=new tabberObj(tabberArgs);}}
+return this;}
+function tabberAutomaticOnLoad(tabberArgs)
+{var oldOnLoad;if(!tabberArgs){tabberArgs={};}
+oldOnLoad=window.onload;if(typeof window.onload!='function'){window.onload=function(){tabberAutomatic(tabberArgs);};}else{window.onload=function(){oldOnLoad();tabberAutomatic(tabberArgs);};}}
+if(typeof tabberOptions=='undefined'){tabberAutomaticOnLoad();}else{if(!tabberOptions['manualStartup']){tabberAutomaticOnLoad(tabberOptions);}}
+document.write('<style type="text/css">.tabber{display:none;}<\/style>');
+</script>
+
+
+
+</head>
+<body>
+
+
+
+
+<div id="container">
+
+<!--
+<div id="logo">
+    <h1><span id="roving">Roving </span><span id="networks">Networks</span>
+    </h1>
+</div>
+-->
+
+<div><img src="logo.png" style="margin-top: 10px; margin-left: 30px"/> </div>
+<div class="content-area">
+
+<!--
+<header id="header" class="info">
+<strong>WiFly Configuration</strong>
+<div>Configuration page for the WiFly module</div>
+</header>
+-->
+
+<div class="tabber" id="tabber-area">
+
+     <div class="tabbertab" id="tab-netcfg">
+     <div class="tab-area">
+      <h2>Network Configuration</h2>
+        <ul>
+            <li class="section">
+            <section>
+                <strong>Access Point Configuration</strong>
+                <div>Configuration parameters for joining a network</div>
+            </section>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Available Access Points
+                </label>
+
+                <div id="apResultsList">
+                    <ul id="net_ap_results">
+                        <li>
+                            <h3>Press 'Refresh List' button to populate</h3>
+                        </li>
+                    </ul>
+                </div>
+
+                <input type="button" value="Refresh List" onclick="issueScanCmd(false);" />
+                <div class="instruct"><small>This is a list of available access points to which the module may connect</small></div>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Access Point SSID
+                </label>
+                <div >
+                    <input id="net_ssid" type="text" class="field text large" value="" maxlength="255" tabindex="2"  
+                    onkeypress="validateTextField(this, 32);" onchange="validateTextField(this, 32);" />
+                </div>
+                <div class="instruct"><small>The SSID of the AP you'd like to join.
+                                             <br /><i>NOTE:</i> you may select the AP from the list above</small></div>
+                <div class="invalid" id="net_ssid_error" ><small>Invalid SSID.<br />Must be less than or equal to 32 characters.</small></div>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Passphrase
+                </label>
+                <div >
+                    <input id="net_pass" type="text" class="field text large" value="" maxlength="255" tabindex="3" 
+                    onkeypress="validateTextField(this, 32);" onchange="validateTextField(this, 32);"/>
+                </div>
+                <div class="instruct"><small>The passphrase needed to join the specified AP. 
+                                         <br /><i>NOTE:</i> this may be optional for the selected AP.</small></div>
+                <div class="invalid" id="net_pass_error" ><small>Invalid passphrase.<br />Must be less than or equal to 32 characters.</small></div>                
+            </li>
+            <div class="section-spacer"> </div>
+            <li class="section">
+            <section>
+                <strong>Network Configuration</strong>
+                <div>Configuration parameters for the network (Note: DHCP is recommended)</div>
+            </section>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Use DHCP  
+                </label>
+                <div>
+                    <input id="net_dhcp" style="display: inline; margin-right: 15px; margin-bottom: 15px" type="checkbox" onclick="setDHCPEnabled(this.checked);" /> 
+                    <label for="net_dhcp">Check to enable DHCP</label>
+                </div>
+                <div class="instruct"><small>When checked, the module will automatically setup its network configuration
+                                             <br /><i>NOTE:</i> this is the recommended option</small></div>
+            </li>
+            <li><div id="dhcp_params">
+            <ul>
+            <li class="field">
+                <label class="desc">
+                    IP Address
+                </label>
+                <div >
+                    <input id="net_ip" type="text" class="field text large" value="" maxlength="255" tabindex="2"  
+                    onkeypress="validateIP(this);" onchange="validateIP(this);" />
+                </div>
+                <div class="instruct"><small>The static IP of the module</small></div>
+                <div class="invalid" id="net_ip_error" ><small>Invalid IP.<br />Must be a valid IP address.</small></div>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Gateway
+                </label>
+                <div >
+                    <input id="net_gw" type="text" class="field text large" value="" maxlength="255" tabindex="2"  
+                    onkeypress="validateIP(this);" onchange="validateIP(this);" />
+                </div>
+                <div class="instruct"><small>The gateway address to the network</small></div>
+                <div class="invalid" id="net_gw_error" ><small>Invalid gatway.<br />Must be a valid IP address.</small></div>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Network Mask
+                </label>
+                <div >
+                    <input id="net_nm" type="text" class="field text large" value="" maxlength="255" tabindex="2"  
+                    onkeypress="validateIP(this);" onchange="validateIP(this);" />
+                </div>
+                <div class="instruct"><small>The network mask of the network</small></div>
+                <div class="invalid" id="net_nm_error" ><small>Invalid network mask<br />Must be a valid IP address.</small></div>
+            </li>              
+            </ul></div></li>         
+     
+            <li class="field">
+                <!--<input type="button" value="Test Configuration" onclick="issueTestApCmd(false);" />-->
+                <input type="button" value="Save Configuration" onclick="issueSaveNetConfigCmd(false);" />
+                <div class="invalid result" id="net_config_cmd_result" > </div>
+            </li> 
+        </ul>
+
+     </div>
+     </div>
+     
+
+
+     <div class="tabbertab" id="tab-info">
+     <div class="tab-area">
+      <h2>Information</h2>
+        <ul>
+            <li class="section">
+            <section>
+                <strong>WiFly Module Information</strong>
+                <div>Basic module inforamtion</div>
+            </section>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    MAC Address
+                </label>
+                <div >
+                    <input id="info_mac" type="text" class="field text large" value="" readonly="readonly" maxlength="255" tabindex="1" />
+                </div>
+                <div class="instruct"><small>The module's unique MAC address</small></div>
+            </li> 
+            <li class="field">
+                <label class="desc">
+                    Module Type
+                </label>
+                <div >
+                    <input id="info_mod_type" type="text" class="field text large" value="" readonly="readonly" maxlength="255" tabindex="1" />
+                </div>
+                <div class="instruct"><small>The module's hardware type</small></div>
+            </li>               
+            <li class="field">
+                <label class="desc">
+                    Available Applications
+                </label>
+                <div >
+                    <ul id="info_apps"> </ul>
+                </div>
+                <div class="instruct"><small>A list of runnable applications in the module</small></div>
+            </li>                      
+            <li class="field">
+                <label class="desc">
+                    Battery Strength
+                </label>
+                <div >
+                    <input id="info_bat" type="text" class="field text large" value="" readonly="readonly" maxlength="255" tabindex="1" />
+                </div>
+                <div class="instruct"><small>The strength of the battery in volts</small></div>
+            </li>   
+           
+        </ul>
+        
+
+     </div>
+     </div>
+  
+     
+
+     <div class="non-display-tab" id="tab-terminal">
+     <div class="terminal-area">
+      <h2>Terminal</h2>
+        <ul>
+            <li class="section">
+            <section>
+                <strong>WiFly Terminal</strong>
+                <div>A terminal to issue commands to the WiFly module <br />
+                    <small>Note: Type 'help' to display command options</small>
+                </div>
+            </section>
+            </li>
+            <li class="field">
+                <div >
+                   <div class="textwrapper" id="terminal">
+                        <textarea id="setter" tabindex="2" rows="1" cols="1" autocomplete="off" readonly="readonly" onkeypress="writeit(this, event);"> </textarea>
+                        <div id="getter">
+                            <span id="writer"> </span>
+                        </div>
+                   </div>
+                   Command: <input type="text" id="cmd-input" style="width:85%; display:inline" onkeypress="cmdInputCheckForEnter(this, event)"/>
+                </div>
+            </li>
+        </ul>
+
+     </div>
+     </div>
+
+     
+     <div class="non-display-tab" id="tab-modcfg">
+     <div class="tab-area">
+      <h2>Module Configuration</h2>
+        <ul>
+            <li class="section">
+            <section>
+                <strong>WiFly Module Configuration</strong>
+                <div>Configurable parameters for the WiFly module</div>
+            </section>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Device ID
+                </label>
+                <div >
+                    <input id="mod_id" type="text" class="field text large" value="" maxlength="255" tabindex="1" 
+                    onkeypress="validateTextField(this, 16);" onchange="validateTextField(this, 16);"/>
+                </div>
+                <div class="instruct"><small>The configurable devcie ID of the module</small></div>
+                <div class="invalid" id="mod_id_error" ><small>Invalid Device ID<br />Must be least than or equal 16 characters</small></div>
+            </li>                      
+            <li class="section">
+            <section>
+                <strong>UART Configuration</strong>
+                <div>Configuration for the module's UART</div>
+            </section>    
+            </li> 
+            <li class="field">
+                <label class="desc">
+                    BAUD Rate
+                </label>
+                <div >
+                    <select id="mod_uart_baud" class="field select large" > 
+                        <option value="2400">2400</option>
+                        <option value="4800">4800</option>
+                        <option value="9600">9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                        <option value="230400">230400</option>
+                        <option value="460800">460800</option>
+                    </select>
+                </div>
+                <div class="instruct"><small>The BAUD rate used to communicate with other devices</small></div>
+            </li>
+            <li class="field">
+                <label class="desc">
+                    Hardware Flow Control
+                </label>
+                <div >
+                    <select id="mod_uart_flow" class="field select large" > 
+                        <option value="0">No flow control</option>
+                        <option value="1">Hardware flow control</option>
+                    </select>
+                </div>
+                <div class="instruct"><small>The type of hardware flow control the module uses</small></div>
+            </li>
+            
+            
+            <li class="field">
+            <input type="button" value="Save Configuration" onclick="issueSaveModConfigCmd(false);" />
+            <div class="invalid result" id="mod_config_cmd_result" > </div>
+            </li>
+        </ul>
+     </div>
+     </div>
+
+
+
+<div class="reboot-buttons">
+     <input type="button" value="Exit Web Configuration App" onclick="issueRebootCmd(false);" />
+     <div class="show_adv_chbox">
+        <input id="show_advanced" type="checkbox" onclick="showAdvancedTabs(this.checked);" />
+        <label for="show_advanced">Display Advanced Tabs</label>
+   </div>
+</div>
+
+</div>
+
+<div id="dbg"> </div>
+
+
+</div> <!-- end tabber -->
+</div> <!-- end content area -->
+</div> <!-- end container -->
+
+<iframe id="module_link" class="module_link_frame" > </iframe>
+
+
+<script type="text/javascript">
+
+var tabberOptions = {
+    manualStartup: true,
+    onClick: setActiveTab,
+    onLoad : tabberLoad
+};
+tabberAutomatic(tabberOptions);
+
+
+
+</script>
+
+
+</body>
+</html>
