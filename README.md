@@ -3,6 +3,8 @@ Smart Citizen Kit
 
 **Smart Citizen Kit BETA version for the Ambient Sensor Board.**
 
+<img src="http://docs.smartcitizen.me/img/sck_1.1_3.jpg" alt="TOMO" style="width: 100%"/>
+
 ### Download
 
 * Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
