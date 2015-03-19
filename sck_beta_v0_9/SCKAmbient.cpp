@@ -20,7 +20,7 @@
 #include "SCKBase.h"
 #include "SCKServer.h"
 #include <Wire.h>
-#include <EEPROM.h>
+
 
 /* 
 
@@ -44,7 +44,7 @@ SCKAmbient ambient_;
   
   
   long value[SENSORS];
-  char time[TIME_BUFFER_SIZE];
+  char timeBuffer[TIME_BUFFER_SIZE];
   boolean wait_moment;
   boolean debugON = true;   
 #if F_CPU == 8000000 
@@ -133,10 +133,10 @@ void SCKAmbient::ini()
     debugON = false;
     /*init WiFly*/
     digitalWrite(AWAKE, HIGH); 
-    sensor_mode = sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL);  //Normal mode
-    TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    //Time between transmissions in sec.
-    NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Number of readings before batch update
-    nets = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
+    sensor_mode = sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, EEINTERNAL);  //Normal mode
+    TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, EEINTERNAL);    //Time between transmissions in sec.
+    NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, EEINTERNAL); //Number of readings before batch update
+    nets = base_.readData(EE_ADDR_NUMBER_NETS, EEINTERNAL);
     if (TimeUpdate*NumUpdates < 60) sleep = false;
     else sleep = true; 
     if (nets==0)
@@ -146,7 +146,7 @@ void SCKAmbient::ini()
       base_.repair();           //Repairs wifi if corruption
       base_.APmode(base_.id()); //Starts as acces point
     #if debugEnabled
-        if (!debugON) Serial.println(F("AP initialized!"));
+        if (!debugON) SerialUSB.println(F("AP initialized!"));
     #endif 
     }
     else
@@ -154,32 +154,32 @@ void SCKAmbient::ini()
       if (base_.connect())
       {
         #if debugEnabled
-          if (!debugON) Serial.println(F("SCK Connected!!"));
+          if (!debugON) SerialUSB.println(F("SCK Connected!!"));
         #endif
         #if autoUpdateWiFly
           int report = base_.checkWiFly();
           #if debugEnabled
             if (!debugON)
               {
-                  if (report == 1) Serial.println(F("Wifly Updated."));
-                  else if (report == 2) Serial.println(F("Update Fail."));
-                  else if (report == 0) Serial.println(F("WiFly up to date."));
-                  else if (report == -1) Serial.println(F("Error reading the wifi version."));
+                  if (report == 1) SerialUSB.println(F("Wifly Updated."));
+                  else if (report == 2) SerialUSB.println(F("Update Fail."));
+                  else if (report == 0) SerialUSB.println(F("WiFly up to date."));
+                  else if (report == -1) SerialUSB.println(F("Error reading the wifi version."));
               }
           #endif
         #endif
         byte retry = 0;
         if (base_.checkRTC())
         {
-          if (server_.time(time))
+          if (server_.time(timeBuffer))
           {
-            while (!base_.RTCadjust(time)&&(retry<5)) retry++;
+            while (!base_.RTCadjust(timeBuffer)&&(retry<5)) retry++;
             #if debugEnabled
-                    if (!debugON) Serial.println(F("Updating RTC..."));
+                    if (!debugON) SerialUSB.println(F("Updating RTC..."));
             #endif
           }
           #if debugEnabled
-            else if (!debugON) Serial.println(F("Fail updating RTC!!"));
+            else if (!debugON) SerialUSB.println(F("Fail updating RTC!!"));
           #endif
         }
       }
@@ -188,7 +188,7 @@ void SCKAmbient::ini()
     {
       base_.sleep();
       #if debugEnabled
-          if (!debugON) Serial.println(F("SCK Sleeping...")); 
+          if (!debugON) SerialUSB.println(F("SCK Sleeping...")); 
       #endif
       digitalWrite(AWAKE, LOW); 
     }   
@@ -298,10 +298,10 @@ void SCKAmbient::ini()
   void SCKAmbient::getVcc()
   {
     float temp = base_.average(S3);
-    analogReference(INTERNAL);
+    //analogReference(INTERNAL); //Disable for SAMD21 issue - analogReference();
     delay(100);
     Vcc = (float)(base_.average(S3)/temp)*reference;
-    analogReference(DEFAULT);
+    //analogReference(DEFAULT);  //Disable for SAMD21 issue - analogReference();
     delay(100);
   }
   
@@ -318,21 +318,21 @@ void SCKAmbient::ini()
 
     writeVH(device, Vh);
       #if debugAmbient
-        if (device == MICS_2710) Serial.print("MICS2710 current: ");
-        else Serial.print("MICS5525 current: ");
-        Serial.print(current_measure);
-        Serial.println(" mA");
-        if (device == MICS_2710) Serial.print("MICS2710 correction VH: ");
-        else  Serial.print("MICS5525 correction VH: ");
-        Serial.print(readVH(device));
-        Serial.println(" mV");
+        if (device == MICS_2710) SerialUSB.print("MICS2710 current: ");
+        else SerialUSB.print("MICS5525 current: ");
+        SerialUSB.print(current_measure);
+        SerialUSB.println(" mA");
+        if (device == MICS_2710) SerialUSB.print("MICS2710 correction VH: ");
+        else  SerialUSB.print("MICS5525 correction VH: ");
+        SerialUSB.print(readVH(device));
+        SerialUSB.println(" mV");
         Vc = (float)base_.average(Sensor)*Vcc/1023; //mV 
         current_measure = Vc/Rc; //mA 
-        if (device == MICS_2710) Serial.print("MICS2710 current adjusted: ");
-        else Serial.print("MICS5525 current adjusted: ");
-        Serial.print(current_measure);
-        Serial.println(" mA");
-        Serial.println("Heating...");
+        if (device == MICS_2710) SerialUSB.print("MICS2710 current adjusted: ");
+        else SerialUSB.print("MICS5525 current adjusted: ");
+        SerialUSB.print(current_measure);
+        SerialUSB.println(" mA");
+        SerialUSB.println("Heating...");
       #endif
     
   }
@@ -347,12 +347,12 @@ void SCKAmbient::ini()
      if (VL > VMICS) VL = VMICS;
      float Rs = ((VMICS-VL)/VL)*RL; //Ohm
      #if debugAmbient
-        if (device == MICS_5525) Serial.print("MICS5525 Rs: ");
-        else Serial.print("MICS2710 Rs: ");
-        Serial.print(VL);
-        Serial.print(" mV, ");
-        Serial.print(Rs);
-        Serial.println(" Ohm");
+        if (device == MICS_5525) SerialUSB.print("MICS5525 Rs: ");
+        else SerialUSB.print("MICS2710 Rs: ");
+        SerialUSB.print(VL);
+        SerialUSB.print(" mV, ");
+        SerialUSB.print(Rs);
+        SerialUSB.println(" Ohm");
       #endif
      return Rs;
    }
@@ -435,12 +435,12 @@ void SCKAmbient::ini()
         lastTemperature = readSHT21(0xE3);  // RAW DATA for calibration in platform
         lastHumidity    = readSHT21(0xE5);  // RAW DATA for calibration in platform
       #if debugAmbient
-        Serial.print("SHT21:  ");
-        Serial.print("Temperature: ");
-        Serial.print(lastTemperature/10.);
-        Serial.print(" C, Humidity: ");
-        Serial.print(lastHumidity/10.);
-        Serial.println(" %");    
+        SerialUSB.print("SHT21:  ");
+        SerialUSB.print("Temperature: ");
+        SerialUSB.print(lastTemperature/10.);
+        SerialUSB.print(" C, Humidity: ");
+        SerialUSB.print(lastHumidity/10.);
+        SerialUSB.println(" %");    
       #endif
     }
     
@@ -508,14 +508,14 @@ void SCKAmbient::ini()
       accel_z = (int)(accel_z / lecturas);
       
       #if debugAmbient
-        Serial.print("x_axis= ");
-        Serial.print(accel_x);
-        Serial.print(", ");
-        Serial.print("y_axis= ");
-        Serial.print(accel_y);
-        Serial.print(", ");
-        Serial.print("z_axis= ");
-        Serial.println(accel_z); 
+        SerialUSB.print("x_axis= ");
+        SerialUSB.print(accel_x);
+        SerialUSB.print(", ");
+        SerialUSB.print("y_axis= ");
+        SerialUSB.print(accel_y);
+        SerialUSB.print(", ");
+        SerialUSB.print("z_axis= ");
+        SerialUSB.println(accel_z); 
       #endif
     }
  #else
@@ -649,9 +649,9 @@ void SCKAmbient::ini()
       else Lx=0;
       
        #if debugAmbient
-        Serial.print("BH1730: ");
-        Serial.print(Lx);
-        Serial.println(" Lx");
+        SerialUSB.print("BH1730: ");
+        SerialUSB.print(Lx);
+        SerialUSB.println(" Lx");
       #endif
      return Lx*10;
     #else
@@ -767,12 +767,12 @@ void SCKAmbient::ini()
         if (mode == NOWIFI)
              {
                value[8] = 0;  //Wifi Nets
-               base_.RTCtime(time);
+               base_.RTCtime(timeBuffer);
              } 
         else if (mode == OFFLINE)
           {
             value[8] = base_.scan();  //Wifi Nets
-            base_.RTCtime(time);
+            base_.RTCtime(timeBuffer);
           }
    }
   
@@ -787,19 +787,19 @@ void SCKAmbient::execute()
     {
       sleep = false;
       digitalWrite(AWAKE, HIGH);
-      server_.json_update(0, value, time, true);
+      server_.json_update(0, value, timeBuffer, true);
       usb_mode = false;
       terminal_mode = false;
     }
     if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second)
     {  
       timetransmit = millis();
-      TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
-      NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
+      TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, EEINTERNAL);    // Time between transmissions in sec.
+      NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, EEINTERNAL); // Number of readings before batch update
       updateSensors(sensor_mode); 
       if (!debugON)                                                  // CMD Mode False
       {
-        if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
+        if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, timeBuffer);
         #if USBEnabled
               txDebug();
         #endif
@@ -825,14 +825,14 @@ void SCKAmbient::txDebug() {
         else if (i<8) dec = 1;
       #endif
         else dec = 1;
-      Serial.print(SENSOR[i]); 
-      if (dec>1) Serial.print((float)(value[i]/dec)); 
-      else Serial.print((int)(value[i]/dec)); 
-      Serial.println(UNITS[i]);
+      SerialUSB.print(SENSOR[i]); 
+      if (dec>1) SerialUSB.print((float)(value[i]/dec)); 
+      else SerialUSB.print((int)(value[i]/dec)); 
+      SerialUSB.println(UNITS[i]);
     }
-    Serial.print(SENSOR[9]);
-    Serial.println(time);
-    Serial.println(F("*******************"));    
+    SerialUSB.print(SENSOR[9]);
+    SerialUSB.println(timeBuffer);
+    SerialUSB.println(F("*******************"));    
   } 
 }
 
@@ -880,30 +880,30 @@ int SCKAmbient::addData(byte inByte)
     
 boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
     {
-      int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
+      int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, EEINTERNAL);
       if (nets_temp>0){
         for (int i = 0; i<nets_temp; i++)
           {
-            Serial.print(base_.readData(address_eeprom, i, INTERNAL));
-            if (i<(nets_temp - 1)) Serial.print(' ');
+            SerialUSB.print(base_.readData(address_eeprom, i, EEINTERNAL));
+            if (i<(nets_temp - 1)) SerialUSB.print(' ');
           }
-        Serial.println();}
+        SerialUSB.println();}
     }  
 
 void SCKAmbient::addNetWork(unsigned int address_eeprom, char* text)
     {
       int pos = 0;
-      int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
+      int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, EEINTERNAL);
       if (address_eeprom < DEFAULT_ADDR_PASS)
         {
           nets_temp = nets_temp + 1;
-          if (nets_temp<=5) base_.writeData(EE_ADDR_NUMBER_NETS, nets_temp , INTERNAL); 
+          if (nets_temp<=5) base_.writeData(EE_ADDR_NUMBER_NETS, nets_temp , EEINTERNAL); 
         }
       if (nets_temp<=5)
         {
           if (nets_temp == 0) pos = 0;
           else pos = nets_temp - 1;
-          base_.writeData(address_eeprom, pos, text, INTERNAL);
+          base_.writeData(address_eeprom, pos, text, EEINTERNAL);
         }
     } 
     
@@ -916,7 +916,7 @@ int temp_mode = NORMAL;
 
 void SCKAmbient::serialRequests()
   {
-    sei();
+    interrupts();
     base_.timer1Stop();
     #if F_CPU == 8000000 
       if (!digitalRead(CONTROL))
@@ -928,15 +928,15 @@ void SCKAmbient::serialRequests()
       }
       else digitalWrite(AWAKE, LOW);
     #endif
-      if (Serial.available())
+      if (SerialUSB.available())
       {
-        byte inByte = Serial.read();
+        byte inByte = SerialUSB.read();
         int check_data = addData(inByte);
         if (check_data==1) 
           {
-            if (base_.checkText("###", buffer_int)) { debugON= true; temp_mode = sensor_mode; sensor_mode = OFFLINE; } //Serial.println(F("AOK"));} //Terminal SCK ON
+            if (base_.checkText("###", buffer_int)) { debugON= true; temp_mode = sensor_mode; sensor_mode = OFFLINE; } //SerialUSB.println(F("AOK"));} //Terminal SCK ON
             else if (base_.checkText("exit", buffer_int)) {
-              Serial.println(F("EXIT"));
+              SerialUSB.println(F("EXIT"));
               serial_bridge = false;
               sensor_mode = temp_mode;
               debugON= false;
@@ -949,26 +949,26 @@ void SCKAmbient::serialRequests()
               temp_mode = sensor_mode;
               sensor_mode = NOWIFI;
               if (!wait_moment) serial_bridge = true;
-              else Serial.println(F("Please, wait wifly sleep"));
+              else SerialUSB.println(F("Please, wait wifly sleep"));
               debugON= true;
             }
             /*Reading commands*/
-            else if (base_.checkText("get sck info\r", buffer_int))           Serial.println(FirmWare);
-            else if (base_.checkText("get wifi info\r", buffer_int))          Serial.println(base_.getWiFlyVersion());
-            else if (base_.checkText("get mac\r", buffer_int))                Serial.println(base_.readData(EE_ADDR_MAC, 0, INTERNAL));
+            else if (base_.checkText("get sck info\r", buffer_int))           SerialUSB.println(FirmWare);
+            else if (base_.checkText("get wifi info\r", buffer_int))          SerialUSB.println(base_.getWiFlyVersion());
+            else if (base_.checkText("get mac\r", buffer_int))                SerialUSB.println(base_.readData(EE_ADDR_MAC, 0, EEINTERNAL));
             else if (base_.checkText("get wlan ssid\r", buffer_int))          printNetWorks(DEFAULT_ADDR_SSID);
             else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS);
             else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH);
             else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA);
-            else if (base_.checkText("get mode sensor\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL));
-            else if (base_.checkText("get time update\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
-            else if (base_.checkText("get number updates\r", buffer_int))     Serial.println(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
-            else if (base_.checkText("get apikey\r", buffer_int))             Serial.println(base_.readData(EE_ADDR_APIKEY, 0, INTERNAL));
+            else if (base_.checkText("get mode sensor\r", buffer_int))        SerialUSB.println(base_.readData(EE_ADDR_SENSOR_MODE, EEINTERNAL));
+            else if (base_.checkText("get time update\r", buffer_int))        SerialUSB.println(base_.readData(EE_ADDR_TIME_UPDATE, EEINTERNAL));
+            else if (base_.checkText("get number updates\r", buffer_int))     SerialUSB.println(base_.readData(EE_ADDR_NUMBER_UPDATES, EEINTERNAL));
+            else if (base_.checkText("get apikey\r", buffer_int))             SerialUSB.println(base_.readData(EE_ADDR_APIKEY, 0, EEINTERNAL));
             /*Write commands*/
             else if (base_.checkText("set wlan ssid ", buffer_int))
             {
                 addNetWork(DEFAULT_ADDR_SSID, buffer_int);
-                sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL); 
+                sensor_mode = base_.readData(EE_ADDR_SENSOR_MODE, EEINTERNAL); 
                 if (TimeUpdate < 60) sleep = false;
                 else sleep = true; 
             }
@@ -976,31 +976,33 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("set wlan key ", buffer_int)) addNetWork(EE_ADDR_NUMBER_NETS, buffer_int);
             else if (base_.checkText("set wlan ext_antenna ", buffer_int))  addNetWork(DEFAULT_ADDR_ANTENNA, buffer_int);
             else if (base_.checkText("set wlan auth ", buffer_int)) addNetWork(DEFAULT_ADDR_AUTH, buffer_int);
-            else if (base_.checkText("clear nets\r", buffer_int)) base_.writeData(EE_ADDR_NUMBER_NETS, 0x0000, INTERNAL);
-            else if (base_.checkText("set mode sensor ", buffer_int)) base_.writeData(EE_ADDR_SENSOR_MODE, atol(buffer_int), INTERNAL);
-            else if (base_.checkText("set time update ", buffer_int)) base_.writeData(EE_ADDR_TIME_UPDATE, atol(buffer_int), INTERNAL);
-            else if (base_.checkText("set number updates ", buffer_int)) base_.writeData(EE_ADDR_NUMBER_UPDATES, atol(buffer_int), INTERNAL);
+            else if (base_.checkText("clear nets\r", buffer_int)) base_.writeData(EE_ADDR_NUMBER_NETS, 0x0000, EEINTERNAL);
+            else if (base_.checkText("set mode sensor ", buffer_int)) base_.writeData(EE_ADDR_SENSOR_MODE, atol(buffer_int), EEINTERNAL);
+            else if (base_.checkText("set time update ", buffer_int)) base_.writeData(EE_ADDR_TIME_UPDATE, atol(buffer_int), EEINTERNAL);
+            else if (base_.checkText("set number updates ", buffer_int)) base_.writeData(EE_ADDR_NUMBER_UPDATES, atol(buffer_int), EEINTERNAL);
             else if (base_.checkText("set apikey ", buffer_int)){
               eeprom_write_ok = true;
               address_eeprom = EE_ADDR_APIKEY;
             } 
           }
-        else if (check_data == -1) Serial.println("Invalid command.");
-        if (serial_bridge) Serial1.write(inByte); 
+        else if (check_data == -1) SerialUSB.println("Invalid command.");
+        if (serial_bridge) Serial.write(inByte); 
       }
       else if (serial_bridge)
       {
-        if (Serial1.available()) 
+        if (Serial.available()) 
         {
-          byte inByte = Serial1.read();
-          Serial.write(inByte);
+          byte inByte = Serial.read();
+          SerialUSB.write(inByte);
         }
        }
       base_.timer1Initialize(); // set a timer of length 1000000 microseconds (or 1 sec - or 1Hz)  
   }
-  
-ISR(TIMER1_OVF_vect)
+
+/*  
+ISR(TIMER1_OVF_vect) // Interrupt issues with the ARM Arduino Cores..
 {
   ambient_.serialRequests();
 }
+*/
 

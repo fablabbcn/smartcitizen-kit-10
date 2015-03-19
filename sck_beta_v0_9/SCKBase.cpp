@@ -15,17 +15,16 @@
 #include "Constants.h"
 #include "SCKBase.h"
 #include <Wire.h>
-#include <EEPROM.h>
+
 
 #define debugBASE false
 
-
+#define TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
 
 void SCKBase::begin() {
   Wire.begin();
-  TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;  
-  Serial.begin(115200);
-  Serial1.begin(9600);
+  SerialUSB.begin(115200);
+  Serial.begin(9600);
   pinMode(IO0, OUTPUT); //VH_MICS5525
   pinMode(IO1, OUTPUT); //VH_MICS2710
   pinMode(IO2, OUTPUT); //MICS2710_HIGH_IMPEDANCE
@@ -39,25 +38,25 @@ void SCKBase::begin() {
 }
 
 void SCKBase::config(){
-  if (!compareData(__TIME__, readData(EE_ADDR_TIME_VERSION, 0, INTERNAL)))
+  if (!compareData(__TIME__, readData(EE_ADDR_TIME_VERSION, 0, EEINTERNAL)))
   {
     digitalWrite(AWAKE, HIGH); 
-    for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  // Memory erasing
-    writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, INTERNAL);
-    writeData(EE_ADDR_SENSOR_MODE, DEFAULT_MODE_SENSOR, INTERNAL);
-    writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, INTERNAL);
-    writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, INTERNAL);
-    writeData(EE_ADDR_MAC, 0, MAC(), INTERNAL);
+    for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) writeEEPROM(i, 0x00);  // Memory erasing
+    writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, EEINTERNAL);
+    writeData(EE_ADDR_SENSOR_MODE, DEFAULT_MODE_SENSOR, EEINTERNAL);
+    writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, EEINTERNAL);
+    writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, EEINTERNAL);
+    writeData(EE_ADDR_MAC, 0, MAC(), EEINTERNAL);
 
     #if (networks > 0)
         for(byte i=0; i<networks; i++)
         {
-          writeData(DEFAULT_ADDR_SSID, i, mySSID[i], INTERNAL);
-          writeData(DEFAULT_ADDR_PASS, i, myPassword[i], INTERNAL);
-          writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], INTERNAL);
-          writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], INTERNAL);
+          writeData(DEFAULT_ADDR_SSID, i, mySSID[i], EEINTERNAL);
+          writeData(DEFAULT_ADDR_PASS, i, myPassword[i], EEINTERNAL);
+          writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], EEINTERNAL);
+          writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], EEINTERNAL);
         }
-        writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
+        writeData(EE_ADDR_NUMBER_NETS, networks, EEINTERNAL);
     #endif
     reset();
   }
@@ -151,12 +150,12 @@ float SCKBase::readCharge() {
   float resistor = kr*readMCP(MCP3, 0x00)/1000;    
   float current = 1000./(2+((resistor * 10)/(resistor + 10)));
   #if debugBASE
-    Serial.print("Resistor : ");
-    Serial.print(resistor);
-    Serial.print(" kOhm, ");  
-    Serial.print("Current : ");
-    Serial.print(current);
-    Serial.println(" mA");  
+    SerialUSB.print("Resistor : ");
+    SerialUSB.print(resistor);
+    SerialUSB.print(" kOhm, ");  
+    SerialUSB.print("Current : ");
+    SerialUSB.print(current);
+    SerialUSB.println(" mA");  
   #endif
   return(current);
 }
@@ -168,15 +167,15 @@ void SCKBase::writeCharge(int current) {
   float resistor = Rp*10/(10-Rp);
   writeMCP(MCP3, 0x00, (uint8_t)(resistor*1000/kr));    
 #if debugBASE
-  Serial.print("Rc : ");
-  Serial.print(Rp + 2);
-  Serial.print(" kOhm, ");
-  Serial.print("Rpot : ");
-  Serial.print(resistor);
-  Serial.print(" kOhm, ");  
-  Serial.print("Current : ");
-  Serial.print(current);
-  Serial.println(" mA");  
+  SerialUSB.print("Rc : ");
+  SerialUSB.print(Rp + 2);
+  SerialUSB.print(" kOhm, ");
+  SerialUSB.print("Rpot : ");
+  SerialUSB.print(resistor);
+  SerialUSB.print(" kOhm, ");  
+  SerialUSB.print("Current : ");
+  SerialUSB.print(current);
+  SerialUSB.println(" mA");  
 #endif
 }
 #endif    
@@ -212,7 +211,7 @@ void SCKBase::writeData(uint32_t eeaddress, long data, uint8_t location)
     for (int i =0; i<4; i++) 
       {
         if (location == EXTERNAL) writeEEPROM(eeaddress + (3 -i) , data>>(i*8));
-        else EEPROM.write(eeaddress + (3 -i), data>>(i*8));
+        else writeData(eeaddress + (3 -i), data>>(i*8));
       }
 
 }
@@ -228,11 +227,11 @@ void SCKBase::writeData(uint32_t eeaddress, uint16_t pos, char* text, uint8_t lo
   else
     {
       
-      for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++) EEPROM.write(i, 0x00);
+      for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++) writeData(i, 0x00);
       for (uint16_t i = eeaddressfree; text[i - eeaddressfree]!= 0x00; i++) 
         {
           if (eeaddressfree>=DEFAULT_ADDR_SSID) if (text[i - eeaddressfree]==' ') text[i - eeaddressfree]='$';
-          EEPROM.write(i, text[i - eeaddressfree]); 
+          writeData(i, text[i - eeaddressfree]); 
         }
     }
 }
@@ -243,7 +242,7 @@ uint32_t SCKBase::readData(uint16_t eeaddress, uint8_t location)
   for (int i =0; i<4; i++)
     {
       if (location == EXTERNAL)  data = data + (uint32_t)((uint32_t)readEEPROM(eeaddress + i)<<((3-i)*8));
-      else data = data + (uint32_t)((uint32_t)EEPROM.read(eeaddress + i)<<((3-i)*8));
+      else data = data + (uint32_t)((uint32_t)readData(eeaddress + i)<<((3-i)*8));
     }
   return data;
 }
@@ -263,11 +262,11 @@ char* SCKBase::readData(uint16_t eeaddress, uint16_t pos, uint8_t location)
     }
   else
     {
-      uint8_t temp = EEPROM.read(eeaddress);
+      uint8_t temp = readData(eeaddress);
       for ( i = eeaddress; ((temp!= 0x00)&&(temp<0x7E)&&(temp>0x1F)&&((i - eeaddress)<buffer_length)); i++) 
       {
-        buffer[i - eeaddress] = EEPROM.read(i);
-        temp = EEPROM.read(i + 1);
+        buffer[i - eeaddress] = readData(i);
+        temp = readData(i + 1);
       }
     }
   buffer[i - eeaddress] = 0x00; 
@@ -290,14 +289,14 @@ boolean SCKBase::RTCadjust(char *time) {
   byte rtc[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   byte count = 0x00;
   byte data_count=0;
-  while (time[count]!=0x00)
+  while (timeBuffer[count]!=0x00)
   {
-    if(time[count] == '-') data_count++;
-    else if(time[count] == ' ') data_count++;
-    else if(time[count] == ':') data_count++;
-    else if ((time[count] >= '0')&&(time[count] <= '9'))
+    if(timeBuffer[count] == '-') data_count++;
+    else if(timeBuffer[count] == ' ') data_count++;
+    else if(timeBuffer[count] == ':') data_count++;
+    else if ((timeBuffer[count] >= '0')&&(timeBuffer[count] <= '9'))
     { 
-      rtc[data_count] =(rtc[data_count]<<4)|(0x0F&time[count]);
+      rtc[data_count] =(rtc[data_count]<<4)|(0x0F&timeBuffer[count]);
     }  
     else break;
     count++;
@@ -351,26 +350,26 @@ boolean SCKBase::RTCtime(char *time) {
   uint8_t day = Wire.read();
   uint8_t month = Wire.read();
   uint8_t year = Wire.read();
-  time[0] = '2';
-  time[1] = '0';
-  time[2] = (year>>4) + '0';
-  time[3] = (year&0x0F) + '0';
-  time[4] = '-';
-  time[5] = (month>>4) + '0';
-  time[6] = (month&0x0F) + '0';
-  time[7] = '-';
-  time[8] = (day>>4) + '0';
-  time[9] = (day&0x0F) + '0';
-  time[10] = ' ';
-  time[11] = (hours>>4) + '0';
-  time[12] = (hours&0x0F) + '0';
-  time[13] = ':';
-  time[14] = (minutes>>4) + '0';
-  time[15] = (minutes&0x0F) + '0';
-  time[16] = ':';
-  time[17] = (seconds>>4) + '0';
-  time[18] = (seconds&0x0F) + '0';
-  time[19] = 0x00;
+  timeBuffer[0] = '2';
+  timeBuffer[1] = '0';
+  timeBuffer[2] = (year>>4) + '0';
+  timeBuffer[3] = (year&0x0F) + '0';
+  timeBuffer[4] = '-';
+  timeBuffer[5] = (month>>4) + '0';
+  timeBuffer[6] = (month&0x0F) + '0';
+  timeBuffer[7] = '-';
+  timeBuffer[8] = (day>>4) + '0';
+  timeBuffer[9] = (day&0x0F) + '0';
+  timeBuffer[10] = ' ';
+  timeBuffer[11] = (hours>>4) + '0';
+  timeBuffer[12] = (hours&0x0F) + '0';
+  timeBuffer[13] = ':';
+  timeBuffer[14] = (minutes>>4) + '0';
+  timeBuffer[15] = (minutes&0x0F) + '0';
+  timeBuffer[16] = ':';
+  timeBuffer[17] = (seconds>>4) + '0';
+  timeBuffer[18] = (seconds&0x0F) + '0';
+  timeBuffer[19] = 0x00;
   return true;
 }
 
@@ -386,9 +385,9 @@ uint16_t SCKBase::getPanel(float Vref){
   else value = 0;
 #endif
 #if debugBASE
-  Serial.print("Panel = ");
-  Serial.print(value);
-  Serial.println(" mV");
+  SerialUSB.print("Panel = ");
+  SerialUSB.print(value);
+  SerialUSB.println(" mV");
 #endif
   return value;
 }
@@ -405,12 +404,12 @@ uint16_t SCKBase::getBattery(float Vref) {
   if (temp>1000) temp=1000;
   if (temp<0) temp=0;
 #if debugBASE
-  Serial.print("Vbat: ");
-  Serial.print(voltage);
-  Serial.print(" mV, ");
-  Serial.print("Battery level: ");
-  Serial.print(temp/10.);
-  Serial.println(" %");
+  SerialUSB.print("Vbat: ");
+  SerialUSB.print(voltage);
+  SerialUSB.print(" mV, ");
+  SerialUSB.print("Battery level: ");
+  SerialUSB.print(temp/10.);
+  SerialUSB.println(" %");
 #endif
   return temp; 
 }
@@ -423,7 +422,7 @@ unsigned int timeOut = 1000) {
 
   for (unsigned int offset = 0; offset < strlen(toMatch); offset++) {
     timeOutTarget = millis() + timeOut; // Doesn't handle timer wrapping
-    while (!Serial1.available()) {
+    while (!Serial.available()) {
       // Wait, with optional time out.
       if (timeOut > 0) {
         if (millis() > timeOutTarget) {
@@ -432,8 +431,8 @@ unsigned int timeOut = 1000) {
       }
       delay(1); // This seems to improve reliability slightly
     }
-    byteRead = Serial1.read();
-    //Serial.print((char)byteRead);
+    byteRead = Serial.read();
+    //SerialUSB.print((char)byteRead);
     delay(1); // Removing logging may affect timing slightly
 
     if (byteRead != toMatch[offset]) {
@@ -453,10 +452,10 @@ void SCKBase::skipRemainderOfResponse(unsigned int timeOut) {
   unsigned long time = millis();
   while (((millis()-time)<timeOut))
   {
-    if (Serial1.available())
+    if (Serial.available())
     { 
-      byte temp = Serial1.read();
-      //Serial.write(temp);
+      byte temp = Serial.read();
+      //SerialUSB.write(temp);
       time = millis();
     }
   }
@@ -465,11 +464,11 @@ void SCKBase::skipRemainderOfResponse(unsigned int timeOut) {
 boolean SCKBase::sendCommand(const __FlashStringHelper *command,
 boolean isMultipartCommand = false,
 const char *expectedResponse = "AOK") {
-  Serial1.print(command);
+  Serial.print(command);
   delay(20);
   if (!isMultipartCommand) {
-    Serial1.flush();
-    Serial1.println();
+    Serial.flush();
+    Serial.println();
 
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
@@ -485,11 +484,11 @@ const char *expectedResponse = "AOK") {
 boolean SCKBase::sendCommand(const char *command,
 boolean isMultipartCommand = false,
 const char *expectedResponse = "AOK") {
-  Serial1.print(command);
+  Serial.print(command);
   delay(20);
   if (!isMultipartCommand) {
-    Serial1.flush();
-    Serial1.println();
+    Serial.flush();
+    Serial.println();
 
     // TODO: Handle other responses
     //       (e.g. autoconnect message before it's turned off,
@@ -510,10 +509,10 @@ boolean SCKBase::enterCommandMode() {
   for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
   {
     delay(COMMAND_MODE_GUARD_TIME);
-    Serial1.print(F("$$$"));
+    Serial.print(F("$$$"));
     delay(COMMAND_MODE_GUARD_TIME);
-    Serial1.println();
-    Serial1.println();
+    Serial.println();
+    Serial.println();
     if (findInResponse("\r\n<", 1000))
     {
       return true;
@@ -550,7 +549,7 @@ boolean SCKBase::connect()
 {
   if (!ready())
   {
-    if (readData(EE_ADDR_NUMBER_NETS, INTERNAL)<1) return false;
+    if (readData(EE_ADDR_NUMBER_NETS, EEINTERNAL)<1) return false;
     if(enterCommandMode())
     {    
       sendCommand(F("set comm remote 0")); // FFR Hide Hello message
@@ -563,20 +562,20 @@ boolean SCKBase::connect()
       char* ssid;
       char* pass;
       char* antenna;
-      for (uint16_t nets = 0  ; nets < readData(EE_ADDR_NUMBER_NETS, INTERNAL); nets++) {
-        auth = readData(DEFAULT_ADDR_AUTH, nets, INTERNAL);
+      for (uint16_t nets = 0  ; nets < readData(EE_ADDR_NUMBER_NETS, EEINTERNAL); nets++) {
+        auth = readData(DEFAULT_ADDR_AUTH, nets, EEINTERNAL);
         sendCommand(F("set wlan auth "), true);
         sendCommand(auth);
         boolean mode = true;
         if ((auth==WEP)||(auth==WEP64)) mode=false;
-        ssid = readData(DEFAULT_ADDR_SSID, nets, INTERNAL);
+        ssid = readData(DEFAULT_ADDR_SSID, nets, EEINTERNAL);
         sendCommand(F("set wlan ssid "), true);
         sendCommand(ssid);
-        pass = readData(DEFAULT_ADDR_PASS, nets, INTERNAL);
+        pass = readData(DEFAULT_ADDR_PASS, nets, EEINTERNAL);
         if (mode) sendCommand(F("set wlan phrase "), true);  // WPA1, WPA2, OPEN
         else sendCommand(F("set wlan key "), true);
         sendCommand(pass);
-        antenna = readData(DEFAULT_ADDR_ANTENNA, nets, INTERNAL);
+        antenna = readData(DEFAULT_ADDR_ANTENNA, nets, EEINTERNAL);
         sendCommand(F("set wlan ext_antenna "), true);
         sendCommand(antenna);
         sendCommand(F("save"), false, "Storing in config"); // Store settings
@@ -621,7 +620,7 @@ boolean SCKBase::ready()
   }
   else
   {
-    Serial1.println(F("join"));
+    Serial.println(F("join"));
     if (findInResponse("Associated!", 8000)) 
     {
       skipRemainderOfResponse(3000);
@@ -643,8 +642,8 @@ boolean SCKBase::open(const char *addr, int port) {
   {
     sendCommand(F("open "), true);
     sendCommand(addr, true);
-    Serial1.print(F(" "));
-    Serial1.print(port);
+    Serial.print(F(" "));
+    Serial.print(port);
     if (sendCommand("", false, "*OPEN*")) 
     {
       connected = true;
@@ -679,10 +678,10 @@ char* SCKBase::MAC() {
       byte offset = 0;
 
       while (offset < MAC_ADDRESS_BUFFER_SIZE) {
-        if (Serial1.available())
+        if (Serial.available())
         {
-          newChar = Serial1.read();
-          //Serial.println(newChar);
+          newChar = Serial.read();
+          //SerialUSB.println(newChar);
           if ((newChar == '\n')||(newChar < '0')) {
             buffer[offset] = '\x00';
             break;
@@ -731,9 +730,9 @@ uint32_t SCKBase::scan() {
       byte offset = 0;
 
       while (offset < SCAN_BUFFER_SIZE) {
-        if (Serial1.available())
+        if (Serial.available())
         {
-          newChar = Serial1.read();
+          newChar = Serial.read();
           if ((newChar == '\r')||(newChar < '0')) {
             buffer[offset] = '\x00';
             break;
@@ -778,9 +777,9 @@ int SCKBase::getWiFlyVersion() {
       byte offset = 0;
       boolean prevWasNumber = false;
       while (offset < 3) {
-        if (Serial1.available())
+        if (Serial.available())
         {
-          newChar = Serial1.read();
+          newChar = Serial.read();
           if ((newChar != -1 && isdigit(newChar)) || newChar == '.') {
             if (newChar != '.') {
               buffer[offset] = newChar;
@@ -829,13 +828,13 @@ void SCKBase::repair()
     boolean repair = true;
     for (int i=6; ((i>=0)&&repair); i--)
     {
-      Serial1.begin(baud[i]);
+      Serial.begin(baud[i]);
       if(enterCommandMode()) 
       {
         reset();
         repair = false;
       }
-      Serial1.begin(9600);
+      Serial.begin(9600);
     }
   }
 }

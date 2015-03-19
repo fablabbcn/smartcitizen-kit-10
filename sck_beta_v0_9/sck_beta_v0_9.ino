@@ -28,7 +28,7 @@
 */
 
 #include <Wire.h>
-#include <EEPROM.h>
+
 #include "SCKAmbient.h"
 
 SCKAmbient ambient;

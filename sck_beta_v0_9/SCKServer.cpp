@@ -10,7 +10,7 @@
 #include "SCKBase.h"
 #include "SCKAmbient.h"
 #include <Wire.h>
-#include <EEPROM.h>
+
 
 #define debugServer   false
 
@@ -31,16 +31,16 @@ boolean SCKServer::time(char *time_) {
     {
       if (base__.open(WEB[0], 80))
        {
-        for(byte i = 0; i<3; i++) Serial1.print(WEBTIME[i]); //Requests to the server time
+        for(byte i = 0; i<3; i++) Serial.print(WEBtimeBuffer[i]); //Requests to the server time
         if (base__.findInResponse("UTC:", 2000)) 
           {
               char newChar;
               byte offset = 0;
               unsigned long time = millis();
               while (offset < TIME_BUFFER_SIZE) {
-                if (Serial1.available())
+                if (Serial.available())
                 {
-                  newChar = Serial1.read();
+                  newChar = Serial.read();
                   time = millis();
                   if (newChar == '#') {
                     ok = true;
@@ -79,17 +79,17 @@ boolean SCKServer::time(char *time_) {
 void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean isMultipart)
 {  
       #if debugServer
-         Serial.print(F("["));
+         SerialUSB.print(F("["));
       #endif
-      Serial1.print(F("["));  
+      Serial.print(F("["));  
       for (int i = 0; i< updates;i++)
         {
           readFIFO();
           if ((i< (updates - 1)) || (isMultipart))
             {
-              Serial1.print(F(","));
+              Serial.print(F(","));
               #if debugServer
-                Serial.print(F(","));
+                SerialUSB.print(F(","));
               #endif
             }
         }
@@ -99,36 +99,36 @@ void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean i
       byte i;
       for (i = 0; i<9; i++)
         {
-          Serial1.print(SERVER[i]);
-          Serial1.print(value[i]); 
+          Serial.print(SERVER[i]);
+          Serial.print(value[i]); 
         }  
-      Serial1.print(SERVER[i]);  
-      Serial1.print(time);
-      Serial1.print(SERVER[i+1]);
-      Serial1.println(F("]"));
-      Serial1.println();
+      Serial.print(SERVER[i]);  
+      Serial.print(time);
+      Serial.print(SERVER[i+1]);
+      Serial.println(F("]"));
+      Serial.println();
       
       #if debugServer
          for (i = 0; i<9; i++)
          {
-         Serial.print(SERVER[i]);
-         Serial.print(value[i]);
+         SerialUSB.print(SERVER[i]);
+         SerialUSB.print(value[i]);
          }
-         Serial.print(SERVER[i]);
-         Serial.print(time);
-         Serial.print(SERVER[i+1]);
+         SerialUSB.print(SERVER[i]);
+         SerialUSB.print(time);
+         SerialUSB.print(SERVER[i+1]);
       #endif
    }
-      Serial1.println(F("]"));
-      Serial1.println();
+      Serial.println(F("]"));
+      Serial.println();
       #if debugServer
-         Serial.println(F("]"));
+         SerialUSB.println(F("]"));
       #endif
 }  
 
 void SCKServer::addFIFO(long *value, char *time)
   {
-    int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL);
+    int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, EEINTERNAL);
     int i = 0;
     for (i = 0; i<9; i++)
       {
@@ -136,40 +136,40 @@ void SCKServer::addFIFO(long *value, char *time)
       } 
     base__.writeData(eeaddress + i*4, 0, time, EXTERNAL);
     eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
-    base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, INTERNAL);
+    base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, EEINTERNAL);
   }
 
 void SCKServer::readFIFO()
   {   
     int i = 0;
-    int eeaddress = base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL);
+    int eeaddress = base__.readData(EE_ADDR_NUMBER_READ_MEASURE, EEINTERNAL);
     for (i = 0; i<9; i++)
       {
-        Serial1.print(SERVER[i]);
-        Serial1.print(base__.readData(eeaddress + i*4, EXTERNAL)); //SENSORS
+        Serial.print(SERVER[i]);
+        Serial.print(base__.readData(eeaddress + i*4, EXTERNAL)); //SENSORS
       }  
-    Serial1.print(SERVER[i]);  
-    Serial1.print(base__.readData(eeaddress + i*4, 0, EXTERNAL)); //TIME
-    Serial1.print(SERVER[i+1]);
+    Serial.print(SERVER[i]);  
+    Serial.print(base__.readData(eeaddress + i*4, 0, EXTERNAL)); //TIME
+    Serial.print(SERVER[i+1]);
     
     #if debugServer
       for (i = 0; i<9; i++)
        {
-         Serial.print(SERVER[i]);
-         Serial.print(base__.readData(eeaddress + i*4, EXTERNAL)); //SENSORS
+         SerialUSB.print(SERVER[i]);
+         SerialUSB.print(base__.readData(eeaddress + i*4, EXTERNAL)); //SENSORS
        }
-      Serial.print(SERVER[i]);
-      Serial.print(base__.readData(eeaddress + i*4, 0, EXTERNAL)); //TIME
-      Serial.print(SERVER[i+1]);
+      SerialUSB.print(SERVER[i]);
+      SerialUSB.print(base__.readData(eeaddress + i*4, 0, EXTERNAL)); //TIME
+      SerialUSB.print(SERVER[i+1]);
     #endif
 
     eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
-    if (eeaddress == base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL))
+    if (eeaddress == base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, EEINTERNAL))
       {
-        base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, 0, INTERNAL);
-        base__.writeData(EE_ADDR_NUMBER_READ_MEASURE, 0, INTERNAL);
+        base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, 0, EEINTERNAL);
+        base__.writeData(EE_ADDR_NUMBER_READ_MEASURE, 0, EEINTERNAL);
       }
-    else base__.writeData(EE_ADDR_NUMBER_READ_MEASURE, eeaddress, INTERNAL);
+    else base__.writeData(EE_ADDR_NUMBER_READ_MEASURE, eeaddress, EEINTERNAL);
   }  
   
 #define numbers_retry 5
@@ -189,7 +189,7 @@ boolean SCKServer::update(long *value, char *time_)
          {
            base__.RTCtime(time_);
            #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Fail server time!!"));
+              if (!ambient__.debug_state()) SerialUSB.println(F("Fail server time!!"));
            #endif
          }
   else 
@@ -211,42 +211,42 @@ boolean SCKServer::connect()
       if (retry >= numbers_retry) return false;
     }
   }    
-  for (byte i = 1; i<5; i++) Serial1.print(WEB[i]);
-  Serial1.println(base__.readData(EE_ADDR_MAC, 0, INTERNAL)); //MAC ADDRESS
-  Serial1.print(WEB[5]);
-  Serial1.println(base__.readData(EE_ADDR_APIKEY, 0, INTERNAL)); //Apikey
-  Serial1.print(WEB[6]);
-  Serial1.println(FirmWare); //Firmware version
-  Serial1.print(WEB[7]);
+  for (byte i = 1; i<5; i++) Serial.print(WEB[i]);
+  Serial.println(base__.readData(EE_ADDR_MAC, 0, EEINTERNAL)); //MAC ADDRESS
+  Serial.print(WEB[5]);
+  Serial.println(base__.readData(EE_ADDR_APIKEY, 0, EEINTERNAL)); //Apikey
+  Serial.print(WEB[6]);
+  Serial.println(FirmWare); //Firmware version
+  Serial.print(WEB[7]);
   return true; 
 }
 
 
 void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time) {  
   *wait_moment = true;
-  uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
-  uint16_t NumUpdates = base__.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
+  uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, EEINTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, EEINTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
+  uint16_t NumUpdates = base__.readData(EE_ADDR_NUMBER_UPDATES, EEINTERNAL); // Number of readings before batch update
   if (updates>=(NumUpdates - 1))
     { 
       if (sleep)
         {
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("SCK Waking up..."));
+              if (!ambient__.debug_state()) SerialUSB.println(F("SCK Waking up..."));
           #endif
           digitalWrite(AWAKE, HIGH);
         }
       if (base__.connect())  //Wifi connect
         {
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("SCK Connected!!")); 
+              if (!ambient__.debug_state()) SerialUSB.println(F("SCK Connected!!")); 
           #endif   
           if (update(value, time)) //Update time and nets
           {
             #if debugEnabled
                 if (!ambient__.debug_state())
                 {
-                  Serial.print(F("updates = "));
-                  Serial.println(updates + 1);
+                  SerialUSB.print(F("updates = "));
+                  SerialUSB.println(updates + 1);
                 }
             #endif
             int num_post = updates;
@@ -263,7 +263,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
             connect();
             json_update(num_post, value, time, true);
             #if debugEnabled
-                  if (!ambient__.debug_state()) Serial.println(F("Posted to Server!")); 
+                  if (!ambient__.debug_state()) SerialUSB.println(F("Posted to Server!")); 
             #endif
             
           }
@@ -272,12 +272,12 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
             #if debugEnabled
                 if (!ambient__.debug_state())
                 {
-                  Serial.println(F("Error updating time Server..!"));
+                  SerialUSB.println(F("Error updating time Server..!"));
                 }
             #endif
           }
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Old connection active. Closing..."));
+              if (!ambient__.debug_state()) SerialUSB.println(F("Old connection active. Closing..."));
           #endif
           base__.close();
         }
@@ -285,7 +285,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
         {
           addFIFO(value, time);
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Error in connectionn!!"));
+              if (!ambient__.debug_state()) SerialUSB.println(F("Error in connectionn!!"));
           #endif
         }
       if (sleep)
@@ -294,8 +294,8 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
           #if debugEnabled
               if (!ambient__.debug_state())
               {
-                Serial.println(F("SCK Sleeping")); 
-                Serial.println(F("*******************"));
+                SerialUSB.println(F("SCK Sleeping")); 
+                SerialUSB.println(F("*******************"));
               }
           #endif
           digitalWrite(AWAKE, LOW); 
@@ -308,7 +308,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
         else time = "#";
         addFIFO(value, time);
         #if debugEnabled
-          if (!ambient__.debug_state()) Serial.println(F("Saved in memory!!"));
+          if (!ambient__.debug_state()) SerialUSB.println(F("Saved in memory!!"));
         #endif
     }
   *wait_moment = false;

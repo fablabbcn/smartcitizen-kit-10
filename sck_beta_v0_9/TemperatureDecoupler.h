@@ -25,7 +25,7 @@ class TemperatureDecoupler{
 
 	void update( uint16_t battery ){
 
-		//Serial.println( "# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #" );
+		//SerialUSB.println( "# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #" );
 
 		bool charging = false;
 		bool doNothing = false;
@@ -33,17 +33,17 @@ class TemperatureDecoupler{
 			//doNothing;
 			if ( battery > BATTERY_CHARGE_THRESHOLD ){
 				charging = true;
-				//Serial.println( "Battery same val > 980! charging!");
+				//SerialUSB.println( "Battery same val > 980! charging!");
 			}else{
 				charging = false;
-				//Serial.println( "Battery same val < 980! NOT charging!");
+				//SerialUSB.println( "Battery same val < 980! NOT charging!");
 			}
 		}else{
 			if ( battery > _prevBattery || battery > BATTERY_CHARGE_THRESHOLD ){ //battery is charging!
-				//Serial.println( "Battery charging!");
+				//SerialUSB.println( "Battery charging!");
 				charging = true;
 			}else{ //battery is being drained
-				//Serial.println( "Battery dis-charging!");
+				//SerialUSB.println( "Battery dis-charging!");
 				charging = false;
 			}
 		}
@@ -55,11 +55,11 @@ class TemperatureDecoupler{
 				filter.goDown();
 		}
 
-		//Serial.print(F("battery: ")); Serial.println( battery );
-		//Serial.print(F("_prevBattery: ")); Serial.println( _prevBattery );
-		//Serial.print(F("filter: ")); Serial.println( filter.getVal() );
+		//SerialUSB.print(F("battery: ")); SerialUSB.println( battery );
+		//SerialUSB.print(F("_prevBattery: ")); SerialUSB.println( _prevBattery );
+		//SerialUSB.print(F("filter: ")); SerialUSB.println( filter.getVal() );
 
-		//Serial.println( "# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #" );
+		//SerialUSB.println( "# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #" );
 		//store last bat reading for future comparing
 		_prevBattery = battery;
 		lastChargingState = charging;

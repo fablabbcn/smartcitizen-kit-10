@@ -124,6 +124,9 @@ i2c ADDRESSES
 Internal EEPROM Memory Addresses
 
 */ 
+#define EEINTERNAL                        0   
+#define EEEXTERNAL                        1   
+
 
 // SCK Configuration Parameters 
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
@@ -224,7 +227,7 @@ static char* WEB[8]={
                   "X-SmartCitizenData: "};
   
 // Time server request -  EndPoint: http://data.smartcitizen.me/datetime                 
-static char* WEBTIME[3]={                  
+static char* WEBtimeBuffer[3]={                  
                   /*Servidor de tiempo*/
                   "GET /datetime HTTP/1.1 \n",
                   "Host: data.smartcitizen.me \n",
