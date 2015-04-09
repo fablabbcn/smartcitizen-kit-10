@@ -16,7 +16,7 @@ Smart Citizen Kit
 |                   | *Type*      | LDR Analog Light Sensor                                                          | Digital Ambient Light Sensor                                                        |
 |                   | *Units*     | %                                                                                | Lux                                                                                 |
 |                   | *Datasheet* | https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Datasheets/PDV-P8001.pdf     | https://github.com/fablabbcn/Smart-Citizen-Kit/wiki/Datasheets/BH-1730FCV.pdf       |
-|                   | Firmware  | `SCKAmbient::getLight()                                                           | `SCKAmbient::getLight()                                                              |
+|                   | Firmware  | `SCKAmbient::getLight();`                                                           | `SCKAmbient::getLight():`                                                              |
 | **Temp**              | *Part*      | DHT22                                                                            | HPP828E031 (SHT21)                                                                  |
 |                   | *Type*      | Digital Temperature and Relative Humidity Sensor                                 | Digital Temperature and Relative Humidity Sensor                                    |
 |                   | *Units*     | ºC                                                                               | ºC                                                                                  |
