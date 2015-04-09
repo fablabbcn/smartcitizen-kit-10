@@ -4,7 +4,7 @@ Smart Citizen Kit
 ###Smart Citizen Kit Ambient Sensor Board versions
 
 
-| Smart Citizen Kit |           | SCK 1.0        | SCK 1.1        |
+| Smart Citizen Kit |           | SCK 1.0 (Goteo Board)       | SCK 1.1 (Kickstarter Board)       |
 |:-----------|:---------:|:---------------------------:|:---------------------------:|
 | **Data Board**        |           |                                                                                  |                                                                                     |
 | **MCU**               |           | ATMEGA32U4                                                                       | ATMEGA32U4                                                                          |
