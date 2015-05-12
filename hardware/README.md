@@ -9,6 +9,7 @@ Smart Citizen Kit
 | **Data Board**        |           |                                                                                  |                                                                                     |
 | **MCU**               |           | ATMEGA32U4                                                                       | ATMEGA32U4                                                                          |
 | **Clock**             |           | 16Mhz                                                                            | 8Mhz                                                                                |
+| **WiFi**             |           | Microchip RN-131 802.11 b/g                                                                            | Microchip RN-131 802.11 b/g                                                                                |
 | **Firmware**         |           | https://github.com/fablabbcn/Smart-Citizen-Kit                                   | https://github.com/fablabbcn/Smart-Citizen-Kit                                      |
 | **Design files**      |           | https://github.com/fablabbcn/Smart-Citizen-Kit/tree/master/hardware/Goteo/v1.01  | https://github.com/fablabbcn/Smart-Citizen-Kit/tree/master/hardware/Kickstarter     |
 | **Ambient Board**     |           |                                                                                  |                                                                                     |
