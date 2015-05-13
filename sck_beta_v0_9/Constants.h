@@ -9,9 +9,9 @@
 #define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-A"
+    #define FirmWare  "1.1-0.8.6-A"
 #else
-    #define FirmWare  "1.0-0.9.0-A"
+    #define FirmWare  "1.0-0.8.6-A"
 #endif
 
 /* 
