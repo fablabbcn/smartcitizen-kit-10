@@ -44,6 +44,16 @@ This is an example of the output file once opened on a spreadsheet application:
 | 2821.20     | 4072.00 | 4413.10 | 96.40   | 0.00        | 94.67  | 0.65 | 5.23 | 2000-01-01  00:00:02 |
 | 2784.40     | 4236.80 | 5936.70 | 96.10   | 0.00        | 278.27 | 1.05 | 2.39 | 2000-01-01  00:00:02 |
 
+###Data Import
+
+You can import the recorded data in to [smartcitizen.me](http://smartcitizen.me).
+
+In your device page you will find the **Import SD** along with the Edit and Configure options.
+
+![image](https://smartcitizen.me/img/sck-sd-import.png)
+
+Using a microSD card reader get the **post.csv** file from your card, select it and click import. Data will be imported in to your device, data existing on the file already imported will be skipped. Your kit should be running the latest SD firmware  and the SCK time (RTC) should be set in order data can be imported.
+
 ###Data Conversions
 
 The data stored is automatically converted to the proper units in firmware.
