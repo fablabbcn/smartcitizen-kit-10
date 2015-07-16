@@ -827,7 +827,7 @@ void SCKAmbient::txDebug() {
         else dec = 1;
       Serial.print(SENSOR[i]); 
       if (dec>1) Serial.print((float)(value[i]/dec)); 
-      else Serial.print((int)(value[i]/dec)); 
+      else Serial.print((unsigned int)(value[i]/dec)); 
       Serial.println(UNITS[i]);
     }
     Serial.print(SENSOR[9]);
