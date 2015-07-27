@@ -215,7 +215,7 @@ static char buffer[buffer_length];
 // Basic Server Posts to the SmartCitizen Platform - EndPoint: http://data.smartcitizen.me/add 
 static char* WEB[8]={
                   "data.smartcitizen.me",
-                  "PUT /add HTTP/1.1 \n", 
+                  "PUT /add HTTP/1.1\n", 
                   "Host: data.smartcitizen.me \n", 
                   "User-Agent: SmartCitizen \n", 
                   "X-SmartCitizenMacADDR: ", 
@@ -226,7 +226,7 @@ static char* WEB[8]={
 // Time server request -  EndPoint: http://data.smartcitizen.me/datetime                 
 static char* WEBTIME[3]={                  
                   /*Servidor de tiempo*/
-                  "GET /datetime HTTP/1.1 \n",
+                  "GET /datetime HTTP/1.1\n",
                   "Host: data.smartcitizen.me \n",
                   "User-Agent: SmartCitizen \n\n"  
                   };
