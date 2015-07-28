@@ -23,23 +23,42 @@
     AccumulatorFilter.h     - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
     TemperatureDecoupler.h  - Used for battery temperature decoupling in  Smart Citizen Kit v.1.0 
 
-  Check REAMDE.md for more information.
+  Check README.md for more information.
     
 */
 
 #include <Wire.h>
 #include <EEPROM.h>
 #include "SCKAmbient.h"
+#include "Constants.h"
+#include "SCKTestSuite.h"
 
-SCKAmbient ambient;
-  
 void setup() {
-  ambient.begin();
-  ambient.ini();
+  ambient_.begin();
+  
+  #ifndef TESTMODE
+    ambient_.ini();
+  #endif
+  
+  #ifdef TESTMODE
+  #if F_CPU == 8000000
+    SCKTestSuite test_suite;
+    
+    while (true) {
+      test_suite.run_all_tests();
+      Serial.println("\n*** Repeating test suite in 30s...\n");
+      delay(30*1000); // ms
+    }
+  #else
+    Serial.println("***TEST MODE NOT AVAILABLE FOR THIS CPU");
+  #endif
+  #endif
 }
 
-void loop() {  
-  ambient.execute();
+void loop() {
+  #ifndef TESTMODE
+    ambient_.execute();
+  #endif
 }
 
 
