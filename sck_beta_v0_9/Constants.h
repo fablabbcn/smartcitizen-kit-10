@@ -61,17 +61,17 @@ WIFLY Firmware Setting
 
 */
 
-#define networks 1
+#define networks 0
 #if (networks > 0)
 static char* mySSID[networks]      = { 
-  "SSID" };
+  "SSID1"        , "SSID2"        , "SSID3"             };
 static char* myPassword[networks]  = { 
-  "password" };
+  "PASS1"      , "PASS2"       , "PASS3"            };
 static char* wifiEncript[networks] = { 
-  WEP };
+  WPA2         , WPA2          , WPA2               };
 static char* antennaExt[networks]  = { 
-  INT_ANT };
-#endif      
+  INT_ANT      , INT_ANT       , INT_ANT            };
+#endif       
 
 // Frequency of bus I2C
 #define TWI_FREQ 400000L

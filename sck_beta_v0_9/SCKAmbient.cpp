@@ -1,4 +1,4 @@
-/*
+d/*
  *
  * This file is part of the SCK v0.9 - SmartCitizen
  *
@@ -56,7 +56,7 @@ TemperatureDecoupler decoupler; // Compensate the bat .charger generated heat af
 
 #define USBEnabled      true 
 #define autoUpdateWiFly true
-#define debugAmbient    true
+#define debugAmbient    false
 
 long value[SENSORS];
 char time[TIME_BUFFER_SIZE];
