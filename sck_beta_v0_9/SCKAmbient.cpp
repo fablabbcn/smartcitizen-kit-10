@@ -1,4 +1,4 @@
-d/*
+/*
  *
  * This file is part of the SCK v0.9 - SmartCitizen
  *
