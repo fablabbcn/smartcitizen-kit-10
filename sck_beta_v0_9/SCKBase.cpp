@@ -1,23 +1,4 @@
 /*
- *
- * This file is part of the SCK v0.9 - SmartCitizen
- *
- * This file may be licensed under the terms of of the
- * GNU General Public License Version 2 (the ``GPL'').
- *
- * Software distributed under the License is distributed
- * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
- * express or implied. See the GPL for the specific language
- * governing rights and limitations.
- *
- * You should have received a copy of the GPL along with this
- * program. If not, go to http://www.gnu.org/licenses/gpl.html
- * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- */
-
-/*
 
   SCKBase.cpp
   Supports core and data management functions (Power, WiFi, SD storage, RTClock and EEPROM storage)
@@ -36,7 +17,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#define debugBASE true
+#define debugBASE false
 
 
 
@@ -82,63 +63,6 @@ void SCKBase::config(){
   }
   timer1Initialize();
 }
-
-// Miguel
-void SCKBase::i2c_transaction(int device, int val, int num) {
-  Wire.beginTransmission(device);
-  Wire.write(val);
-  Wire.endTransmission();
-
-  if (num >= 0)
-    Wire.requestFrom(device, num);
-}
-//
-void SCKBase::i2c_transaction_reg_val(int device, int reg, int val) {
-  Wire.beginTransmission(device);
-  Wire.write(reg);
-  Wire.write(val);
-  Wire.endTransmission();
-}
-//
-void SCKBase::i2c_transaction(int device, int val) {
-  SCKBase::i2c_transaction(device, val, -1);
-}
-//
-void SCKBase::i2c_write_many(int device, byte data[], int num) {
-  Wire.beginTransmission(device);
-  for (int i = 0; i < num; i++)
-    Wire.write(data[i]);
-  Wire.endTransmission();
-}
-
-// Miguel
-boolean SCKBase::wait_wire_available(int timeout_ms) {
-  unsigned long now = millis();
-
-  int count = 0;
-  
-  while (!Wire.available()) {
-    if (count++ % 10 == 0)
-      delay(1);
-
-    if (timeout_ms >=0 && millis() - now > timeout_ms)
-      return false;
-  }
-    
-  return true;
-}
-
-// Miguel
-boolean SCKBase::wait_pin_change(int pin, int current_value) {
-  unsigned int loopCnt = TIMEOUT;
-
-  while (digitalRead(pin) == current_value)
-    if (loopCnt-- == 0) return false;
-    
-  return true;
-}
-
-
 
 float SCKBase::average(int anaPin) {
   int lecturas = 100;
@@ -222,6 +146,21 @@ int SCKBase::readMCP(int deviceaddress, uint16_t address ) {
 }
 
 #if F_CPU == 8000000 
+  #define MCP3               0x2D    // Direction of the mcp3 Ajust the battary charge
+float SCKBase::readCharge() {
+  float resistor = kr*readMCP(MCP3, 0x00)/1000;    
+  float current = 1000./(2+((resistor * 10)/(resistor + 10)));
+  #if debugBASE
+    Serial.print("Resistor : ");
+    Serial.print(resistor);
+    Serial.print(" kOhm, ");  
+    Serial.print("Current : ");
+    Serial.print(current);
+    Serial.println(" mA");  
+  #endif
+  return(current);
+}
+
 void SCKBase::writeCharge(int current) {
   if (current < 100) current = 100;
   else if (current > 500) current = 500;
@@ -245,11 +184,12 @@ void SCKBase::writeCharge(int current) {
 void SCKBase::writeEEPROM(uint16_t eeaddress, uint8_t data) {
   uint8_t retry = 0;
   while ((readEEPROM(eeaddress)!=data)&&(retry<10))
-  {
-    byte data_write[3] = {eeaddress >> 8,    // MSB
-                         eeaddress & 0xFF,   // LSB
-                         data};
-    i2c_write_many(E2PROM, data_write, 3);    
+  {  
+    Wire.beginTransmission(E2PROM);
+    Wire.write((byte)(eeaddress >> 8));   // MSB
+    Wire.write((byte)(eeaddress & 0xFF)); // LSB
+    Wire.write(data);
+    Wire.endTransmission();
     delay(6);
     retry++;
   }
@@ -257,56 +197,54 @@ void SCKBase::writeEEPROM(uint16_t eeaddress, uint8_t data) {
 
 byte SCKBase::readEEPROM(uint16_t eeaddress) {
   byte rdata = 0xFF;
-  i2c_transaction_reg_val(E2PROM,
-                          eeaddress >> 8,    // MSB
-                          eeaddress & 0xFF); // LSB
+  Wire.beginTransmission(E2PROM);
+  Wire.write((byte)(eeaddress >> 8));   // MSB
+  Wire.write((byte)(eeaddress & 0xFF)); // LSB
+  Wire.endTransmission();
   Wire.requestFrom(E2PROM,1);
-  wait_wire_available(-1);
-  return Wire.read();
-}
-
-void SCKBase::writeByte(uint16_t eeaddress, uint8_t data, uint8_t location) {
-  if (location == EXTERNAL)
-    writeEEPROM(eeaddress, data);
-  else
-    EEPROM.write(eeaddress, data);
+  while (!Wire.available()); 
+  rdata = Wire.read();
+  return rdata;
 }
 
 void SCKBase::writeData(uint32_t eeaddress, long data, uint8_t location)
 {
-  for (int i =0; i<4; i++) 
-    writeByte(eeaddress + 3 -i, data>>(i*8), location);
+    for (int i =0; i<4; i++) 
+      {
+        if (location == EXTERNAL) writeEEPROM(eeaddress + (3 -i) , data>>(i*8));
+        else EEPROM.write(eeaddress + (3 -i), data>>(i*8));
+      }
 
 }
 
 void SCKBase::writeData(uint32_t eeaddress, uint16_t pos, char* text, uint8_t location)
 {
   uint16_t eeaddressfree = eeaddress + buffer_length * pos;
-
-  // Clear
-  for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++)
-    writeByte(i, 0x00, location);
-  
-  // Write
-  for (uint16_t i = eeaddressfree; text[i - eeaddressfree]!= 0x00; i++) {
-    if (location != EXTERNAL && eeaddressfree>=DEFAULT_ADDR_SSID && text[i - eeaddressfree]==' ')
-      text[i - eeaddressfree]='$';
-    writeByte(i, text[i - eeaddressfree], location);
-  }
-}
-
-byte SCKBase::readByte(uint16_t eeaddress, uint8_t location) {
   if (location == EXTERNAL)
-    readEEPROM(eeaddress);
+    {
+      for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++) writeEEPROM(i, 0x00);
+      for (uint16_t i = eeaddressfree; text[i - eeaddressfree]!= 0x00; i++) writeEEPROM(i, text[i - eeaddressfree]);
+    }
   else
-    EEPROM.read(eeaddress);
+    {
+      
+      for (uint16_t i = eeaddressfree; i< (eeaddressfree + buffer_length); i++) EEPROM.write(i, 0x00);
+      for (uint16_t i = eeaddressfree; text[i - eeaddressfree]!= 0x00; i++) 
+        {
+          if (eeaddressfree>=DEFAULT_ADDR_SSID) if (text[i - eeaddressfree]==' ') text[i - eeaddressfree]='$';
+          EEPROM.write(i, text[i - eeaddressfree]); 
+        }
+    }
 }
 
 uint32_t SCKBase::readData(uint16_t eeaddress, uint8_t location)
 {
   uint32_t data = 0;
   for (int i =0; i<4; i++)
-    data = data + (uint32_t)((uint32_t)readByte(eeaddress + i, location) << ((3-i))*8);
+    {
+      if (location == EXTERNAL)  data = data + (uint32_t)((uint32_t)readEEPROM(eeaddress + i)<<((3-i)*8));
+      else data = data + (uint32_t)((uint32_t)EEPROM.read(eeaddress + i)<<((3-i)*8));
+    }
   return data;
 }
 
@@ -314,25 +252,38 @@ char* SCKBase::readData(uint16_t eeaddress, uint16_t pos, uint8_t location)
 {
   eeaddress = eeaddress + buffer_length * pos;
   uint16_t i;
-  
-  uint8_t temp = readByte(eeaddress, location);
-  for (i = eeaddress; (temp>0x1F && temp<0x7E && i - eeaddress < buffer_length); i++) 
-  {
-    buffer[i - eeaddress] = readByte(i, location);
-    temp = readByte(i + 1, location);
-  }    
-    
+  if (location == EXTERNAL)
+    {
+      uint8_t temp = readEEPROM(eeaddress);
+      for ( i = eeaddress; ((temp!= 0x00)&&(temp<0x7E)&&(temp>0x1F)&&((i - eeaddress)<buffer_length)); i++) 
+      {
+        buffer[i - eeaddress] = readEEPROM(i);
+        temp = readEEPROM(i + 1);
+      }
+    }
+  else
+    {
+      uint8_t temp = EEPROM.read(eeaddress);
+      for ( i = eeaddress; ((temp!= 0x00)&&(temp<0x7E)&&(temp>0x1F)&&((i - eeaddress)<buffer_length)); i++) 
+      {
+        buffer[i - eeaddress] = EEPROM.read(i);
+        temp = EEPROM.read(i + 1);
+      }
+    }
   buffer[i - eeaddress] = 0x00; 
   return buffer;
 }
 
 boolean SCKBase::checkRTC() {
-  i2c_transaction(RTC_ADDRESS, 0x00);
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write(0x00); //Address
+  Wire.endTransmission();
   delay(4);
   Wire.requestFrom(RTC_ADDRESS,1);
-  
-  if (!wait_wire_available(500)) return false;
-  return Wire.read();
+  unsigned long time = millis();
+  while (!Wire.available()) if ((millis() - time)>500) return false;
+  Wire.read();
+  return true;
 }
 
 boolean SCKBase::RTCadjust(char *time) {    
@@ -341,23 +292,47 @@ boolean SCKBase::RTCadjust(char *time) {
   byte data_count=0;
   while (time[count]!=0x00)
   {
-    char c = time[count];
-    if(c=='-' || c==' ' || c==':') data_count++;
-    else if ((c >= '0')&&(c <= '9'))
+    if(time[count] == '-') data_count++;
+    else if(time[count] == ' ') data_count++;
+    else if(time[count] == ':') data_count++;
+    else if ((time[count] >= '0')&&(time[count] <= '9'))
     { 
-      rtc[data_count] =(rtc[data_count]<<4)|(0x0F & c);
-    }
+      rtc[data_count] =(rtc[data_count]<<4)|(0x0F&time[count]);
+    }  
     else break;
     count++;
   }  
   if (data_count == 5)
   {
-    byte data[8] = {0, rtc[5], rtc[4], rtc[3], 0x00, rtc[2], rtc[1], rtc[0]};
-    i2c_write_many(RTC_ADDRESS, data, 8);
-    
 #if F_CPU == 8000000 
+    Wire.beginTransmission(RTC_ADDRESS);
+    Wire.write((int)0);
+    Wire.write(rtc[5]);
+    Wire.write(rtc[4]);
+    Wire.write(rtc[3]);
+    Wire.write(0x00);
+    Wire.write(rtc[2]);
+    Wire.write(rtc[1]);
+    Wire.write(rtc[0]);
+    Wire.endTransmission();
     delay(4);
-     i2c_transaction_reg_val(RTC_ADDRESS, 0x0E, 0x00);
+    Wire.beginTransmission(RTC_ADDRESS);
+    Wire.write(0x0E); //Address
+    Wire.write(0x00); //Value
+    Wire.endTransmission();
+#else
+    Wire.beginTransmission(RTC_ADDRESS);
+    Wire.write((int)0);
+    Wire.write(rtc[5]);
+    Wire.write(rtc[4]);
+    Wire.write(rtc[3]);
+    Wire.write(0x00);
+    Wire.write(rtc[2]);
+    Wire.write(rtc[1]);
+    Wire.write(rtc[0]);
+    Wire.write((int)0);
+    Wire.endTransmission();
+    return true;
 #endif
     return true;
   }
@@ -365,8 +340,10 @@ boolean SCKBase::RTCadjust(char *time) {
 }
 
 boolean SCKBase::RTCtime(char *time) {
-  i2c_transaction(RTC_ADDRESS, 0x00, 7);
-  
+  Wire.beginTransmission(RTC_ADDRESS);
+  Wire.write((int)0);	
+  Wire.endTransmission();
+  Wire.requestFrom(RTC_ADDRESS, 7);
   uint8_t seconds = (Wire.read() & 0x7F);
   uint8_t minutes = Wire.read();
   uint8_t hours = Wire.read();
@@ -506,8 +483,8 @@ const char *expectedResponse = "AOK") {
 }
 
 boolean SCKBase::sendCommand(const char *command,
-                             boolean isMultipartCommand = false,
-                             const char *expectedResponse = "AOK") {
+boolean isMultipartCommand = false,
+const char *expectedResponse = "AOK") {
   Serial1.print(command);
   delay(20);
   if (!isMultipartCommand) {
@@ -524,6 +501,10 @@ boolean SCKBase::sendCommand(const char *command,
   }
   return true;
 }
+
+#define COMMAND_MODE_ENTER_RETRY_ATTEMPTS 2
+
+#define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
 
 boolean SCKBase::enterCommandMode() {
   for (int retryCount = 0; retryCount < COMMAND_MODE_ENTER_RETRY_ATTEMPTS; retryCount++) 
