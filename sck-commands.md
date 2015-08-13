@@ -19,6 +19,7 @@ This commands are commands to talk directly to the Wi-Fi module (RN-XV WiFly) ow
 * `set wlan key XXX\r`         Add a new key to memory
 * `set wlan auth XXX\r`        Add an authentication method into memory
 * `set wlan ext_antenna XXX\r` Add an antenna type into memory
+* `set sys iofunc 0x7`         Disable the Wi-Fi module blue LED's 
 * `exit\r`                     Go back to normal operational mode
 
 ### Special SCK commands
