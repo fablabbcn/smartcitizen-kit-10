@@ -984,6 +984,7 @@ void SCKAmbient::serialRequests()
               eeprom_write_ok = true;
               address_eeprom = EE_ADDR_APIKEY;
             } 
+            else if (base_.checkText("clear memory\r", buffer_int)) base_.clearmemory();
           }
         else if (check_data == -1) Serial.println("Invalid command.");
         if (serial_bridge) Serial1.write(inByte); 
