@@ -9,9 +9,9 @@
 #define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-A"
+    #define FirmWare  "1.1-0.9.0-B"
 #else
-    #define FirmWare  "1.0-0.9.0-A"
+    #define FirmWare  "1.0-0.9.0-B"
 #endif
 
 /* 
@@ -50,8 +50,8 @@ static char* antennaExt[networks]  = {
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
 
-#define WIFLY_LATEST_VERSION 441
-#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
+#define WIFLY_LATEST_VERSION 475
+#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-475.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
 /* 

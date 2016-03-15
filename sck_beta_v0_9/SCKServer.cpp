@@ -24,7 +24,7 @@ boolean SCKServer::time(char *time_) {
   boolean ok=false;
   uint8_t count = 0;
   byte retry=0;
-  while (retry<5)
+  while ((retry<5)&&(!ok))
   {
    retry++;
    if (base__.enterCommandMode()) 
@@ -45,7 +45,7 @@ boolean SCKServer::time(char *time_) {
                   if (newChar == '#') {
                     ok = true;
                     time_[offset] = '\x00';
-                    return ok;
+                    break;
                   } 
                   else if (newChar != -1) {
                     if (newChar==',') 
@@ -66,12 +66,16 @@ boolean SCKServer::time(char *time_) {
                 }
               }
            }
+         else Serial.println("FAIL:(");
          base__.close();
        }
     }
   }
-  time_[0] = '#';
-  time_[1] = 0x00;
+  if (!ok)
+    {
+      time_[0] = '#';
+      time_[1] = 0x00;
+    }
   base__.exitCommandMode();
   return ok;
 }
