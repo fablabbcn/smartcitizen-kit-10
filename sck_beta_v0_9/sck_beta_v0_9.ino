@@ -38,8 +38,6 @@ void setup() {
   ambient.ini();
 }
 
-char TIME[20];
-
 void loop() {  
   ambient.execute();
 }
