@@ -132,15 +132,25 @@ void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean i
 
 void SCKServer::addFIFO(long *value, char *time)
   {
-    int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL);
-    int i = 0;
-    for (i = 0; i<9; i++)
-      {
-        base__.writeData(eeaddress + i*4, value[i], EXTERNAL);
-      } 
-    base__.writeData(eeaddress + i*4, 0, time, EXTERNAL);
-    eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
-    base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, INTERNAL);
+    uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
+    if (updates < MAX_MEMORY)
+    {
+      int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL);
+      int i = 0;
+      for (i = 0; i<9; i++)
+        {
+          base__.writeData(eeaddress + i*4, value[i], EXTERNAL);
+        } 
+      base__.writeData(eeaddress + i*4, 0, time, EXTERNAL);
+      eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
+      base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, INTERNAL);
+    }
+    else
+    {
+      #if debugEnabled
+              if (!ambient__.debug_state()) Serial.println(F("Memory limit exceeded!!"));
+      #endif
+    }
   }
 
 void SCKServer::readFIFO()
@@ -307,7 +317,6 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
     }
   else
     {
-        //value[8] = 0;  //Wifi Nets
         if (base__.checkRTC()) base__.RTCtime(time);
         else time = "#";
         addFIFO(value, time);

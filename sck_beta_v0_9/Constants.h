@@ -125,6 +125,8 @@ Internal EEPROM Memory Addresses
 
 */ 
 
+#define MAX_MEMORY                                  571 //Memory size
+
 // SCK Configuration Parameters 
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
 #define EE_ADDR_TIME_UPDATE                         32  //4BYTES Time between update and update of the sensors in seconds
