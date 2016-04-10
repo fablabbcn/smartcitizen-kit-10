@@ -878,7 +878,7 @@ int SCKAmbient::addData(byte inByte)
   }
 
     
-boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
+boolean SCKAmbient::printNetWorks(unsigned int address_eeprom, boolean endLine=true)
     {
       int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
       if (nets_temp>0){
@@ -887,7 +887,8 @@ boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
             Serial.print(base_.readData(address_eeprom, i, INTERNAL));
             if (i<(nets_temp - 1)) Serial.print(' ');
           }
-        Serial.println();}
+        if (endLine) Serial.println();
+      }
     }  
 
 void SCKAmbient::addNetWork(unsigned int address_eeprom, char* text)
@@ -964,6 +965,25 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("get time update\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
             else if (base_.checkText("get number updates\r", buffer_int))     Serial.println(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
             else if (base_.checkText("get apikey\r", buffer_int))             Serial.println(base_.readData(EE_ADDR_APIKEY, 0, INTERNAL));
+            else if (base_.checkText("get all\r", buffer_int)) {
+              Serial.print(F("|"));
+              Serial.print(FirmWare);
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_MAC, 0, INTERNAL)); //MAC
+              Serial.print(F("|"));
+              printNetWorks(DEFAULT_ADDR_SSID, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_PASS, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_ANTENNA, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_AUTH, false);
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
+              Serial.println(F("|"));
+            }
             /*Write commands*/
             else if (base_.checkText("set wlan ssid ", buffer_int))
             {
