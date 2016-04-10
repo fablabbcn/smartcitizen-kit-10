@@ -39,33 +39,48 @@ void SCKBase::begin() {
 }
 
 void SCKBase::config(){
-  if (!compareData(__TIME__, readData(EE_ADDR_TIME_VERSION, 0, INTERNAL)))
-  {
-    digitalWrite(AWAKE, HIGH); 
-    clearmemory();
-    #if (networks > 0)
-        for(byte i=0; i<networks; i++)
-        {
-          writeData(DEFAULT_ADDR_SSID, i, mySSID[i], INTERNAL);
-          writeData(DEFAULT_ADDR_PASS, i, myPassword[i], INTERNAL);
-          writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], INTERNAL);
-          writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], INTERNAL);
-        }
-        writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
-    #endif
-    reset();
-  }
+  eepromCheck();
   timer1Initialize();
 }
 
-void SCKBase::clearmemory(){
+void SCKBase::eepromCheck() {
+  //do a clearmemory only if needed
+  digitalWrite(AWAKE, HIGH);
+  boolean doClearMemory = false;
+  char temp[17];
+  strncpy(temp, MAC(), 18);
+  if (!compareData(temp, readData(EE_ADDR_MAC, 0, INTERNAL))) doClearMemory = true;
+  uint32_t intTemp;
+  intTemp = readData(EE_ADDR_SENSOR_MODE, INTERNAL);
+  if (intTemp < 0 || intTemp > 3) doClearMemory = true;
+  intTemp = readData(EE_ADDR_TIME_UPDATE, INTERNAL);
+  if (intTemp < MIN_TIME_UPDATE || intTemp > MAX_TIME_UPDATE) doClearMemory = true;
+  intTemp = readData(EE_ADDR_NUMBER_UPDATES, INTERNAL);
+  if (intTemp < DEFAULT_MIN_UPDATES || intTemp > POST_MAX) doClearMemory = true;
+  if (doClearMemory) clearmemory();
+
+  //if there are hardcoded networks write them without clearing memory
+  //so the user can add more networks after hardcoded one's
+  #if (networks > 0)
+    intTemp = readData(EE_ADDR_NUMBER_NETS, INTERNAL);
+    if (intTemp < networks || intTemp > 5) writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
+    for (byte i=0; i<networks; i++){
+      if (!compareData(readData(DEFAULT_ADDR_SSID, i, INTERNAL), mySSID[i])) writeData(DEFAULT_ADDR_SSID, i, mySSID[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_PASS, i, INTERNAL), myPassword[i])) writeData(DEFAULT_ADDR_PASS, i, myPassword[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_AUTH, i, INTERNAL), wifiEncript[i])) writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_ANTENNA, i, INTERNAL), antennaExt[i])) writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], INTERNAL);
+    }
+    reset();
+  #endif
+}
+
+void SCKBase::clearmemory() {
     for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  // Memory erasing
-    writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, INTERNAL);
     writeData(EE_ADDR_SENSOR_MODE, DEFAULT_MODE_SENSOR, INTERNAL);
     writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, INTERNAL);
     writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, INTERNAL);
     writeData(EE_ADDR_MAC, 0, MAC(), INTERNAL);
-  }
+}
   
 float SCKBase::average(int anaPin) {
   int lecturas = 100;

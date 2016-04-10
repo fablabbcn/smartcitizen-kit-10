@@ -86,10 +86,11 @@ SENSOR READINGS - Defaults
 */
 
 #define DEFAULT_TIME_UPDATE  60     //Time between update and update
+#define MIN_TIME_UPDATE      10     //Minimum time between updates (minimum time to read all the sensors)
+#define MAX_TIME_UPDATE      3600   //Max time between updates (one hour)
 #define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
 #define POST_MAX             20     //Max number of postings at a time
 #define DEFAULT_MODE_SENSOR  NORMAL     //Type sensors capture (OFFLINE, NOWIFI, NORMAL, ECONOMIC)
-
 
 /* 
 
