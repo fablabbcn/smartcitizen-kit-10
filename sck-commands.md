@@ -38,7 +38,7 @@ This commands are commands to talk talk to the SCK configuration interface.
 * `get wlan phrase\r`          Retrieve the phrase and KEY saved on the kit
 * `get wlan auth\r`            Retrieve the authentication methods saved on the kit
 * `get wlan ext_antenna\r`     Retrieve the antenna types saved on the kit
-* `get all\r`                  Retrieve all config saved on the kit in a single line (`|version|MAC|ssid1 ssid2,pass1 pass2,auth1 auth2,ant1 ant2|timeUpdate|numPosts|`)
+* `get all\r`                  Retrieve all config saved on the kit in a single line (`|version|MAC|ssid1 ssid2,pass1 pass2,auth1 auth2,ant1 ant2|hardcodedNets|timeUpdate|numPosts|`)
 * `clear nets\r`               Remove all saved Wi-Fi configuration information (except hardcoded)
 * `clear memory\r`             Remove all configuration information
 * `exit\r`                     Goes back to normal operational mode

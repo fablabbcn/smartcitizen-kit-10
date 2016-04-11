@@ -979,6 +979,8 @@ void SCKAmbient::serialRequests()
               Serial.print(F(","));
               printNetWorks(DEFAULT_ADDR_AUTH, false);
               Serial.print(F("|"));
+              Serial.print(networks);
+              Serial.print(F("|"));
               Serial.print(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
               Serial.print(F("|"));
               Serial.print(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
