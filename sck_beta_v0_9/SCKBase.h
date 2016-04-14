@@ -21,6 +21,7 @@ class SCKBase {
 public:
     void begin();
     void config();
+    void eepromCheck();
     void clearmemory();
     float average(int anaPin);
     boolean checkText(char* text, char* text1);

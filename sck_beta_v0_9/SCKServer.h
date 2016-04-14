@@ -19,6 +19,7 @@ public:
    boolean connect();
    void addFIFO(long *value, char *time);
    void readFIFO();
+   boolean RTCupdate(char *time);
 private:
 
 };

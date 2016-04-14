@@ -80,6 +80,21 @@ boolean SCKServer::time(char *time_) {
   return ok;
 }
 
+boolean SCKServer::RTCupdate(char *time_){
+  byte retry = 0;
+  if (base__.checkRTC()){
+    if (time(time_)) {
+      while (retry<5) {
+        retry++;
+        if(base__.RTCadjust(time_)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean isMultipart)
 {  
       #if debugServer
@@ -297,6 +312,8 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
         }
       else //No connect
         {
+          if (base__.checkRTC()) base__.RTCtime(time);
+          else time = "#";
           addFIFO(value, time);
           #if debugEnabled
               if (!ambient__.debug_state()) Serial.println(F("Error in connectionn!!"));

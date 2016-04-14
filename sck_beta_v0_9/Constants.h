@@ -9,9 +9,9 @@
 #define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-B"
+    #define FirmWare  "1.1-0.9.3-A"
 #else
-    #define FirmWare  "1.0-0.9.0-B"
+    #define FirmWare  "1.0-0.9.3-A"
 #endif
 
 /* 
@@ -39,13 +39,13 @@ WIFLY Firmware Setting
 #define networks 0
 #if (networks > 0)
 static char* mySSID[networks]      = { 
-  "SSID1"        , "SSID2"        , "SSID3"             };
+  "SSID1"        , "SSID2"     };
 static char* myPassword[networks]  = { 
-  "PASS1"      , "PASS2"       , "PASS3"            };
+  "PASS1"      , "PASS2"          };
 static char* wifiEncript[networks] = { 
-  WPA2         , WPA2          , WPA2               };
+  WPA2         , WPA2                };
 static char* antennaExt[networks]  = { 
-  INT_ANT      , INT_ANT       , INT_ANT            };
+  INT_ANT      , INT_ANT             };
 #endif      
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
@@ -86,10 +86,11 @@ SENSOR READINGS - Defaults
 */
 
 #define DEFAULT_TIME_UPDATE  60     //Time between update and update
+#define MIN_TIME_UPDATE      10     //Minimum time between updates (minimum time to read all the sensors)
+#define MAX_TIME_UPDATE      3600   //Max time between updates (one hour)
 #define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
 #define POST_MAX             20     //Max number of postings at a time
 #define DEFAULT_MODE_SENSOR  NORMAL     //Type sensors capture (OFFLINE, NOWIFI, NORMAL, ECONOMIC)
-
 
 /* 
 
