@@ -126,7 +126,8 @@ uint32_t  NumUpdates   = 0;  // Min. number of sensor readings before publishing
 uint32_t  nets           = 0;
 boolean sleep         = true; 
 uint32_t timetransmit = 0; 
-uint32_t timeMICS = 0; 
+uint32_t timeMICS = 0;
+boolean RTCupdatedSinceBoot = false;
 
 void SCKAmbient::ini()
   {
@@ -168,18 +169,15 @@ void SCKAmbient::ini()
               }
           #endif
         #endif
-        byte retry = 0;
-        if (base_.checkRTC())
-        {
-          if (server_.time(time))
-          {
-            while (!base_.RTCadjust(time)&&(retry<5)) retry++;
-            #if debugEnabled
-                    if (!debugON) Serial.println(F("Updating RTC..."));
-            #endif
-          }
+        if (server_.RTCupdate(time)) {
+          RTCupdatedSinceBoot = true;
           #if debugEnabled
-            else if (!debugON) Serial.println(F("Fail updating RTC!!"));
+            if (!debugON) Serial.println(F("RTC Updated!!"));
+          #endif
+        } else {
+          #if debugEnabled
+            if (!debugON) Serial.println(F("RTC Update Failed!!"));
+            sleep = false;
           #endif
         }
       }
@@ -783,7 +781,7 @@ boolean SCKAmbient::debug_state()
 
 void SCKAmbient::execute()
   {
-    if (terminal_mode)  // Telnet  (#data + *OPEN* detectado )
+    if (terminal_mode)                                              // Telnet  (#data + *OPEN* detectado )
     {
       sleep = false;
       digitalWrite(AWAKE, HIGH);
@@ -796,13 +794,26 @@ void SCKAmbient::execute()
       timetransmit = millis();
       TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
       NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
-      updateSensors(sensor_mode); 
-      if (!debugON)                                                  // CMD Mode False
-      {
-        if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
-        #if USBEnabled
-              txDebug();
-        #endif
+      if (!debugON) {                                                // CMD Mode False
+        if (RTCupdatedSinceBoot) {
+          updateSensors(sensor_mode);
+          if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
+          #if USBEnabled
+            txDebug();
+          #endif
+        } else {
+          if (server_.RTCupdate(time)) {
+            RTCupdatedSinceBoot = true;
+            #if debugEnabled
+              if (!debugON) Serial.println(F("RTC Updated!!"));
+            #endif
+          } else {
+            #if debugEnabled
+              if (!debugON) Serial.println(F("RTC Update Failed!!"));
+              if (!debugON) Serial.println(F("With no valid time it's useless to take readings!!"));
+            #endif
+          }
+        }
       }
     }
   }       

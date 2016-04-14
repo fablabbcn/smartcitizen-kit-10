@@ -9,9 +9,9 @@
 #define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-B"
+    #define FirmWare  "1.1-0.9.3-A"
 #else
-    #define FirmWare  "1.0-0.9.0-B"
+    #define FirmWare  "1.0-0.9.3-A"
 #endif
 
 /* 
@@ -39,13 +39,13 @@ WIFLY Firmware Setting
 #define networks 0
 #if (networks > 0)
 static char* mySSID[networks]      = { 
-  "SSID1"        , "SSID2"        , "SSID3"             };
+  "SSID1"        , "SSID2"     };
 static char* myPassword[networks]  = { 
-  "PASS1"      , "PASS2"       , "PASS3"            };
+  "PASS1"      , "PASS2"          };
 static char* wifiEncript[networks] = { 
-  WPA2         , WPA2          , WPA2               };
+  WPA2         , WPA2                };
 static char* antennaExt[networks]  = { 
-  INT_ANT      , INT_ANT       , INT_ANT            };
+  INT_ANT      , INT_ANT             };
 #endif      
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C

@@ -80,6 +80,21 @@ boolean SCKServer::time(char *time_) {
   return ok;
 }
 
+boolean SCKServer::RTCupdate(char *time_){
+  byte retry = 0;
+  if (base__.checkRTC()){
+    if (time(time_)) {
+      while (retry<5) {
+        retry++;
+        if(base__.RTCadjust(time_)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean isMultipart)
 {  
       #if debugServer
