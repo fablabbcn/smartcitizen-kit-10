@@ -66,7 +66,11 @@ boolean SCKServer::time(char *time_) {
                 }
               }
            }
-         else Serial.println("FAIL:(");
+         else {
+           #if debugEnabled
+             Serial.println("FAIL:(");
+           #endif
+         }
          base__.close();
        }
     }
