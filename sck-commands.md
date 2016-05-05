@@ -39,6 +39,7 @@ This commands are commands to talk talk to the SCK configuration interface.
 * `get wlan auth\r`            Retrieve the authentication methods saved on the kit
 * `get wlan ext_antenna\r`     Retrieve the antenna types saved on the kit
 * `get all\r`                  Retrieve all config saved on the kit in a single line (`|version|MAC|ssid1 ssid2,pass1 pass2,auth1 auth2,ant1 ant2|hardcodedNets|timeUpdate|numPosts|`)
+* `post data\r`                Retrieve sensor readings and post them to server if network connection is available.
 * `clear nets\r`               Remove all saved Wi-Fi configuration information (except hardcoded)
 * `clear memory\r`             Remove all configuration information
 * `exit\r`                     Goes back to normal operational mode

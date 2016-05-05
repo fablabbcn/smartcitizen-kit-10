@@ -31,7 +31,7 @@ class SCKAmbient {
 public:
   void begin();
   void ini();
-  void execute();
+  void execute(boolean instant);
   void writeGAIN(long value);
   float readGAIN(); 
   void GasSensor(boolean active);

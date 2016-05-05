@@ -779,7 +779,7 @@ boolean SCKAmbient::debug_state()
     return debugON;
   }
 
-void SCKAmbient::execute()
+void SCKAmbient::execute(boolean instant)
   {
     if (terminal_mode)                                              // Telnet  (#data + *OPEN* detectado )
     {
@@ -789,13 +789,13 @@ void SCKAmbient::execute()
       usb_mode = false;
       terminal_mode = false;
     }
-    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second)
+    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second || instant) 
     {  
       timetransmit = millis();
       TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
       NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
       if (!debugON) {                                                // CMD Mode False
-        if (RTCupdatedSinceBoot) {
+        if (RTCupdatedSinceBoot || instant) {
           updateSensors(sensor_mode);
           if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
           #if USBEnabled
@@ -996,6 +996,8 @@ void SCKAmbient::serialRequests()
               Serial.print(F("|"));
               Serial.print(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
               Serial.println(F("|"));
+            } else if (base_.checkText("post data\r", buffer_int)) {
+              execute(true);
             }
             /*Write commands*/
             else if (base_.checkText("set wlan ssid ", buffer_int))
