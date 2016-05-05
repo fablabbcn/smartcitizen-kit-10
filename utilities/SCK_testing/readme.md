@@ -14,6 +14,6 @@ Smartcitizen Kit testing script
 ------
 ##### Using the script
 
-* This script requires a working installation of [python](https://www.python.org/) and [Arduino IDE.](https://www.arduino.cc/en/Main/Software) and a working Internet connection with wi-fi access.
+* This script requires a working installation of [python](https://www.python.org/) and [Arduino IDE](https://www.arduino.cc/en/Main/Software) and a working Internet connection with wi-fi access.
 * Download this folder to your computer, edit your network settings on line 9-10, connect your kit  to the USB port and run the script with `python SCKtester`.
-* If you only have the kit connected to your computer and only one serial port is available, you can skip port selection with the *-a* option: `python SCKtester -p`
+* If you only have the kit connected to your computer and only one serial port is available, you can skip port selection with the *-p* option: `python SCKtester -p`
