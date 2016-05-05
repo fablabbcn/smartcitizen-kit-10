@@ -3,11 +3,15 @@
 #include <SdFat.h>
 #include <EEPROM.h>
 #include "Constants.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #define USBEnabled      true 
 #define sensorEnabled   true
 #define debuggEnabled   true
 #define ADXLEnabled     false
+
+#define SENSORS     9
 
 uint32_t timetransmit = 0;  
 uint32_t TimeUpdate   = 0;  //Variable temporal de tiempo entre actualizacion y actualizacion de los sensensores
@@ -15,7 +19,11 @@ uint32_t NumUpdates   = 0;  //Numero de actualizaciones antes de postear
 
 SdFat sd;
 SdFile myFile;
-long SENSORvalue[8];
+OneWire oneWire(3);
+DallasTemperature extTemperatures(&oneWire);
+DeviceAddress extTemperatures1;
+
+long SENSORvalue[SENSORS];
 boolean csvInit = false;
 
 void setup() {
@@ -54,6 +62,13 @@ void setup() {
     
     timetransmit = millis();
     TimeUpdate = atol(sckReadData(EE_ADDR_TIME_UPDATE, 0, 0)); //Tiempo entre transmision y transmision en segundos
+    #if sensorEnabled  
+      updateSensorsSD();
+      txSD();
+      #if USBEnabled
+          txDebugSD();
+      #endif
+    #endif
 }
 
 void loop() {  

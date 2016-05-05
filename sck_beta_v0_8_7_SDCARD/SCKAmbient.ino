@@ -413,6 +413,28 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
             return true;
     }
  #endif
+
+  uint16_t sckGetExtTemp(){
+    Wire.end();
+    delay(100);
+    extTemperatures.begin();
+    extTemperatures.getAddress(extTemperatures1, 0);
+    extTemperatures.requestTemperatures(); // Send the command to get temperatures
+    
+    float extTemp = extTemperatures.getTempC(extTemperatures1);
+    
+    #if debuggSCK
+      Serial.print("DS18B20 (Ext Sensor): ");
+      Serial.print(extTemp);
+      Serial.println(" C");
+    #endif
+        
+    Serial.println();
+    delay(100);
+    Wire.begin();  
+
+    return (int) extTemp*100;
+  }
   
   uint16_t sckGetLight(){
     #if F_CPU == 8000000 
@@ -540,4 +562,5 @@ float kr= ((float)P1*1000)/RES;     //Constante de conversion a resistencia de p
     return RsNO2;
   } 
 
+  
 
