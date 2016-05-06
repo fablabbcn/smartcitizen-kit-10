@@ -30,6 +30,7 @@ class SCK:
 		self.tmpZip = os.path.join(self.firmwareDir, "tmp.zip")
 		self.logFileName = "testingLog.csv"
 		self.usePort = False
+		self.arduinoPath = '/Applications/Arduino.app/Contents/MacOS/Arduino'
 	def _retry(self, command):
 		retry = 0
 		while retry < myKit.maxRetries:
@@ -38,7 +39,7 @@ class SCK:
 			if command: return True
 		return False
 	def _uploadWifliConsole(self):
-		out = subprocess.Popen(['arduino', '--upload', self.talkWiflyFirmware, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+		out = subprocess.Popen([self.arduinoPath, '--upload', self.talkWiflyFirmware, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
 		status = out.wait()
 		if status == 0: return True
 		else:return False
@@ -129,7 +130,7 @@ class SCK:
 			else:
 				return False
 	def _uploadFirmware(self):
-		out = subprocess.Popen(['arduino', '--upload', self.inoFile, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+		out = subprocess.Popen([self.arduinoPath, '--upload', self.inoFile, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
 		status = out.wait()
 		if status == 0: return True
 		else: return False
@@ -235,7 +236,7 @@ def serialPorts():
         ports = glob.glob('/dev/tty[A-Za-z]*')
 
     elif sys.platform.startswith('darwin'):
-        ports = glob.glob('/dev/tty.*')
+        ports = glob.glob('/dev/tty.*')[::-1]
 
     else:
         raise EnvironmentError('Unsupported platform')
