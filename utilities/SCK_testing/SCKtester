@@ -119,7 +119,7 @@ class SCK:
 		else:
 			if not os.path.exists(myKit.firmwareDir): os.makedirs(myKit.firmwareDir)
 			myPrint(" downloading...")
-			zipUrl = json.load(urllib2.urlopen("https://api.github.com/repos/fablabbcn/Smart-Citizen-Kit/releases/latest"))['zipball_url']
+			zipUrl = "https://github.com/fablabbcn/Smart-Citizen-Kit/archive/master.zip"
 			downloadedZip = urllib.urlretrieve(zipUrl, myKit.tmpZip)[0]
 			zipfile.ZipFile(downloadedZip).extractall(myKit.firmwareDir)
 			os.remove(myKit.tmpZip)
