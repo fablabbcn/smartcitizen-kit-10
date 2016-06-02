@@ -49,6 +49,12 @@ void SCKBase::eepromCheck() {
   boolean doClearMemory = false;
   char temp[17];
   strncpy(temp, MAC(), 18);
+  while (compareData(temp, "-1")){
+    #if debugBASE
+      Serial.println(F("Can't get MAC from Wifly!!!"));
+    #endif
+    strncpy(temp, MAC(), 18);
+  }
   if (!compareData(temp, readData(EE_ADDR_MAC, 0, INTERNAL))) doClearMemory = true;
   uint32_t intTemp;
   intTemp = readData(EE_ADDR_SENSOR_MODE, INTERNAL);
@@ -700,10 +706,9 @@ char* SCKBase::MAC() {
         if (Serial1.available())
         {
           newChar = Serial1.read();
-          //Serial.println(newChar);
           if ((newChar == '\n')||(newChar < '0')) {
             buffer[offset] = '\x00';
-            break;
+            return buffer;
           } 
           else if (newChar != -1) {
             buffer[offset] = newChar;
@@ -715,8 +720,7 @@ char* SCKBase::MAC() {
       exitCommandMode();
     }        
   }
-
-  return buffer;
+  return "-1";
 }
 
 char* SCKBase::id() {
