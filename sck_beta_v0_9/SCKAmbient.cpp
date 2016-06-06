@@ -968,10 +968,10 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("get sck info\r", buffer_int))           Serial.println(FirmWare);
             else if (base_.checkText("get wifi info\r", buffer_int))          Serial.println(base_.getWiFlyVersion());
             else if (base_.checkText("get mac\r", buffer_int))                Serial.println(base_.readData(EE_ADDR_MAC, 0, INTERNAL));
-            else if (base_.checkText("get wlan ssid\r", buffer_int))          printNetWorks(DEFAULT_ADDR_SSID);
-            else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS);
-            else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH);
-            else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA);
+            else if (base_.checkText("get wlan ssid\r", buffer_int))          printNetWorks(DEFAULT_ADDR_SSID, true);
+            else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS, true);
+            else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH, true);
+            else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA, true);
             else if (base_.checkText("get mode sensor\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL));
             else if (base_.checkText("get time update\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
             else if (base_.checkText("get number updates\r", buffer_int))     Serial.println(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
