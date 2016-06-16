@@ -36,6 +36,7 @@ SCKAmbient ambient;
 void setup() {
   ambient.begin();
   ambient.ini();
+  ambient.execute(true);
 }
 
 void loop() {  
