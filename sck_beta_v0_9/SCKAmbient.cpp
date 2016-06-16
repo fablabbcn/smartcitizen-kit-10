@@ -816,10 +816,11 @@ void SCKAmbient::execute(boolean instant)
         }
       }
     }
-  }       
+  }
            
 void SCKAmbient::txDebug() {
   if (debugON== false) {
+    Serial.println(F("*******************"));
     float dec = 0;
     for(int i=0; i<9; i++) 
     {

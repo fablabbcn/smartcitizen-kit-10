@@ -320,7 +320,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
           else time = "#";
           addFIFO(value, time);
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Error in connectionn!!"));
+              if (!ambient__.debug_state()) Serial.println(F("Error in connection!!"));
           #endif
         }
       if (sleep)
@@ -330,7 +330,6 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
               if (!ambient__.debug_state())
               {
                 Serial.println(F("SCK Sleeping")); 
-                Serial.println(F("*******************"));
               }
           #endif
           digitalWrite(AWAKE, LOW); 
