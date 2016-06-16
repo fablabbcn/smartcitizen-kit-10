@@ -255,11 +255,11 @@ boolean SCKServer::connect()
 }
 
 
-void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time) {  
+void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time, boolean instant) {  
   *wait_moment = true;
   uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
   uint16_t NumUpdates = base__.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
-  if (updates>=(NumUpdates - 1))
+  if (updates>=(NumUpdates - 1) || instant)
     { 
       if (sleep)
         {

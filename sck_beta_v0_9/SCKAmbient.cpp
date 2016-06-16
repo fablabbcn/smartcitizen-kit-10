@@ -797,7 +797,7 @@ void SCKAmbient::execute(boolean instant)
       if (!debugON) {                                                // CMD Mode False
         if (RTCupdatedSinceBoot || instant) {
           updateSensors(sensor_mode);
-          if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
+          if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time, instant);
           #if USBEnabled
             txDebug();
           #endif
