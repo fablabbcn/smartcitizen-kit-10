@@ -257,6 +257,9 @@ boolean SCKServer::connect()
 
 void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time, boolean instant) {  
   *wait_moment = true;
+  if (base__.checkRTC()) base__.RTCtime(time);
+  char tmpTime[19];
+  strncpy(tmpTime, time, 20);
   uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
   uint16_t NumUpdates = base__.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
   if (updates>=(NumUpdates - 1) || instant)
@@ -289,12 +292,12 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
                 for (int i=0; i<cycles; i++)
                 {
                   connect();
-                  json_update(POST_MAX, value, time, false);
+                  json_update(POST_MAX, value, tmpTime, false);
                 }
                 num_post = updates - cycles*POST_MAX;
               }
             connect();
-            json_update(num_post, value, time, true);
+            json_update(num_post, value, tmpTime, true);
             #if debugEnabled
                   if (!ambient__.debug_state()) Serial.println(F("Posted to Server!")); 
             #endif
