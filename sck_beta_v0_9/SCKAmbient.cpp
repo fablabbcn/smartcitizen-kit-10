@@ -807,6 +807,7 @@ void SCKAmbient::execute(boolean instant) {
             Serial.print(F(" and pass: "));
             printNetWorks(DEFAULT_ADDR_PASS, false);
             Serial.println("");
+            Serial.println(F("Try restarting your kit!!"));
           }
         #endif
       }
