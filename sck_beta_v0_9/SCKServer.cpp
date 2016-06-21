@@ -323,7 +323,12 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
           else time = "#";
           addFIFO(value, time);
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Error in connection!!"));
+              if (!ambient__.debug_state()) {
+                Serial.print(F("Error in connection!!"));
+                Serial.println(F(" Data saved in memory"));
+                Serial.print(F("Pending updates: "));
+                Serial.println(updates + 1);
+              }
           #endif
         }
       if (sleep)

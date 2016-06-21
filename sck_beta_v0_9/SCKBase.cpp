@@ -398,6 +398,12 @@ boolean SCKBase::RTCtime(char *time) {
   return true;
 }
 
+boolean SCKBase::RTCisValid(char *time) {
+  RTCtime(time);
+  //If year is 2016 we consider rtc data to ba a valid date (without update RTC starts in year 2000)
+  if (time[0] == '2' && time[1] == '0' && time[2] == '1' && time[3] == '6') return true;
+  return false;
+}
 
 uint16_t SCKBase::getPanel(float Vref){
 #if F_CPU == 8000000 

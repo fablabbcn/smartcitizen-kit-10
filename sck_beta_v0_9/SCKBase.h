@@ -44,7 +44,7 @@ public:
     boolean checkRTC();
     boolean RTCadjust(char *time);
     boolean RTCtime(char *time);
-
+    boolean RTCisValid(char *time);
     
     /*Wifi commands*/
     boolean findInResponse(const char *toMatch,

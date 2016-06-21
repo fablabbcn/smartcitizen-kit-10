@@ -774,7 +774,7 @@ void SCKAmbient::execute(boolean instant) {
       terminal_mode = false;
     }
 
-    if (!RTCupdatedSinceBoot) {
+    if (!RTCupdatedSinceBoot && !base_.RTCisValid(time)) {
       digitalWrite(AWAKE, HIGH);
       #if debugEnabled
         if (!debugON) Serial.println(F("RTC not updated!!!"));
