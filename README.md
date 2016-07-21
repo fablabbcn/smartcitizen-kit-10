@@ -29,7 +29,7 @@ Smart Citizen Kit
 
 ### Versions
 
-The current firmware version in use is `0.9.0`.
+The current firmware version in use is `0.9.4`.
 
 We currently support the SD card version on as a diferent firmware `SDCARD`, currently `0.8.7 SDCARD`.
 
