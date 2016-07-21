@@ -1,7 +1,7 @@
 /*
 
   Smart Citizen Kit
-  Ambient Board Beta Firmware v.0.9
+  Ambient Board Beta Firmware v. 0.9.4
 
   http://smartcitizen.me/
 
