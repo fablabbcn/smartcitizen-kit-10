@@ -274,7 +274,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
       if (base__.connect())  //Wifi connect
         {
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("SCK Connected!!")); 
+              if (!ambient__.debug_state()) Serial.println(F("SCK Connected to Wi-Fi!!"));
           #endif   
           if (update(value, time)) //Update time and nets
           {
