@@ -21,6 +21,8 @@ class SCKBase {
 public:
     void begin();
     void config();
+    void eepromCheck();
+    void clearmemory();
     float average(int anaPin);
     boolean checkText(char* text, char* text1);
     boolean compareData(char* text, char* text1);
@@ -42,7 +44,7 @@ public:
     boolean checkRTC();
     boolean RTCadjust(char *time);
     boolean RTCtime(char *time);
-
+    boolean RTCisValid(char *time);
     
     /*Wifi commands*/
     boolean findInResponse(const char *toMatch,

@@ -1,0 +1,399 @@
+#!/usr/bin/python
+"""
+Script for testing new SCK kits.
+"""
+version = 0.2
+
+import serial, sys, glob, shutil, tempfile, urllib, urllib2, json, zipfile, os, time, subprocess
+
+SSID = "mySSID"
+PHRASE = "myPASSWORD"
+
+
+class SCK:
+	def __init__(self):
+		# self.baud = 115200
+		self.baud = 9600
+		self.timeout = 20
+		self.port = False
+		self.mac = False
+		self.talkWiflyFirmware = "wifly/wifly.ino"
+		self.maxRetries = 5
+		self.connected = False
+		self.wiflyVersion = 0
+		self.ssid = SSID
+		self.phrase = PHRASE
+		self.associated = False
+		self.ip = False
+		self.inoFile = False
+		self.firmwareDir = "firmware"
+		self.tmpZip = os.path.join(self.firmwareDir, "tmp.zip")
+		self.logFileName = "testingLog.csv"
+		self.usePort = False
+	def _retry(self, command):
+		retry = 0
+		while retry < myKit.maxRetries:
+			myPrint(".")
+			retry = retry + 1
+			if command: return True
+		return False
+	def _uploadWifliConsole(self):
+		out = subprocess.Popen(['arduino', '--upload', self.talkWiflyFirmware, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+		status = out.wait()
+		if status == 0: return True
+		else:return False
+	def _W_getWiflyVersion(self):
+		self._W_sendWiflyCommand("$$$")
+		self._W_sendWiflyCommand("\r\n")
+		self._W_sendWiflyCommand("exit\r\n", "EXIT", 2)
+		self._W_sendWiflyCommand("$$$")
+		response = self._W_sendWiflyCommand("\r\n", "> ", 2)
+		if "<4.41>" in response[1]:
+			self.wiflyVersion = 4.41
+			return True
+		elif "<4.75>" in response[1]:
+			self.wiflyVersion = 4.75
+			return True
+		else:
+			return False
+	def _W_wiflyJoin(self):
+		self._W_sendWiflyCommand("$$$")
+		self._W_sendWiflyCommand("\r\n")
+		self._W_sendWiflyCommand("set wlan join 1\r\n", "AOK", 1)
+		self._W_sendWiflyCommand("set ip dhcp 1\r\n", "AOK", 1)
+		self._W_sendWiflyCommand("set ip proto 10\r\n", "AOK", 1)
+		self._W_sendWiflyCommand("set wlan auth 4\r\n", "AOK", 1)
+		self._W_sendWiflyCommand("set wlan ssid ")
+		self._W_sendWiflyCommand(self.ssid)
+		self._W_sendWiflyCommand("\r\n", "AOK", 3)
+		self._W_sendWiflyCommand("set wlan phrase ")
+		self._W_sendWiflyCommand(self.phrase)
+		self._W_sendWiflyCommand("\r\n", "AOK", 3)
+		self._W_sendWiflyCommand("set wlan ext_antenna 0\r\n", "AOK", 1)
+		self._W_sendWiflyCommand("save\r\n", "Storing in config", 5)
+		response = self._W_sendWiflyCommand("reboot\r\n", "Listen on", 15)
+		if response[0]:
+			self.associated = True
+			self.ip = response[1].split("IP=")[1].split(":")[0]
+			return True
+		else:
+			return False
+	def _W_updateWifly(self):
+		self._W_sendWiflyCommand("$$$")
+		self._W_sendWiflyCommand("\r\n")
+		updateResponse = self._W_sendWiflyCommand("ftp update wifly3-475.img\r\n", "FTP OK", 60)
+		self._W_sendWiflyCommand("reboot\r\n", "READY", 10)
+		return updateResponse[0]
+	def _W_sendWiflyCommand(self, command, expectedResponse=False, timeout=0.3):
+		self.serial.write(command)
+		response = ""
+		startTime = time.time()
+		while time.time() - startTime < timeout:
+			response = response + self.serial.read_all()
+			if isinstance(expectedResponse, basestring) and expectedResponse in response:
+				return [True, response]
+		return [False, response]
+	def _connectSerial(self):
+		portList = serialPorts()
+		if self.port not in portList:
+			if len(portList) == 1:
+				print "Changing serial port to: " + bcolors.OKBLUE + portList[0] + bcolors.ENDC
+				self.port = portList[0]
+			else:
+				self.port = False
+				while not self.port:
+					self.port = serialPorts()[0]
+		try:
+			self.serial = serial.Serial(self.port, self.baud)
+			self.connected = True
+			return True
+		except serial.SerialException:
+			print bcolors.FAIL + "Can't open Serial Port!!" + bcolors.ENDC
+			self.connected = False
+			sys.exit()
+	def _downloadFirmware(self):
+		if os.path.exists(myKit.firmwareDir) and len(os.listdir(myKit.firmwareDir)) > 0:
+			self.inoFile = os.path.join(os.path.join(os.path.join(myKit.firmwareDir, os.listdir(myKit.firmwareDir)[0]), 'sck_beta_v0_9'), 'sck_beta_v0_9.ino')
+			if os.path.exists(self.inoFile):	
+				return True
+		else:
+			if not os.path.exists(myKit.firmwareDir): os.makedirs(myKit.firmwareDir)
+			myPrint(" downloading...")
+			zipUrl = "https://github.com/fablabbcn/Smart-Citizen-Kit/archive/master.zip"
+			downloadedZip = urllib.urlretrieve(zipUrl, myKit.tmpZip)[0]
+			zipfile.ZipFile(downloadedZip).extractall(myKit.firmwareDir)
+			os.remove(myKit.tmpZip)
+			self.inoFile = os.path.join(os.path.join(os.path.join(myKit.firmwareDir, os.listdir(myKit.firmwareDir)[0]), 'sck_beta_v0_9'), 'sck_beta_v0_9.ino')
+			if os.path.exists(self.inoFile):
+				return True
+			else:
+				return False
+	def _uploadFirmware(self):
+		out = subprocess.Popen(['arduino', '--upload', self.inoFile, '--board', 'arduino:avr:LilyPadUSB', '--port', self.port, '--preserve-temp-files'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+		status = out.wait()
+		if status == 0: return True
+		else: return False
+	def _sendCommand(self, command, expectedResponse=False, timeout=0.3):
+		self.serial.write(command)
+		response = ""
+		startTime = time.time()
+		while time.time() - startTime < timeout:
+			response = response + self.serial.read_all()
+			#exception for post data
+			if "post data" in command:
+				time.sleep(0.05)
+				if isinstance(expectedResponse, basestring) and expectedResponse in response:
+					return [True, response]
+			else:
+				if isinstance(expectedResponse, basestring) and expectedResponse in response:
+					return [True, response]
+		return [False, response]
+	def _update(self):
+		response = self._sendCommand("get all\r\n", "|60|1|", 2)
+		if response[0]:
+			r = response[1].split("|")
+			self.version = r[1]
+			self.mac = r[2]
+			self.nets = r[3]
+			self.hardcodedNets = r[4]
+			self.timeUpdate = r[5]
+			self.posts = r[6]
+		else:
+			return False
+		response = self._sendCommand("post data\r\n", "UTC:", 45)
+		if response[0]:
+			self.temperature = int(response[1].split("Temperature: ")[1].split(" ")[0])
+			self.humidity = int(response[1].split("Humidity: ")[1].split(" ")[0])
+			self.light = float(response[1].split("Light: ")[1].split(" ")[0])
+			self.battery = float(response[1].split("Battery: ")[1].split(" ")[0])
+			self.solarPanel = float(response[1].split("Panel: ")[1].split(" ")[0])
+			self.co = float(response[1].split("Monxide: ")[1].split(" ")[0])
+			self.no2 = float(response[1].split("Dioxide: ")[1].split(" ")[0])
+			self.noise = float(response[1].split("Noise: ")[1].split(" ")[0])
+			self.wifiSpots = int(response[1].split("Spots: ")[1].split("\r\n")[0])
+			self.utc = response[1].split("UTC: ")[1].split("\r\n")[0]
+			return True
+		else: 
+			return False
+	def _evaluate(self):
+		if self.wiflyVersion < 4.75: return "ERROR: wifly ver"
+		if not self.ip or self.ip == "0.0.0.0": return "ERROR: no ip"
+		if self.temperature > 40000 or self.temperature < 0: return "ERROR: temp sensor"
+		if self.humidity > 100000 or self.humidity < 0: return "ERROR: humidity sensor"
+		if self.light > 1000 or self.light < 0: return "ERROR: light sensor"
+		if self.co > 10000 or self.co < 0: return "ERROR: CO sensor"
+		if self.no2 > 10000 or self.no2 < 0: return "ERROR: NO2 sensor"
+		if self.noise > 10000 or self.noise < 0: return "ERROR: noise sensor"
+		return "PASSED"
+	def _log(self):
+		headers = "mac_address,firmware_version,wifly_version,temperature,humidity,light,battery,solar_panel,CO,NO2,noise,passed,comment\n"
+		toLog = [self.mac, self.version, self.wiflyVersion, self.temperature, self.humidity, self.light, self.battery, self.solarPanel, self.co, self.no2, self.noise]
+		result = self._evaluate()
+
+		
+		if not os.path.exists(myKit.logFileName):
+			try:
+				myFile = open(myKit.logFileName, 'w')
+			except:
+				print bcolors.FAIL + "can't create log file!!!, bye!" + bcolors.ENDC
+				sys.exit()
+			myFile.write(headers)
+		else:
+			try:
+				myFile = open(myKit.logFileName, 'a')
+			except:
+				print bcolors.FAIL + "can't create log file!!!, bye!" + bcolors.ENDC
+				sys.exit()
+		for d in toLog:
+			myFile.write(str(d) + ",")
+			print headers.split(",")[toLog.index(d)] + ": " + bcolors.OKBLUE + str(d) + bcolors.ENDC
+		if result == "PASSED":
+			myFile.write("1")
+		else:
+			myFile.write("0")
+		myFile.write("," + result)
+		myFile.write("\n")
+		myFile.close()
+		return result
+
+def myPrint(text):
+	sys.stdout.write(str(text))
+	sys.stdout.flush()
+def serialPorts():
+    """Lists serial ports
+
+    :raises EnvironmentError:
+        On unsupported or unknown platforms
+    :returns:
+        A list of available serial ports
+    """
+    if sys.platform.startswith('win'):
+        ports = ['COM' + str(i + 1) for i in range(256)]
+
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this is to exclude your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+
+    #TODO validar que quien responde es un SCK
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+def selectPort(ports):
+	if len(ports) == 1:
+		print "\nOnly one serial port found, using it! (" + bcolors.OKBLUE + ports[0] + bcolors.ENDC + ")"
+		return ports[0]
+	if len(ports) > 0:
+		print "\nSelect a serial port from the list:\n"
+		for p in ports:
+			print "\t" + str(ports.index(p) + 1) + ". " + p
+
+		i = raw_input("\n[" + ports[0] + "]: ")
+
+		try:
+		 	val = int(i)
+		except:
+			if i == "": val = 1
+			else: val = -1
+
+		if val-1 >= len(ports) or val-1 < 0:
+			print "\n*** please input the port number! ***"
+		 	return False
+		else:
+			return ports[val -1]
+	else:
+		print bcolors.FAIL + "No serial port available, bye!" + bcolors.ENDC
+		sys.exit()
+def wiflySetup():
+	myPrint("Uploading firmware for wifly setup...")
+	if myKit._retry(myKit._uploadWifliConsole()):
+		print bcolors.OKGREEN + " OK" + bcolors.ENDC
+	else:
+		print bcolors.FAIL +  " can't upload firmware, bye!" + bcolors.ENDC
+		sys.exit()
+
+	time.sleep(1)
+	myKit._connectSerial()
+
+	myPrint("Checking Wifly version...")
+	if myKit._retry(myKit._W_getWiflyVersion()):
+		if myKit.wiflyVersion < 4.75:
+			myPrint(" " + bcolors.FAIL + str(myKit.wiflyVersion) + bcolors.ENDC)
+			print " upgrade needed!!!"
+		else:
+			print " " + bcolors.OKGREEN + str(myKit.wiflyVersion) + bcolors.ENDC
+	else:
+		print bcolors.FAIL + " can't talk with wifly module (try resetting your SCK), bye!" + bcolors.ENDC
+		sys.exit()
+
+	myPrint("Conecting to network " + bcolors.OKBLUE + myKit.ssid + bcolors.ENDC + "...")
+	if myKit._retry(myKit._W_wiflyJoin()):
+		print bcolors.OKGREEN + " OK" + bcolors.ENDC + " (" + bcolors.OKBLUE + myKit.ip + bcolors.ENDC + ")"
+	else:
+		print bcolors.FAIL + " cant'connect to network, bye!" + bcolors.ENDC
+		sys.exit()
+
+	if myKit.wiflyVersion < 4.75:
+		myPrint("Upgrading wifly version...")
+		if myKit._retry(myKit._W_updateWifly()) and myKit._W_getWiflyVersion() and myKit.wiflyVersion == 4.75:
+			print bcolors.OKGREEN + " OK" + bcolors.ENDC
+		else:
+			print bcolors.FAIL + " Upgrade failed, please try again, bye!" + bcolors.ENDC
+			sys.exit()
+
+	#return to factory settings
+	myPrint("Reseting wifly module...")
+	myKit._W_sendWiflyCommand("$$$")
+	myKit._W_sendWiflyCommand("\r\n")
+	myKit._W_sendWiflyCommand("factory RESET\r\n", "Set Factory Defaults", 1)
+	myKit._W_sendWiflyCommand("save\r\n", "Storing in config", 1)
+	response = myKit._W_sendWiflyCommand("reboot\r\n", "*READY*", 15)
+	if response[0]:
+		print bcolors.OKGREEN + " OK" + bcolors.ENDC
+	return True
+def installFirmware():
+	if not myKit.inoFile:
+		myPrint("Looking for latest SCK firmware...")
+		if myKit._downloadFirmware():
+			print bcolors.OKGREEN + " OK" + bcolors.ENDC
+		else:
+			print bcolors.FAIL + " download failed, bye!" + bcolors.ENDC
+			sys.exit()
+	myPrint("Uploading latest firmware...")
+	if myKit._uploadFirmware():
+		print bcolors.OKGREEN + " OK" + bcolors.ENDC
+	else:
+		print bcolors.FAIL + " ERROR, reset your kit and try again, bye!" + bcolors.ENDC
+		sys.exit()
+	return True
+
+class bcolors:
+    OKBLUE = '\033[36m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+if __name__ == '__main__':  
+
+	myKit = SCK()
+
+	benchStart = time.time()
+
+	if len(sys.argv) > 1:
+		if sys.argv[1] == "-p":
+			myKit.usePort = True
+		else:
+			print
+			print "Usage: SCKtester.py [OPTION]"
+			print 
+			print "    -p 	 If there is only one serial port, don't ask, use it"    
+			print
+			sys.exit()
+
+	print "\n------------------------------------------"
+	print "| " + bcolors.BOLD + "Smartcitizen Kit tester Script ver " + str(version) + bcolors.ENDC + " |"
+	print "------------------------------------------"
+
+	#seleccion de puerto
+	while not myKit.port:
+		myKit.port = selectPort(serialPorts())
+
+	
+	if wiflySetup():
+		if installFirmware():
+			time.sleep(5)
+			if myKit._connectSerial():
+				time.sleep(0.5)
+				myPrint("Reading sensors...")
+				if myKit._retry(myKit._update()):
+					print bcolors.OKGREEN + " OK\n" + bcolors.ENDC
+					result = myKit._log()
+					if result == "PASSED":
+						print "\nTesting " + bcolors.OKGREEN + result + bcolors.ENDC + "\n"
+					else:
+						print bcolors.FAIL + "\n" + result + bcolors.ENDC + "\n"
+				else:
+					print bcolors.FAIL + "can't read sensors! bye!" + bcolors.ENDC
+					sys.exit()
+				myPrint("Last task: clearing nets and eeprom memory...")
+				myKit._sendCommand("clear nets\r\n")
+				myKit._sendCommand("clear memory\r\n")
+				myKit._sendCommand("get all\r\n", "|60|1|", 25)
+				print bcolors.OKGREEN + " OK" + bcolors.ENDC
+				print "Testing has took " + bcolors.OKBLUE + str(int(time.time()-benchStart)) + bcolors.ENDC + " seconds."
+				print "Bye!\n"

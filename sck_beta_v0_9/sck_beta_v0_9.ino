@@ -1,7 +1,7 @@
 /*
 
   Smart Citizen Kit
-  Ambient Board Beta Firmware v.0.9
+  Ambient Board Beta Firmware v. 0.9.4
 
   http://smartcitizen.me/
 
@@ -36,10 +36,11 @@ SCKAmbient ambient;
 void setup() {
   ambient.begin();
   ambient.ini();
+  ambient.execute(true);
 }
 
 void loop() {  
-  ambient.execute();
+  ambient.execute(false);
 }
 
 

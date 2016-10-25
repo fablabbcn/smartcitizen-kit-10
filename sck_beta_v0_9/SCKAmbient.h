@@ -31,7 +31,7 @@ class SCKAmbient {
 public:
   void begin();
   void ini();
-  void execute();
+  void execute(boolean instant);
   void writeGAIN(long value);
   float readGAIN(); 
   void GasSensor(boolean active);
@@ -74,7 +74,7 @@ private:
   uint16_t readSHT21(uint8_t type);
   boolean DhtRead(uint8_t pin);
   int addData(byte inByte);
-  boolean printNetWorks(unsigned int address_eeprom);
+  boolean printNetWorks(unsigned int address_eeprom, boolean endLine);
   void addNetWork(unsigned int address_eeprom, char* text);
 };
 #endif

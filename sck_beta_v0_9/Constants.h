@@ -9,9 +9,9 @@
 #define decouplerComp   true   //Only for version Goteo 1.0
 
 #if F_CPU == 8000000 
-    #define FirmWare  "1.1-0.9.0-A"
+    #define FirmWare  "1.1-0.9.4"
 #else
-    #define FirmWare  "1.0-0.9.0-A"
+    #define FirmWare  "1.0-0.9.4"
 #endif
 
 /* 
@@ -39,19 +39,19 @@ WIFLY Firmware Setting
 #define networks 0
 #if (networks > 0)
 static char* mySSID[networks]      = { 
-  "SSID1"        , "SSID2"        , "SSID3"             };
+  "SSID1"        , "SSID2"     };
 static char* myPassword[networks]  = { 
-  "PASS1"      , "PASS2"       , "PASS3"            };
+  "PASS1"      , "PASS2"          };
 static char* wifiEncript[networks] = { 
-  WPA2         , WPA2          , WPA2               };
+  WPA2         , WPA2                };
 static char* antennaExt[networks]  = { 
-  INT_ANT      , INT_ANT       , INT_ANT            };
+  INT_ANT      , INT_ANT             };
 #endif      
 
 #define TWI_FREQ 400000L //Frecuencia bus I2C
 
-#define WIFLY_LATEST_VERSION 441
-#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-441.img"
+#define WIFLY_LATEST_VERSION 475
+#define DEFAULT_WIFLY_FIRMWARE "ftp update wifly3-475.img"
 #define DEFAULT_WIFLY_FTP_UPDATE "set ftp address 198.175.253.161"
 
 /* 
@@ -86,10 +86,11 @@ SENSOR READINGS - Defaults
 */
 
 #define DEFAULT_TIME_UPDATE  60     //Time between update and update
+#define MIN_TIME_UPDATE      10     //Minimum time between updates (minimum time to read all the sensors)
+#define MAX_TIME_UPDATE      3600   //Max time between updates (one hour)
 #define DEFAULT_MIN_UPDATES  1      //Minimum number of updates before posting
 #define POST_MAX             20     //Max number of postings at a time
 #define DEFAULT_MODE_SENSOR  NORMAL     //Type sensors capture (OFFLINE, NOWIFI, NORMAL, ECONOMIC)
-
 
 /* 
 
@@ -124,6 +125,8 @@ i2c ADDRESSES
 Internal EEPROM Memory Addresses
 
 */ 
+
+#define MAX_MEMORY                                  571 //Memory size
 
 // SCK Configuration Parameters 
 #define EE_ADDR_TIME_VERSION                        0   //32BYTES 
@@ -215,7 +218,7 @@ static char buffer[buffer_length];
 // Basic Server Posts to the SmartCitizen Platform - EndPoint: http://data.smartcitizen.me/add 
 static char* WEB[8]={
                   "data.smartcitizen.me",
-                  "PUT /add HTTP/1.1 \n", 
+                  "PUT /add HTTP/1.1\n", 
                   "Host: data.smartcitizen.me \n", 
                   "User-Agent: SmartCitizen \n", 
                   "X-SmartCitizenMacADDR: ", 
@@ -226,7 +229,7 @@ static char* WEB[8]={
 // Time server request -  EndPoint: http://data.smartcitizen.me/datetime                 
 static char* WEBTIME[3]={                  
                   /*Servidor de tiempo*/
-                  "GET /datetime HTTP/1.1 \n",
+                  "GET /datetime HTTP/1.1\n",
                   "Host: data.smartcitizen.me \n",
                   "User-Agent: SmartCitizen \n\n"  
                   };

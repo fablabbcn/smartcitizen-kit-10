@@ -39,31 +39,55 @@ void SCKBase::begin() {
 }
 
 void SCKBase::config(){
-  if (!compareData(__TIME__, readData(EE_ADDR_TIME_VERSION, 0, INTERNAL)))
-  {
-    digitalWrite(AWAKE, HIGH); 
+  eepromCheck();
+  timer1Initialize();
+}
+
+void SCKBase::eepromCheck() {
+  //do a clearmemory only if needed
+  digitalWrite(AWAKE, HIGH);
+  boolean doClearMemory = false;
+  char temp[17];
+  strncpy(temp, MAC(), 18);
+  while (compareData(temp, "-1")){
+    #if debugBASE
+      Serial.println(F("Can't get MAC from Wifly!!!"));
+    #endif
+    strncpy(temp, MAC(), 18);
+  }
+  if (!compareData(temp, readData(EE_ADDR_MAC, 0, INTERNAL))) doClearMemory = true;
+  uint32_t intTemp;
+  intTemp = readData(EE_ADDR_SENSOR_MODE, INTERNAL);
+  if (intTemp < 0 || intTemp > 3) doClearMemory = true;
+  intTemp = readData(EE_ADDR_TIME_UPDATE, INTERNAL);
+  if (intTemp < MIN_TIME_UPDATE || intTemp > MAX_TIME_UPDATE) doClearMemory = true;
+  intTemp = readData(EE_ADDR_NUMBER_UPDATES, INTERNAL);
+  if (intTemp < DEFAULT_MIN_UPDATES || intTemp > POST_MAX) doClearMemory = true;
+  if (doClearMemory) clearmemory();
+
+  //if there are hardcoded networks write them without clearing memory
+  //so the user can add more networks after hardcoded one's
+  #if (networks > 0)
+    intTemp = readData(EE_ADDR_NUMBER_NETS, INTERNAL);
+    if (intTemp < networks || intTemp > 5) writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
+    for (byte i=0; i<networks; i++){
+      if (!compareData(readData(DEFAULT_ADDR_SSID, i, INTERNAL), mySSID[i])) writeData(DEFAULT_ADDR_SSID, i, mySSID[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_PASS, i, INTERNAL), myPassword[i])) writeData(DEFAULT_ADDR_PASS, i, myPassword[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_AUTH, i, INTERNAL), wifiEncript[i])) writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], INTERNAL);
+      if (!compareData(readData(DEFAULT_ADDR_ANTENNA, i, INTERNAL), antennaExt[i])) writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], INTERNAL);
+    }
+    reset();
+  #endif
+}
+
+void SCKBase::clearmemory() {
     for(uint16_t i=0; i<(DEFAULT_ADDR_ANTENNA + 160); i++) EEPROM.write(i, 0x00);  // Memory erasing
-    writeData(EE_ADDR_TIME_VERSION, 0, __TIME__, INTERNAL);
     writeData(EE_ADDR_SENSOR_MODE, DEFAULT_MODE_SENSOR, INTERNAL);
     writeData(EE_ADDR_TIME_UPDATE, DEFAULT_TIME_UPDATE, INTERNAL);
     writeData(EE_ADDR_NUMBER_UPDATES, DEFAULT_MIN_UPDATES, INTERNAL);
     writeData(EE_ADDR_MAC, 0, MAC(), INTERNAL);
-
-    #if (networks > 0)
-        for(byte i=0; i<networks; i++)
-        {
-          writeData(DEFAULT_ADDR_SSID, i, mySSID[i], INTERNAL);
-          writeData(DEFAULT_ADDR_PASS, i, myPassword[i], INTERNAL);
-          writeData(DEFAULT_ADDR_AUTH, i, wifiEncript[i], INTERNAL);
-          writeData(DEFAULT_ADDR_ANTENNA, i, antennaExt[i], INTERNAL);
-        }
-        writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
-    #endif
-    reset();
-  }
-  timer1Initialize();
 }
-
+  
 float SCKBase::average(int anaPin) {
   int lecturas = 100;
   long total = 0;
@@ -374,6 +398,12 @@ boolean SCKBase::RTCtime(char *time) {
   return true;
 }
 
+boolean SCKBase::RTCisValid(char *time) {
+  RTCtime(time);
+  //If year is 2016 we consider rtc data to ba a valid date (without update RTC starts in year 2000)
+  if (time[0] == '2' && time[1] == '0' && time[2] == '1' && time[3] == '6') return true;
+  return false;
+}
 
 uint16_t SCKBase::getPanel(float Vref){
 #if F_CPU == 8000000 
@@ -393,6 +423,109 @@ uint16_t SCKBase::getPanel(float Vref){
   return value;
 }
 
+const uint16_t batTable[] = {
+  3078,
+  3364,
+  3468,
+  3540,
+  3600,
+  3641,
+  3682,
+  3701,
+  3710,
+  3716,
+  3716,
+  3716,
+  3720,
+  3714,
+  3720,
+  3725,
+  3732,
+  3742,
+  3739,
+  3744,
+  3744,
+  3754,
+  3760,
+  3762,
+  3770,
+  3768,
+  3774,
+  3774,
+  3774,
+  3779,
+  3784,
+  3790,
+  3788,
+  3794,
+  3798,
+  3798,
+  3804,
+  3809,
+  3809,
+  3812,
+  3817,
+  3817,
+  3822,
+  3823,
+  3828,
+  3828,
+  3828,
+  3833,
+  3838,
+  3838,
+  3842,
+  3847,
+  3852,
+  3859,
+  3858,
+  3864,
+  3862,
+  3869,
+  3877,
+  3877,
+  3883,
+  3888,
+  3894,
+  3898,
+  3902,
+  3906,
+  3912,
+  3923,
+  3926,
+  3936,
+  3942,
+  3946,
+  3960,
+  3972,
+  3979,
+  3982,
+  3991,
+  3997,
+  4002,
+  4002,
+  4012,
+  4018,
+  4028,
+  4043,
+  4057,
+  4074,
+  4084,
+  4094,
+  4098,
+  4098,
+  4109,
+  4115,
+  4123,
+  4134,
+  4142,
+  4153,
+  4158,
+  4170,
+  4180,
+  4188
+};
+
 uint16_t SCKBase::getBattery(float Vref) {
   uint16_t temp = average(BAT);
 #if F_CPU == 8000000 
@@ -401,18 +534,23 @@ uint16_t SCKBase::getBattery(float Vref) {
 #else
   float voltage = Vref*temp/1023.;
 #endif
-  temp = map(voltage, VAL_MIN_BATTERY, VAL_MAX_BATTERY, 0, 1000);
-  if (temp>1000) temp=1000;
-  if (temp<0) temp=0;
+  uint16_t percent = 1000;
+  for(uint16_t i = 0; i < 100; i++) {
+    if(voltage < batTable[i]) {
+      percent = i * 10;
+      break;
+    }
+  }
+  if(percent < 10) percent = 10;
 #if debugBASE
   Serial.print("Vbat: ");
   Serial.print(voltage);
   Serial.print(" mV, ");
   Serial.print("Battery level: ");
-  Serial.print(temp/10.);
+  Serial.print(percent/10);
   Serial.println(" %");
 #endif
-  return temp; 
+  return percent;
 }
 
 boolean SCKBase::findInResponse(const char *toMatch,
@@ -682,10 +820,9 @@ char* SCKBase::MAC() {
         if (Serial1.available())
         {
           newChar = Serial1.read();
-          //Serial.println(newChar);
           if ((newChar == '\n')||(newChar < '0')) {
             buffer[offset] = '\x00';
-            break;
+            return buffer;
           } 
           else if (newChar != -1) {
             buffer[offset] = newChar;
@@ -697,8 +834,7 @@ char* SCKBase::MAC() {
       exitCommandMode();
     }        
   }
-
-  return buffer;
+  return "-1";
 }
 
 char* SCKBase::id() {

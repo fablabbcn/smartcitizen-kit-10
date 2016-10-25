@@ -24,7 +24,7 @@ boolean SCKServer::time(char *time_) {
   boolean ok=false;
   uint8_t count = 0;
   byte retry=0;
-  while (retry<5)
+  while ((retry<5)&&(!ok))
   {
    retry++;
    if (base__.enterCommandMode()) 
@@ -45,7 +45,7 @@ boolean SCKServer::time(char *time_) {
                   if (newChar == '#') {
                     ok = true;
                     time_[offset] = '\x00';
-                    return ok;
+                    break;
                   } 
                   else if (newChar != -1) {
                     if (newChar==',') 
@@ -66,14 +66,37 @@ boolean SCKServer::time(char *time_) {
                 }
               }
            }
+         else {
+           #if debugServer
+             Serial.println("FAIL:(");
+           #endif
+         }
          base__.close();
        }
     }
   }
-  time_[0] = '#';
-  time_[1] = 0x00;
+  if (!ok)
+    {
+      time_[0] = '#';
+      time_[1] = 0x00;
+    }
   base__.exitCommandMode();
   return ok;
+}
+
+boolean SCKServer::RTCupdate(char *time_){
+  byte retry = 0;
+  if (base__.checkRTC()){
+    if (time(time_)) {
+      while (retry<5) {
+        retry++;
+        if(base__.RTCadjust(time_)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean isMultipart)
@@ -128,15 +151,25 @@ void SCKServer::json_update(uint16_t updates, long *value, char *time, boolean i
 
 void SCKServer::addFIFO(long *value, char *time)
   {
-    int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL);
-    int i = 0;
-    for (i = 0; i<9; i++)
-      {
-        base__.writeData(eeaddress + i*4, value[i], EXTERNAL);
-      } 
-    base__.writeData(eeaddress + i*4, 0, time, EXTERNAL);
-    eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
-    base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, INTERNAL);
+    uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
+    if (updates < MAX_MEMORY)
+    {
+      int eeaddress = base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL);
+      int i = 0;
+      for (i = 0; i<9; i++)
+        {
+          base__.writeData(eeaddress + i*4, value[i], EXTERNAL);
+        } 
+      base__.writeData(eeaddress + i*4, 0, time, EXTERNAL);
+      eeaddress = eeaddress + (SENSORS)*4 + TIME_BUFFER_SIZE;
+      base__.writeData(EE_ADDR_NUMBER_WRITE_MEASURE, eeaddress, INTERNAL);
+    }
+    else
+    {
+      #if debugEnabled
+              if (!ambient__.debug_state()) Serial.println(F("Memory limit exceeded!!"));
+      #endif
+    }
   }
 
 void SCKServer::readFIFO()
@@ -222,11 +255,14 @@ boolean SCKServer::connect()
 }
 
 
-void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time) {  
+void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *time, boolean instant) {  
   *wait_moment = true;
+  if (base__.checkRTC()) base__.RTCtime(time);
+  char tmpTime[19];
+  strncpy(tmpTime, time, 20);
   uint16_t updates = (base__.readData(EE_ADDR_NUMBER_WRITE_MEASURE, INTERNAL)-base__.readData(EE_ADDR_NUMBER_READ_MEASURE, INTERNAL))/((SENSORS)*4 + TIME_BUFFER_SIZE);
   uint16_t NumUpdates = base__.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
-  if (updates>=(NumUpdates - 1))
+  if (updates>=(NumUpdates - 1) || instant)
     { 
       if (sleep)
         {
@@ -238,7 +274,7 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
       if (base__.connect())  //Wifi connect
         {
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("SCK Connected!!")); 
+              if (!ambient__.debug_state()) Serial.println(F("SCK Connected to Wi-Fi!!"));
           #endif   
           if (update(value, time)) //Update time and nets
           {
@@ -256,12 +292,12 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
                 for (int i=0; i<cycles; i++)
                 {
                   connect();
-                  json_update(POST_MAX, value, time, false);
+                  json_update(POST_MAX, value, tmpTime, false);
                 }
                 num_post = updates - cycles*POST_MAX;
               }
             connect();
-            json_update(num_post, value, time, true);
+            json_update(num_post, value, tmpTime, true);
             #if debugEnabled
                   if (!ambient__.debug_state()) Serial.println(F("Posted to Server!")); 
             #endif
@@ -283,9 +319,16 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
         }
       else //No connect
         {
+          if (base__.checkRTC()) base__.RTCtime(time);
+          else time = "#";
           addFIFO(value, time);
           #if debugEnabled
-              if (!ambient__.debug_state()) Serial.println(F("Error in connectionn!!"));
+              if (!ambient__.debug_state()) {
+                Serial.print(F("Error in connection!!"));
+                Serial.println(F(" Data saved in memory"));
+                Serial.print(F("Pending updates: "));
+                Serial.println(updates + 1);
+              }
           #endif
         }
       if (sleep)
@@ -295,7 +338,6 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
               if (!ambient__.debug_state())
               {
                 Serial.println(F("SCK Sleeping")); 
-                Serial.println(F("*******************"));
               }
           #endif
           digitalWrite(AWAKE, LOW); 
@@ -303,7 +345,6 @@ void SCKServer::send(boolean sleep, boolean *wait_moment, long *value, char *tim
     }
   else
     {
-        //value[8] = 0;  //Wifi Nets
         if (base__.checkRTC()) base__.RTCtime(time);
         else time = "#";
         addFIFO(value, time);

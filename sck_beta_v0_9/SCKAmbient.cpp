@@ -126,7 +126,8 @@ uint32_t  NumUpdates   = 0;  // Min. number of sensor readings before publishing
 uint32_t  nets           = 0;
 boolean sleep         = true; 
 uint32_t timetransmit = 0; 
-uint32_t timeMICS = 0; 
+uint32_t timeMICS = 0;
+boolean RTCupdatedSinceBoot = false;
 
 void SCKAmbient::ini()
   {
@@ -138,64 +139,47 @@ void SCKAmbient::ini()
     NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); //Number of readings before batch update
     nets = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
     if (TimeUpdate*NumUpdates < 60) sleep = false;
-    else sleep = true; 
-    if (nets==0)
-    {
-      sleep = false;  
-      sensor_mode = OFFLINE;    //Offline mode, no networks un memory
-      base_.repair();           //Repairs wifi if corruption
-      base_.APmode(base_.id()); //Starts as acces point
-    #if debugEnabled
-        if (!debugON) Serial.println(F("AP initialized!"));
-    #endif 
-    }
-    else
-    {
-      if (base_.connect())
-      {
-        #if debugEnabled
-          if (!debugON) Serial.println(F("SCK Connected!!"));
-        #endif
-        #if autoUpdateWiFly
-          int report = base_.checkWiFly();
-          #if debugEnabled
-            if (!debugON)
-              {
-                  if (report == 1) Serial.println(F("Wifly Updated."));
-                  else if (report == 2) Serial.println(F("Update Fail."));
-                  else if (report == 0) Serial.println(F("WiFly up to date."));
-                  else if (report == -1) Serial.println(F("Error reading the wifi version."));
-              }
-          #endif
-        #endif
-        byte retry = 0;
-        if (base_.checkRTC())
-        {
-          if (server_.time(time))
-          {
-            while (!base_.RTCadjust(time)&&(retry<5)) retry++;
-            #if debugEnabled
-                    if (!debugON) Serial.println(F("Updating RTC..."));
-            #endif
-          }
-          #if debugEnabled
-            else if (!debugON) Serial.println(F("Fail updating RTC!!"));
-          #endif
-        }
-      }
-    }  
-    if(sleep)
-    {
-      base_.sleep();
+    else sleep = true;
+    if (base_.connect()) {
       #if debugEnabled
-          if (!debugON) Serial.println(F("SCK Sleeping...")); 
+        if (!debugON) Serial.println(F("SCK Connected to Wi-Fi!!"));
       #endif
-      digitalWrite(AWAKE, LOW); 
-    }   
+      #if autoUpdateWiFly
+        int report = base_.checkWiFly();
+        #if debugEnabled
+          if (!debugON) {
+            if (report == 1) Serial.println(F("Wifly Updated."));
+            else if (report == 2) Serial.println(F("Update Fail."));
+            else if (report == 0) Serial.println(F("WiFly up to date."));
+            else if (report == -1) Serial.println(F("Error reading the wifi version."));
+          }
+        #endif
+      #endif
+      if (server_.RTCupdate(time)) {
+        RTCupdatedSinceBoot = true;
+        #if debugEnabled
+          if (!debugON) Serial.println(F("RTC Updated!!"));
+        #endif
+      } else {
+        #if debugEnabled
+          if (!debugON) Serial.println(F("RTC Update Failed!!"));
+        #endif
+      }
+    } else {
+      #if debugEnabled
+        if (!debugON) {
+          Serial.print(F("Wifi conection failed!!! Using ssid: "));
+          printNetWorks(DEFAULT_ADDR_SSID, false);
+          Serial.print(F(" and pass: "));
+          printNetWorks(DEFAULT_ADDR_PASS, false);
+          Serial.println("");
+        }
+      #endif
+    }
     timetransmit = millis();
     wait_moment = false;
     timeMICS = millis();
-  }  
+  }
   
   float k= (RES*(float)R1/100)/1000; //Voltatge Constant for the Voltage reg.
  
@@ -781,34 +765,71 @@ boolean SCKAmbient::debug_state()
     return debugON;
   }
 
-void SCKAmbient::execute()
-  {
-    if (terminal_mode)  // Telnet  (#data + *OPEN* detectado )
-    {
+void SCKAmbient::execute(boolean instant) {
+    if (terminal_mode) {                        // Telnet  (#data + *OPEN* detectado )
       sleep = false;
       digitalWrite(AWAKE, HIGH);
       server_.json_update(0, value, time, true);
       usb_mode = false;
       terminal_mode = false;
     }
-    if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second)
-    {  
-      timetransmit = millis();
-      TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
-      NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
-      updateSensors(sensor_mode); 
-      if (!debugON)                                                  // CMD Mode False
-      {
-        if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time);
-        #if USBEnabled
-              txDebug();
+
+    if (!RTCupdatedSinceBoot && !base_.RTCisValid(time)) {
+      digitalWrite(AWAKE, HIGH);
+      #if debugEnabled
+        if (!debugON) Serial.println(F("RTC not updated!!!"));
+        if (!debugON) Serial.println(F("With no valid time it's useless to take readings!!"));
+        if (!debugON) Serial.println(F("Trying to get valid time..."));
+      #endif
+      if (base_.connect()){
+        #if debugEnabled
+          if (!debugON) Serial.println(F("SCK Connected to Wi-Fi!!"));
+        #endif
+        if (server_.RTCupdate(time)) {
+          RTCupdatedSinceBoot = true;
+          if (sleep) {
+            base_.sleep();
+            digitalWrite(AWAKE, LOW);
+          }
+          #if debugEnabled
+            if (!debugON) Serial.println(F("RTC Updated!!"));
+          #endif
+        } else {
+          #if debugEnabled
+            if (!debugON) Serial.println(F("RTC Update Failed!!"));
+          #endif
+        }
+      } else {
+        #if debugEnabled
+          if (!debugON) {
+            Serial.print(F("Wifi conection failed!!! Using ssid: "));
+            printNetWorks(DEFAULT_ADDR_SSID, false);
+            Serial.print(F(" and pass: "));
+            printNetWorks(DEFAULT_ADDR_PASS, false);
+            Serial.println("");
+            Serial.println(F("Try restarting your kit!!"));
+          }
         #endif
       }
+    } else {
+      if ((millis()-timetransmit) >= (unsigned long)TimeUpdate*second || instant) {
+        if(!instant) timetransmit = millis();                          // Only reset timer if execute() is called by timer
+        TimeUpdate = base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL);    // Time between transmissions in sec.
+        NumUpdates = base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL); // Number of readings before batch update
+        if (!debugON) {                                                // CMD Mode False
+          updateSensors(sensor_mode);
+          if ((sensor_mode)>NOWIFI) server_.send(sleep, &wait_moment, value, time, instant);
+          #if USBEnabled
+            txDebug();
+          #endif
+        }
+      }
     }
-  }       
+  }
            
 void SCKAmbient::txDebug() {
   if (debugON== false) {
+    Serial.println(F("*******************"));
     float dec = 0;
     for(int i=0; i<9; i++) 
     {
@@ -827,7 +848,7 @@ void SCKAmbient::txDebug() {
         else dec = 1;
       Serial.print(SENSOR[i]); 
       if (dec>1) Serial.print((float)(value[i]/dec)); 
-      else Serial.print((int)(value[i]/dec)); 
+      else Serial.print((unsigned int)(value[i]/dec)); 
       Serial.println(UNITS[i]);
     }
     Serial.print(SENSOR[9]);
@@ -878,7 +899,7 @@ int SCKAmbient::addData(byte inByte)
   }
 
     
-boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
+boolean SCKAmbient::printNetWorks(unsigned int address_eeprom, boolean endLine=true)
     {
       int nets_temp = base_.readData(EE_ADDR_NUMBER_NETS, INTERNAL);
       if (nets_temp>0){
@@ -887,7 +908,8 @@ boolean SCKAmbient::printNetWorks(unsigned int address_eeprom)
             Serial.print(base_.readData(address_eeprom, i, INTERNAL));
             if (i<(nets_temp - 1)) Serial.print(' ');
           }
-        Serial.println();}
+        if (endLine) Serial.println();
+      }
     }  
 
 void SCKAmbient::addNetWork(unsigned int address_eeprom, char* text)
@@ -956,14 +978,37 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("get sck info\r", buffer_int))           Serial.println(FirmWare);
             else if (base_.checkText("get wifi info\r", buffer_int))          Serial.println(base_.getWiFlyVersion());
             else if (base_.checkText("get mac\r", buffer_int))                Serial.println(base_.readData(EE_ADDR_MAC, 0, INTERNAL));
-            else if (base_.checkText("get wlan ssid\r", buffer_int))          printNetWorks(DEFAULT_ADDR_SSID);
-            else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS);
-            else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH);
-            else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA);
+            else if (base_.checkText("get wlan ssid\r", buffer_int))          printNetWorks(DEFAULT_ADDR_SSID, true);
+            else if (base_.checkText("get wlan phrase\r", buffer_int))        printNetWorks(DEFAULT_ADDR_PASS, true);
+            else if (base_.checkText("get wlan auth\r", buffer_int))          printNetWorks(DEFAULT_ADDR_AUTH, true);
+            else if (base_.checkText("get wlan ext_antenna\r", buffer_int))   printNetWorks(DEFAULT_ADDR_ANTENNA, true);
             else if (base_.checkText("get mode sensor\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_SENSOR_MODE, INTERNAL));
             else if (base_.checkText("get time update\r", buffer_int))        Serial.println(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
             else if (base_.checkText("get number updates\r", buffer_int))     Serial.println(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
             else if (base_.checkText("get apikey\r", buffer_int))             Serial.println(base_.readData(EE_ADDR_APIKEY, 0, INTERNAL));
+            else if (base_.checkText("get all\r", buffer_int)) {
+              Serial.print(F("|"));
+              Serial.print(FirmWare);
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_MAC, 0, INTERNAL)); //MAC
+              Serial.print(F("|"));
+              printNetWorks(DEFAULT_ADDR_SSID, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_PASS, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_ANTENNA, false);
+              Serial.print(F(","));
+              printNetWorks(DEFAULT_ADDR_AUTH, false);
+              Serial.print(F("|"));
+              Serial.print(networks);
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_TIME_UPDATE, INTERNAL));
+              Serial.print(F("|"));
+              Serial.print(base_.readData(EE_ADDR_NUMBER_UPDATES, INTERNAL));
+              Serial.println(F("|"));
+            } else if (base_.checkText("post data\r", buffer_int)) {
+              execute(true);
+            }
             /*Write commands*/
             else if (base_.checkText("set wlan ssid ", buffer_int))
             {
@@ -976,14 +1021,18 @@ void SCKAmbient::serialRequests()
             else if (base_.checkText("set wlan key ", buffer_int)) addNetWork(EE_ADDR_NUMBER_NETS, buffer_int);
             else if (base_.checkText("set wlan ext_antenna ", buffer_int))  addNetWork(DEFAULT_ADDR_ANTENNA, buffer_int);
             else if (base_.checkText("set wlan auth ", buffer_int)) addNetWork(DEFAULT_ADDR_AUTH, buffer_int);
-            else if (base_.checkText("clear nets\r", buffer_int)) base_.writeData(EE_ADDR_NUMBER_NETS, 0x0000, INTERNAL);
+            else if (base_.checkText("clear nets\r", buffer_int)) base_.writeData(EE_ADDR_NUMBER_NETS, networks, INTERNAL);
             else if (base_.checkText("set mode sensor ", buffer_int)) base_.writeData(EE_ADDR_SENSOR_MODE, atol(buffer_int), INTERNAL);
-            else if (base_.checkText("set time update ", buffer_int)) base_.writeData(EE_ADDR_TIME_UPDATE, atol(buffer_int), INTERNAL);
+            else if (base_.checkText("set time update ", buffer_int)) {
+              TimeUpdate = atol(buffer_int);
+              base_.writeData(EE_ADDR_TIME_UPDATE, TimeUpdate, INTERNAL);
+            }
             else if (base_.checkText("set number updates ", buffer_int)) base_.writeData(EE_ADDR_NUMBER_UPDATES, atol(buffer_int), INTERNAL);
             else if (base_.checkText("set apikey ", buffer_int)){
               eeprom_write_ok = true;
               address_eeprom = EE_ADDR_APIKEY;
             } 
+            else if (base_.checkText("clear memory\r", buffer_int)) base_.clearmemory();
           }
         else if (check_data == -1) Serial.println("Invalid command.");
         if (serial_bridge) Serial1.write(inByte); 
