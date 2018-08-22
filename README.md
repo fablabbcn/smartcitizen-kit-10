@@ -53,6 +53,6 @@ You can see the hardware versions [here](https://github.com/fablabbcn/Smart-Citi
 
 * We are working on improving the firmware documentation for developers but still we encourage you to Fork the project and do a Pull request with your contributions.
 
+## License
 
-
-
+All the software unless stated is released under [GNU GPL v3.0](https://github.com/fablabbcn/smartcitizen-kit/blob/master/LICENSE) and the hardware design files under [CERN OHL v1.2](https://github.com/fablabbcn/smartcitizen-kit/blob/master/hardware/LICENSE)
