@@ -1,11 +1,11 @@
 Smart Citizen Kit
 =================
 
+**NOTE:** [Click here](https://github.com/fablabbcn/smartcitizen-kit-20) for the newer version of SCK 2.0+
+
 **Smart Citizen Kit BETA version for the Ambient Sensor Board.**
 
-<img src="http://docs.smartcitizen.me/img/sck_1.1_3.jpg" alt="SCK" style="width: 100%"/>
-
-[Click here](https://github.com/fablabbcn/smartcitizen-kit-20) for the SCK 2.0+
+<img src="https://docs.smartcitizen.me/assets/images/sck_1/v1.0/main_board_cpu.jpg" alt="SCK" style="width: 100%"/>
 
 
 ### Download
