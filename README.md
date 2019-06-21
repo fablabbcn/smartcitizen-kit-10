@@ -5,6 +5,9 @@ Smart Citizen Kit
 
 <img src="http://docs.smartcitizen.me/img/sck_1.1_3.jpg" alt="SCK" style="width: 100%"/>
 
+[Click here](https://github.com/fablabbcn/smartcitizen-kit-20) for the SCK 2.0+
+
+
 ### Download
 
 * Download the latest firmware release [here](https://github.com/fablabbcn/Smart-Citizen-Kit/releases/latest).
